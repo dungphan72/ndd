@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <!-- App-shell meta: makes the page behave like a native app when added to the Home Screen -->
+  <meta name="theme-color" content="#059669">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nhomdinhduong.vn">
+  <title>Nhomdinhduong.vn - Tìm Kiếm & Kết Nối Nhóm Dinh Dưỡng Toàn Quốc</title>
+  <meta name="description" content="Nền tảng tìm kiếm Nhóm Dinh Dưỡng Chuyên Sâu, Nhóm Dinh Dưỡng Vận Động, Đăng ký tham gia sự kiện và Công cụ tính BMI cá nhân hóa.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Solid (Flat Icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Leaflet CSS for Interactive Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Main Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css?v=4.0">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <!-- Logo -->
+      <div class="logo" onclick="App.switchTab('clubsTab')">
+        <div class="logo-icon"><i class="fa-solid fa-leaf"></i></div>
+        <span>Nhomdinhduong<span style="color: var(--primary); font-size: 1.15rem;">.vn</span></span>
+      </div>
+
+      <!-- Main Navigation Tabs (Streamlined & Premium) -->
+      <ul class="nav-links">
+        <li>
+          <button type="button" class="nav-link-btn active" data-tab="clubsTab" title="Trang chủ" onclick="App.switchTab('clubsTab')">
+            <i class="fa-solid fa-house"></i>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-link-btn" data-tab="eventsTab" onclick="App.switchTab('eventsTab')">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Sự Kiện</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-link-btn" data-tab="shopTab" onclick="App.switchTab('shopTab')">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>Shop</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-link-btn" data-tab="bmiTab" onclick="App.switchTab('bmiTab')">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <span>Tính BMI</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-link-btn" data-tab="coursesTab" onclick="App.switchTab('coursesTab')">
+            <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i>
+            <span>Khóa Học</span>
+          </button>
+        </li>
+      </ul>
+
+      <!-- Nav Actions & User Profile -->
+      <div class="nav-actions">
+
+        <!-- Guest Actions: Segmented Split Pill [Đăng Nhập | Đăng Ký] -->
+        <div id="guestNavActions" class="guest-auth-pill">
+          <button type="button" class="auth-pill-btn" onclick="App.openModal('loginModal')">Đăng Nhập</button>
+          <span class="auth-pill-divider"></span>
+          <button type="button" class="auth-pill-btn highlight" onclick="App.openModal('registerModal')">Đăng Ký</button>
+        </div>
+
+        <!-- Logged-in User Profile Dropdown -->
+        <div id="userNavActions" style="display: none; position: relative;">
+          <div class="user-menu-box" onclick="App.toggleUserDropdown()">
+            <img id="userAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar" class="user-avatar-sm">
+            <span id="userNameLabel" class="user-name-label">Nguyễn Văn Hùng</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem;"></i>
+          </div>
+
+          <!-- Dropdown List -->
+          <div id="userDropdownMenu" class="user-dropdown">
+            <div class="dropdown-item" onclick="App.openUserProfilePage(); event.stopPropagation();">
+              <i class="fa-solid fa-user" style="color: var(--primary);"></i>
+              <span>Hồ sơ cá nhân</span>
+            </div>
+            <div class="dropdown-item" onclick="App.openCreateClubModal();">
+              <i class="fa-solid fa-plus" style="color: var(--primary);"></i>
+              <span>Đăng nhóm dinh dưỡng</span>
+            </div>
+            <div class="dropdown-item" onclick="App.openCreateEventModal(); event.stopPropagation();">
+              <i class="fa-solid fa-calendar-plus" style="color: var(--secondary);"></i>
+              <span>Đăng sự kiện</span>
+            </div>
+            <div class="dropdown-item" onclick="App.openCreateProductModal(); event.stopPropagation();">
+              <i class="fa-solid fa-bag-shopping" style="color: var(--accent-sport);"></i>
+              <span>Đăng lên Shop</span>
+            </div>
+            <div class="dropdown-item" onclick="App.openCreateCourseModal(); event.stopPropagation();">
+              <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i>
+              <span>Đăng bài giảng</span>
+            </div>
+            <div class="dropdown-item" onclick="App.openVIPUpgradeModal(); event.stopPropagation();">
+              <i class="fa-solid fa-crown" style="color: var(--secondary);"></i>
+              <span>Nâng cấp Gói VIP (99k)</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div id="adminDropdownItem" class="dropdown-item" style="display: none;" onclick="App.openAdminDashboardModal(); event.stopPropagation();">
+              <i class="fa-solid fa-shield-halved" style="color: var(--secondary);"></i>
+              <span style="font-weight: 700; color: var(--secondary);">Trang Quản Trị Admin</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" onclick="App.toggleTheme(); event.stopPropagation();">
+              <i class="fa-solid fa-circle-half-stroke" style="color: var(--text-muted);"></i>
+              <span>Chế độ Sáng / Tối</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" style="color: #ef4444;" onclick="App.logout(); event.stopPropagation();">
+              <i class="fa-solid fa-right-from-bracket" style="color: #ef4444;"></i>
+              <span>Đăng xuất</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dark Mode Toggle Button (Compact) -->
+        <button class="nav-theme-btn" title="Chuyển chế độ Sáng / Tối" onclick="App.toggleTheme()">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero & Filter Section -->
+  <section id="heroSection" class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-tag"><i class="fa-solid fa-sparkles" style="color: var(--secondary);"></i> Hệ Thống Nhóm Dinh Dưỡng Toàn Quốc</div>
+        <h1 class="hero-title">Khám Phá <span>Nhóm Dinh Dưỡng</span> Gần Bạn</h1>
+        <p class="hero-subtitle">Kết nối cùng các Huấn luyện viên, tham gia Nhóm dinh dưỡng chuyên sâu & vận động, kiểm tra chỉ số InBody và cùng nhau xây dựng lối sống lành mạnh.</p>
+        
+        <div class="hero-stats-row">
+          <div class="hero-stat-pill">
+            <span><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> <strong>10.000+</strong> Nhóm Dinh Dưỡng</span>
+          </div>
+          <div class="hero-stat-pill">
+            <span><i class="fa-solid fa-person-running" style="color: var(--accent-sport);"></i> <strong>100+</strong> Sự Kiện Vận Động</span>
+          </div>
+          <div class="hero-stat-pill">
+            <span><i class="fa-solid fa-users" style="color: var(--secondary);"></i> <strong>150.000+</strong> Hội Viên Sống Khỏe</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- REDESIGNED SMART SEARCH SYSTEM -->
+      <div class="smart-search-wrapper">
+        <div class="smart-search-container">
+          
+          <!-- Primary Search Bar -->
+          <div class="search-main-bar">
+            <div class="search-input-box">
+              <span class="search-icon-left">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </span>
+              <input 
+                type="text" 
+                id="smartSearchInput" 
+                class="smart-search-input" 
+                placeholder="Tìm tên nhóm dinh dưỡng, huấn luyện viên, địa chỉ, tiện ích (InBody, Shake...)" 
+                autocomplete="off"
+                oninput="App.onSmartSearchInput(this.value)"
+                onfocus="App.onSmartSearchFocus()"
+              >
+              <button id="clearSearchBtn" class="clear-search-btn" title="Xóa từ khóa" onclick="App.clearSearchInput()">&times;</button>
+            </div>
+
+            <!-- Nút Gần Tôi -->
+            <button class="near-me-btn" title="Tìm các nhóm dinh dưỡng gần vị trí của bạn nhất" onclick="App.findNearMe()">
+              <i class="fa-solid fa-location-crosshairs"></i>
+              <span>Gần Tôi</span>
+            </button>
+
+            <!-- Nút Toggle Bộ Lọc Nâng Cao -->
+            <button id="toggleAdvancedBtn" class="toggle-advanced-btn" onclick="App.toggleAdvancedFilters()">
+              <i class="fa-solid fa-sliders"></i>
+              <span>Bộ Lọc</span>
+            </button>
+
+            <!-- Nút Tìm Kiếm Chính -->
+            <button class="btn btn-primary search-submit-btn" onclick="App.triggerSearch()">
+              <i class="fa-solid fa-magnifying-glass"></i> Tìm Kiếm
+            </button>
+
+            <!-- Live Auto-Suggestions Dropdown -->
+            <div id="smartSuggestionsPopup" class="smart-suggestions-popup">
+              <!-- Rendered dynamically by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Advanced Filters Panel (Hidden by default, click 'Bộ Lọc' to toggle) -->
+          <div id="advancedFiltersPanel" class="advanced-filters-panel" style="display: none;">
+            
+            <!-- Row 1: Địa Lý 2 Cấp (Tỉnh/Thành phố & Xã/Phường), Khung Giờ & Sắp Xếp -->
+            <div class="geo-filter-row">
+              <div>
+                <select id="searchProvince" class="filter-select" onchange="App.onSearchProvinceChange()">
+                  <option value="all">Tất cả Tỉnh / TP</option>
+                </select>
+              </div>
+
+              <div>
+                <select id="searchDistrict" class="filter-select" onchange="App.onSearchDistrictChange()">
+                  <option value="all">Tất cả Xã / Phường</option>
+                </select>
+              </div>
+
+              <div>
+                <select id="searchOpeningTime" class="filter-select" onchange="App.onOpeningTimeChange(this.value)">
+                  <option value="all">Tất cả khung giờ</option>
+                  <option value="morning">Buổi sáng (05:00 - 09:30)</option>
+                  <option value="evening">Buổi chiều (16:00 - 20:00)</option>
+                </select>
+              </div>
+
+              <div>
+                <select id="searchSortBy" class="filter-select" onchange="App.onSearchSortChange(this.value)">
+                  <option value="rating">Đánh giá cao nhất</option>
+                  <option value="members">Đông hội viên nhất</option>
+                  <option value="name">Tên câu lạc bộ (A - Z)</option>
+                  <option value="distance">Gần tôi nhất</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 2: Phân Loại Loại Hình Nhóm Dinh Dưỡng -->
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 14px;">
+              <div class="type-pills-row">
+                <button type="button" class="type-pill-btn active" data-type="all" onclick="App.setTypeFilter('all')">
+                  <i class="fa-solid fa-shapes"></i> Tất Cả Loại Hình
+                </button>
+                <button type="button" class="type-pill-btn pill-deep" data-type="Nhóm dinh dưỡng chuyên sâu" onclick="App.setTypeFilter('Nhóm dinh dưỡng chuyên sâu')">
+                  <i class="fa-solid fa-stethoscope"></i> Nhóm Dinh Dưỡng Chuyên Sâu
+                </button>
+                <button type="button" class="type-pill-btn pill-sport" data-type="Nhóm dinh dưỡng vận động" onclick="App.setTypeFilter('Nhóm dinh dưỡng vận động')">
+                  <i class="fa-solid fa-person-running"></i> Nhóm Dinh Dưỡng Vận Động
+                </button>
+              </div>
+            </div>
+
+            <!-- Active Filter Status & Reset Action -->
+            <div class="filter-actions-bar">
+              <div style="color: var(--text-muted); font-size: 0.9rem;">
+                <i class="fa-solid fa-bullseye" style="color: var(--primary);"></i> Đang lọc: <strong id="filterSummaryText" style="color: var(--primary);">Tất cả các nhóm toàn quốc</strong>
+              </div>
+              <span class="reset-filter-link" onclick="App.resetAllFilters()">
+                <i class="fa-solid fa-rotate-left"></i> Xóa tất cả bộ lọc
+              </span>
+            </div>
+
+          </div>
+
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Areas (Tab Panels) -->
+  <main class="container main-section">
+    
+    <!-- TAB 1: TRANG CHỦ (Hiển thị theo thứ tự: 1. Hero -> 2. Nhóm Dinh Dưỡng -> 3. Sự Kiện -> 4. Shop -> 5. Khóa Học) -->
+    <div id="clubsTab" class="tab-content-panel">
+      
+      <!-- SECTION 2: NHÓM DINH DƯỠNG -->
+      <section class="home-feature-section" style="margin-bottom: 48px;">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">
+              <i class="fa-solid fa-leaf" style="color: var(--primary);"></i> Nhóm Dinh Dưỡng
+              <span id="totalClubsCount" style="font-size: 1.05rem; color: var(--primary); font-weight: 700;">(0)</span>
+            </h2>
+            <p class="section-subtitle">Chọn nhóm gần bạn để được đo quét chỉ số InBody và tư vấn thực đơn cá nhân hóa</p>
+          </div>
+
+          <!-- Công tắc Chế độ xem: Thẻ danh sách / Bản đồ trực quan -->
+          <div class="view-mode-toggle">
+            <button id="viewGridBtn" class="view-toggle-btn active" onclick="App.setClubsViewMode('grid')">
+              <i class="fa-solid fa-table-cells-large"></i>
+              <span>Thẻ Nhóm</span>
+            </button>
+            <button id="viewMapBtn" class="view-toggle-btn" onclick="App.setClubsViewMode('map')">
+              <i class="fa-solid fa-map-location-dot"></i>
+              <span>Bản Đồ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- View 1: Clubs Grid -->
+        <div id="clubsGridContainer" class="clubs-grid">
+          <!-- Rendered by JavaScript -->
+        </div>
+
+        <!-- View 2: Leaflet Interactive Map View -->
+        <div id="clubsMapViewContainer" class="map-view-container" style="display: none;">
+          <div class="map-sidebar">
+            <div class="map-sidebar-header">
+              <h3 style="font-size: 1rem; color: var(--text-main);"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> Danh Sách Theo Khu Vực</h3>
+            </div>
+            <div id="mapSidebarList" class="map-sidebar-list">
+              <!-- Rendered by JavaScript -->
+            </div>
+          </div>
+          <div class="map-canvas-wrap">
+            <div id="leafletMap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: SỰ KIỆN CỘNG ĐỒNG -->
+      <section class="home-feature-section" style="margin-bottom: 48px; padding-top: 32px; border-top: 1px solid var(--border-color);">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title"><i class="fa-solid fa-calendar-star" style="color: var(--secondary);"></i> Sự Kiện Sức Khỏe & Thể Thao Cộng Đồng</h2>
+            <p class="section-subtitle">Tham gia các buổi kiểm tra chỉ số InBody, Workshop dinh dưỡng, Morning Cardio & Thử thách vóc dáng</p>
+          </div>
+          <button class="btn btn-outline" onclick="App.switchTab('eventsTab')">
+            <i class="fa-solid fa-arrow-right"></i> Xem Tất Cả Sự Kiện
+          </button>
+        </div>
+
+        <!-- Events Category Filter Bar -->
+        <div class="shop-filter-bar" style="margin-bottom: 20px;">
+          <div class="shop-cat-chips">
+            <button class="shop-cat-btn active" data-event-cat="all" onclick="App.filterEventsCategory('all', this)"><i class="fa-solid fa-border-all"></i> Tất Cả Sự Kiện</button>
+            <button class="shop-cat-btn" data-event-cat="inbody" onclick="App.filterEventsCategory('inbody', this)"><i class="fa-solid fa-notes-medical" style="color: var(--primary);"></i> 🩺 Đo InBody & Tư Vấn</button>
+            <button class="shop-cat-btn" data-event-cat="workout" onclick="App.filterEventsCategory('workout', this)"><i class="fa-solid fa-person-running" style="color: var(--accent-sport);"></i> 🏃 Morning Cardio & HIIT</button>
+            <button class="shop-cat-btn" data-event-cat="workshop" onclick="App.filterEventsCategory('workshop', this)"><i class="fa-solid fa-utensils" style="color: var(--secondary);"></i> 🥗 Workshop Dinh Dưỡng</button>
+            <button class="shop-cat-btn" data-event-cat="challenge" onclick="App.filterEventsCategory('challenge', this)"><i class="fa-solid fa-trophy" style="color: var(--secondary);"></i> 🏆 Thử Thách 21 Ngày</button>
+          </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div id="eventsHomeGridContainer" class="events-grid">
+          <!-- Rendered by JavaScript -->
+        </div>
+      </section>
+
+      <!-- SECTION 4: SHOP CÔNG CỤ & DỤNG CỤ -->
+      <section class="home-feature-section" style="margin-bottom: 48px; padding-top: 32px; border-top: 1px solid var(--border-color);">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title"><i class="fa-solid fa-cart-shopping" style="color: var(--primary);"></i> Chợ Công Cụ & Dụng Cụ Mở Nhóm Dinh Dưỡng</h2>
+            <p class="section-subtitle">Mua bán, thanh lý và đăng máy quét InBody, máy xay sinh tố, ấm trà, decor & combo mở nhóm A-Z</p>
+          </div>
+          <button class="btn btn-outline" onclick="App.switchTab('shopTab')">
+            <i class="fa-solid fa-arrow-right"></i> Xem Tất Cả Sản Phẩm
+          </button>
+        </div>
+
+        <!-- Shop Filters -->
+        <div class="shop-filter-bar" style="margin-bottom: 20px;">
+          <div class="shop-cat-chips">
+            <button class="shop-cat-btn active" data-cat="all" onclick="App.setShopCategory('all')"><i class="fa-solid fa-border-all"></i> Tất Cả</button>
+            <button class="shop-cat-btn" data-cat="Cân & Máy Quét InBody" onclick="App.setShopCategory('Cân & Máy Quét InBody')"><i class="fa-solid fa-chart-simple"></i> Cân & Máy Quét InBody</button>
+            <button class="shop-cat-btn" data-cat="Dụng Cụ Pha Chế & Ấm Ly" onclick="App.setShopCategory('Dụng Cụ Pha Chế & Ấm Ly')"><i class="fa-solid fa-mug-hot"></i> Pha Chế & Ấm Ly</button>
+            <button class="shop-cat-btn" data-cat="Decor & Bộ Nhận Diện" onclick="App.setShopCategory('Decor & Bộ Nhận Diện')"><i class="fa-solid fa-image"></i> Decor & Bộ Nhận Diện</button>
+            <button class="shop-cat-btn" data-cat="Combo Trọn Gói A-Z" onclick="App.setShopCategory('Combo Trọn Gói A-Z')"><i class="fa-solid fa-box-open"></i> Combo Trọn Gói A-Z</button>
+          </div>
+        </div>
+
+        <!-- Shop Home Grid -->
+        <div id="productsHomeGridContainer" class="products-grid">
+          <!-- Rendered by JavaScript -->
+        </div>
+      </section>
+
+      <!-- SECTION 5: KHÓA HỌC & BÀI GIẢNG VIDEO -->
+      <section class="home-feature-section" style="margin-bottom: 32px; padding-top: 32px; border-top: 1px solid var(--border-color);">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title"><i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Thư Viện Khóa Học & Video Dinh Dưỡng</h2>
+            <p class="section-subtitle">Xem video trực tuyến từ chuyên gia, học tập kiến thức dinh dưỡng & kỹ năng vận hành nhóm 24/7</p>
+          </div>
+          <button class="btn btn-outline" onclick="App.switchTab('coursesTab')">
+            <i class="fa-solid fa-arrow-right"></i> Xem Tất Cả Khóa Học
+          </button>
+        </div>
+
+        <!-- Courses Category Filter Bar -->
+        <div class="course-category-bar" style="margin-bottom: 20px;">
+          <button type="button" class="course-cat-pill active" data-course-cat="all" onclick="App.filterCourses('all', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-layer-group" style="color: var(--primary);"></i></span>
+            <span>Tất Cả Chủ Đề</span>
+          </button>
+          <button type="button" class="course-cat-pill" data-course-cat="nutrition" onclick="App.filterCourses('nutrition', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i></span>
+            <span>Dinh Dưỡng Chuyên Sâu</span>
+          </button>
+          <button type="button" class="course-cat-pill" data-course-cat="workout" onclick="App.filterCourses('workout', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-person-running" style="color: var(--accent-sport);"></i></span>
+            <span>Luyện Tập & Cardio</span>
+          </button>
+          <button type="button" class="course-cat-pill" data-course-cat="operation" onclick="App.filterCourses('operation', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-briefcase" style="color: var(--secondary);"></i></span>
+            <span>Vận Hành Nhóm</span>
+          </button>
+        </div>
+
+        <!-- Courses Home Grid -->
+        <div id="coursesHomeGrid" class="courses-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+          <!-- Rendered by JavaScript -->
+        </div>
+      </section>
+
+    </div>
+
+    <!-- TAB 3: Sự Kiện Cộng Đồng (Events Tab) -->
+    <div id="eventsTab" class="tab-content-panel" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><i class="fa-solid fa-calendar-star" style="color: var(--secondary);"></i> Sự Kiện Sức Khỏe & Thể Thao Cộng Đồng</h2>
+          <p class="section-subtitle">Tham gia các buổi kiểm tra chỉ số InBody, Workshop dinh dưỡng, Morning Cardio & Thử thách vóc dáng</p>
+        </div>
+        <button class="btn btn-secondary" onclick="App.openCreateEventModal()">
+          <i class="fa-solid fa-calendar-plus"></i> Đăng Sự Kiện Của Nhóm
+        </button>
+      </div>
+
+      <!-- Events Category Filter Bar -->
+      <div class="shop-filter-bar" style="margin-bottom: 20px;">
+        <div class="shop-cat-chips">
+          <button class="shop-cat-btn active" data-event-cat="all" onclick="App.filterEventsCategory('all', this)"><i class="fa-solid fa-border-all"></i> Tất Cả Sự Kiện</button>
+          <button class="shop-cat-btn" data-event-cat="inbody" onclick="App.filterEventsCategory('inbody', this)"><i class="fa-solid fa-notes-medical" style="color: var(--primary);"></i> 🩺 Đo InBody & Tư Vấn</button>
+          <button class="shop-cat-btn" data-event-cat="workout" onclick="App.filterEventsCategory('workout', this)"><i class="fa-solid fa-person-running" style="color: var(--accent-sport);"></i> 🏃 Morning Cardio & HIIT</button>
+          <button class="shop-cat-btn" data-event-cat="workshop" onclick="App.filterEventsCategory('workshop', this)"><i class="fa-solid fa-utensils" style="color: var(--secondary);"></i> 🥗 Workshop Dinh Dưỡng</button>
+          <button class="shop-cat-btn" data-event-cat="challenge" onclick="App.filterEventsCategory('challenge', this)"><i class="fa-solid fa-trophy" style="color: var(--secondary);"></i> 🏆 Thử Thách 21 Ngày</button>
+        </div>
+      </div>
+
+      <!-- Events Grid -->
+      <div id="eventsGridContainer" class="events-grid">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </div>
+
+    <!-- TAB 4: Shop Công Cụ Mở Nhóm Dinh Dưỡng (Equipment Marketplace) -->
+    <div id="shopTab" class="tab-content-panel" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><i class="fa-solid fa-cart-shopping" style="color: var(--primary);"></i> Chợ Công Cụ & Dụng Cụ Mở Nhóm Dinh Dưỡng</h2>
+          <p class="section-subtitle">Mua bán, thanh lý và đăng máy quét InBody, máy xay sinh tố, ấm trà, decor & combo mở nhóm A-Z</p>
+        </div>
+        <button class="btn btn-primary" onclick="App.openCreateProductModal()">
+          <i class="fa-solid fa-plus"></i> Đăng Bán Công Cụ
+        </button>
+      </div>
+
+      <!-- Shop Filters & Category Chips -->
+      <div class="shop-filter-bar">
+        <div class="shop-cat-chips">
+          <button class="shop-cat-btn active" data-cat="all" onclick="App.setShopCategory('all')"><i class="fa-solid fa-border-all"></i> Tất Cả</button>
+          <button class="shop-cat-btn" data-cat="Cân & Máy Quét InBody" onclick="App.setShopCategory('Cân & Máy Quét InBody')"><i class="fa-solid fa-chart-simple"></i> Cân & Máy Quét InBody</button>
+          <button class="shop-cat-btn" data-cat="Dụng Cụ Pha Chế & Ấm Ly" onclick="App.setShopCategory('Dụng Cụ Pha Chế & Ấm Ly')"><i class="fa-solid fa-mug-hot"></i> Pha Chế & Ấm Ly</button>
+          <button class="shop-cat-btn" data-cat="Decor & Bộ Nhận Diện" onclick="App.setShopCategory('Decor & Bộ Nhận Diện')"><i class="fa-solid fa-image"></i> Decor & Bộ Nhận Diện</button>
+          <button class="shop-cat-btn" data-cat="Giáo Trình & Bộ Đồ Dùng" onclick="App.setShopCategory('Giáo Trình & Bộ Đồ Dùng')"><i class="fa-solid fa-book-open"></i> Giáo Trình & Quà Tặng</button>
+          <button class="shop-cat-btn" data-cat="Combo Trọn Gói A-Z" onclick="App.setShopCategory('Combo Trọn Gói A-Z')"><i class="fa-solid fa-box-open"></i> Combo Trọn Gói A-Z</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="text" id="shopSearchKeyword" class="form-control" style="max-width: 220px; padding: 8px 14px;" placeholder="Tìm tên công cụ..." oninput="App.onShopSearchInput(this.value)">
+          <select id="shopPriceSort" class="filter-select" style="max-width: 180px; padding: 8px 12px;" onchange="App.onShopSortChange(this.value)">
+            <option value="default">Sắp xếp: Mới nhất</option>
+            <option value="price-asc">Giá: Thấp đến Cao</option>
+            <option value="price-desc">Giá: Cao đến Thấp</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div id="productsGridContainer" class="products-grid">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </div>
+
+    <!-- TAB 5: Trang Quản Trị Hệ Thống Admin (Full-page Admin Panel) -->
+    <div id="adminTab" class="tab-content-panel" style="display: none;">
+      <div class="section-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px 24px; border-radius: var(--radius-lg); color: #ffffff; margin-bottom: 24px;">
+        <div>
+          <h2 class="section-title" style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 4px;">👑 Trang Quản Trị Hệ Thống Admin</h2>
+          <p class="section-subtitle" style="color: #cbd5e1;">Bảng điều khiển KPI, quản lý thành viên toàn quốc, duyệt gói VIP 1-click & kiểm soát dữ liệu</p>
+        </div>
+      </div>
+
+      <div id="adminTabContentContainer">
+        <!-- Rendered dynamically by App.renderAdminTabContent -->
+      </div>
+    </div>
+
+    <!-- TAB 4: Công Cụ Tính BMI & Thể Trạng -->
+    <div id="bmiTab" class="tab-content-panel" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title"><i class="fa-solid fa-heart-pulse" style="color: var(--primary); margin-right: 8px;"></i>Công Cụ Tính Chỉ Số BMI & Phân Tích Sức Khỏe</h2>
+          <p class="section-subtitle">Đánh giá thể trạng chuẩn người châu Á (WPRO) và nhận gợi ý nhóm dinh dưỡng phù hợp</p>
+        </div>
+      </div>
+
+      <div class="bmi-calculator-layout">
+        <!-- Form nhập chỉ số -->
+        <div class="bmi-form-card">
+          <h3 style="font-size: 1.2rem; margin-bottom: 20px;">Nhập Chỉ Số Cơ Thể Của Bạn</h3>
+          
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Giới tính *</label>
+            <div class="radio-pills-group">
+              <label class="radio-pill pill-male active" onclick="App.selectBMIGender('male')">
+                <input type="radio" name="bmiGender" value="male" checked onchange="App.calculateBMI()" style="display:none;">
+                <i class="fa-solid fa-mars" style="color: #2563eb;"></i>
+                <span>Nam</span>
+                <i class="fa-solid fa-circle-check check-icon" style="color: #2563eb;"></i>
+              </label>
+              <label class="radio-pill pill-female" onclick="App.selectBMIGender('female')">
+                <input type="radio" name="bmiGender" value="female" onchange="App.calculateBMI()" style="display:none;">
+                <i class="fa-solid fa-venus" style="color: #ec4899;"></i>
+                <span>Nữ</span>
+                <i class="fa-solid fa-circle-check check-icon" style="color: #ec4899;"></i>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="form-group">
+              <label class="form-label" for="bmiHeight">Chiều cao (cm)</label>
+              <input type="number" id="bmiHeight" class="form-control" value="168" min="100" max="230" oninput="App.calculateBMI()">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="bmiWeight">Cân nặng (kg)</label>
+              <input type="number" id="bmiWeight" class="form-control" value="68" min="30" max="200" oninput="App.calculateBMI()">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="bmiAge">Độ tuổi (năm)</label>
+              <input type="number" id="bmiAge" class="form-control" value="29" min="10" max="100" oninput="App.calculateBMI()">
+            </div>
+          </div>
+
+          <div style="padding: 14px; background: var(--bg-main); border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted);">
+            <i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-right: 6px;"></i> <em>Chỉ số BMI (Body Mass Index) là thước đo tương quan giữa chiều cao và cân nặng để đánh giá mức độ cân đối của cơ thể theo chuẩn WPRO dành riêng cho người Châu Á.</em>
+          </div>
+        </div>
+
+        <!-- Kết quả phân tích -->
+        <div class="bmi-result-card">
+          <h3 style="font-size: 1.2rem; margin-bottom: 16px;">Kết Quả Phân Tích Thể Trạng</h3>
+
+          <div class="bmi-score-box">
+            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 4px;">Chỉ số BMI của bạn</div>
+            <div id="bmiResultNumber" class="bmi-number">24.1</div>
+            <span id="bmiResultStatus" class="bmi-status-badge">Tiền Béo Phì (Thừa Cân)</span>
+
+            <!-- Scale Bar Indicator -->
+            <div class="bmi-scale-bar">
+              <div id="bmiResultMarker" class="bmi-marker" style="left: 45%;"></div>
+            </div>
+            <!-- BMI SCALE RANGE GRID: 4 ô, ô nào đang trúng chỉ số sẽ in đậm theo màu dải đó -->
+            <div class="bmi-scale-grid">
+              <div class="bmi-scale-card card-underweight" id="bmiCatUnderweight">
+                <div class="bmi-scale-title">🔹 Gầy</div>
+                <div class="bmi-scale-num">&lt; 18.5</div>
+              </div>
+
+              <div class="bmi-scale-card card-normal" id="bmiCatNormal">
+                <div class="bmi-scale-title">🟢 Chuẩn</div>
+                <div class="bmi-scale-num">18.5 - 22.9</div>
+              </div>
+
+              <div class="bmi-scale-card card-overweight" id="bmiCatOverweight">
+                <div class="bmi-scale-title">🟠 Thừa Cân</div>
+                <div class="bmi-scale-num">23 - 24.9</div>
+              </div>
+
+              <div class="bmi-scale-card card-obese" id="bmiCatObese">
+                <div class="bmi-scale-title">🔴 Béo Phì</div>
+                <div class="bmi-scale-num">&gt; 25</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Các chỉ số chi tiết -->
+          <div class="bmi-metrics-grid">
+            <div class="bmi-metric-item">
+              <div class="metric-label">Cân nặng lý tưởng</div>
+              <div id="bmiResultIdealWeight" class="metric-val">52.2 - 64.6 kg</div>
+            </div>
+            <div class="bmi-metric-item">
+              <div class="metric-label">Nước cần uống tối thiểu</div>
+              <div id="bmiResultWater" class="metric-val">2.7 lít / ngày</div>
+            </div>
+            <div class="bmi-metric-item">
+              <div class="metric-label">Chuyển hóa cơ bản (BMR)</div>
+              <div id="bmiResultBMR" class="metric-val">1565 kcal</div>
+            </div>
+            <div class="bmi-metric-item">
+              <div class="metric-label">Nhóm đề xuất phù hợp</div>
+              <div id="bmiRecClubType" class="metric-val" style="font-size: 0.88rem; color: var(--primary); cursor: pointer; text-decoration: underline;">
+                Nhóm dinh dưỡng chuyên sâu
+              </div>
+            </div>
+          </div>
+
+          <!-- Lời khuyên cá nhân hóa -->
+          <div style="background: var(--primary-light); padding: 16px; border-radius: var(--radius-md); border-left: 4px solid var(--primary);">
+            <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary-dark); margin-bottom: 4px;">Lời Khuyên Huấn Luyện Viên:</div>
+            <p id="bmiResultAdvice" style="font-size: 0.88rem; color: var(--text-main); line-height: 1.6;">
+              Bạn đang có xu hướng dư thừa mỡ cơ thể. Cần cắt giảm tinh bột chuyển hóa nhanh và nạp đủ đạm tại nhóm dinh dưỡng.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9 Chỉ Số Sức Khỏe InBody Ước Tính -->
+      <div class="bmi-result-card" style="margin-top: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-chart-simple" style="color: #10b981;"></i> 9 Chỉ Số Sức Khỏe InBody Ước Tính
+            </h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Ước tính bằng công thức nhân trắc học (Deurenberg, Watson, Lee) dựa trên chiều cao - cân nặng - tuổi - giới tính bạn vừa nhập</p>
+          </div>
+        </div>
+
+        <div id="inbodyEstimateGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+          <!-- Rendered dynamically by App.renderInBodyEstimateSection -->
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; max-width: 560px; line-height: 1.5;">
+            <i class="fa-solid fa-circle-info" style="color: #f59e0b;"></i> Đây là chỉ số <strong>ước tính</strong>, không thay thế máy đo InBody chuyên dụng. Đến Nhóm Dinh Dưỡng gần bạn để được đo quét chính xác 100% miễn phí!
+          </p>
+          <button type="button" class="btn btn-primary" onclick="App.saveBMIResultToTracker()" style="font-weight: 700; white-space: nowrap; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Vào Nhật Ký InBody
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         TAB PANEL 5: HỒ SƠ CÁ NHÂN & QUẢN LÝ TÀI KHOẢN (FULL PAGE DASHBOARD)
+         =================================================================== -->
+    <div id="profileTab" class="tab-content-panel container" style="display: none; padding-top: 24px; padding-bottom: 40px;">
+      <div id="userProfilePageContent">
+        <!-- Rendered dynamically by App.openUserProfilePage -->
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         TAB PANEL 6: TRANG KHÓA HỌC & BÀI GIẢNG VIDEO DINH DƯỠNG (E-LEARNING)
+         =================================================================== -->
+    <div id="coursesTab" class="tab-content-panel container" style="display: none; padding-top: 24px; padding-bottom: 40px;">
+      <!-- Search & Category Filters Header -->
+      <div style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Thư Viện Khóa Học & Video Dinh Dưỡng
+            </h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Xem video trực tuyến từ chuyên gia, học tập kiến thức dinh dưỡng & kỹ năng vận hành nhóm 24/7</p>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="App.openCreateCourseModal()" style="font-weight: 700;">
+            <i class="fa-solid fa-plus"></i> Đăng Khóa Học Mới
+          </button>
+        </div>
+
+        <!-- Redesigned Premium Course Category Filter Bar -->
+        <div class="course-category-bar">
+          <button type="button" class="course-cat-pill active" data-course-cat="all" onclick="App.filterCourses('all', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-layer-group" style="color: var(--primary);"></i></span>
+            <span>Tất Cả Chủ Đề</span>
+          </button>
+
+          <button type="button" class="course-cat-pill" data-course-cat="nutrition" onclick="App.filterCourses('nutrition', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i></span>
+            <span>Dinh Dưỡng Chuyên Sâu</span>
+          </button>
+
+          <button type="button" class="course-cat-pill" data-course-cat="workout" onclick="App.filterCourses('workout', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-person-running" style="color: var(--accent-sport);"></i></span>
+            <span>Luyện Tập & Cardio</span>
+          </button>
+
+          <button type="button" class="course-cat-pill" data-course-cat="operation" onclick="App.filterCourses('operation', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-briefcase" style="color: var(--secondary);"></i></span>
+            <span>Vận Hành Nhóm</span>
+          </button>
+
+          <button type="button" class="course-cat-pill" data-course-cat="recipes" onclick="App.filterCourses('recipes', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-utensils" style="color: var(--secondary);"></i></span>
+            <span>Chế Biến & Thực Đơn</span>
+          </button>
+
+          <button type="button" class="course-cat-pill" data-course-cat="coaching" onclick="App.filterCourses('coaching', this)">
+            <span class="cat-icon-box"><i class="fa-solid fa-user-doctor" style="color: var(--primary);"></i></span>
+            <span>Tư Vấn & Chăm Sóc</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Courses Grid Container -->
+      <div id="coursesGrid" class="courses-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+        <!-- Rendered dynamically by App.renderCourses -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===================================================================
+       FOOTER SECTION (CHÂN TRANG SANG TRỌNG & HOTLINE)
+       =================================================================== -->
+  <footer class="site-footer">
+    <div class="container">
+      
+      <!-- FOOTER AFFILIATE PROMOTION BANNER -->
+      <div class="footer-affiliate-banner" style="background: linear-gradient(135deg, rgba(5, 150, 105, 0.12) 0%, rgba(217, 119, 6, 0.12) 100%); border: 1.5px dashed var(--primary); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 32px; text-align: center; position: relative; overflow: hidden;">
+        <div style="max-width: 760px; margin: 0 auto;">
+          <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: #ffffff; padding: 4px 14px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);">
+            <i class="fa-solid fa-gift"></i> ĐẶC QUYỀN CHIA SẺ
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; line-height: 1.4;">
+            <i class="fa-solid fa-share-nodes" style="color: var(--primary);"></i> Hãy gửi link này (link affiliate) cho bạn bè để được sử dụng MIỄN PHÍ
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+            Khi người thân, bạn bè đăng ký qua link giới thiệu của bạn, họ sẽ nhận ngay suất trải nghiệm đo quét chỉ số InBody & tư vấn thực đơn cá nhân hóa miễn phí!
+          </p>
+          
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 580px; margin: 0 auto; flex-wrap: wrap;">
+            <div style="position: relative; flex: 1; min-width: 260px;">
+              <input type="text" id="footerAffiliateLinkInput" class="form-control" readonly value="https://nhomdinhduong.vn/?ref=0902030185" style="font-weight: 700; color: var(--primary); background: var(--bg-card); cursor: text; font-size: 0.9rem;">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="App.copyFooterAffiliateLink()" style="font-weight: 800; white-space: nowrap; box-shadow: var(--shadow-md);">
+              <i class="fa-solid fa-copy"></i> Sao Chép Link
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-grid">
+        
+        <!-- Column 1: Thương hiệu -->
+        <div class="footer-col footer-brand-col">
+          <div class="footer-logo">
+            <div class="logo-icon"><i class="fa-solid fa-leaf"></i></div>
+            <span>Nhomdinhduong<span style="color: var(--primary); font-size: 1.15rem;">.vn</span></span>
+          </div>
+          <p class="footer-desc">
+            Nền tảng tìm kiếm & kết nối các nhóm dinh dưỡng chuyên sâu, câu lạc bộ vận động hàng đầu Việt Nam. Đồng hành cùng vóc dáng và sức khỏe cộng đồng.
+          </p>
+        </div>
+
+        <!-- Column 2: Khám Phá Nhanh -->
+        <div class="footer-col">
+          <h4 class="footer-title">Khám Phá Nhanh</h4>
+          <ul class="footer-links">
+            <li><a href="#" onclick="App.switchTab('clubsTab'); return false;"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> Tìm Nhóm Dinh Dưỡng</a></li>
+            <li><a href="#" onclick="App.switchTab('clubsTab'); App.setClubsViewMode('map'); return false;"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Bản Đồ Vị Trí Câu Lạc Bộ</a></li>
+            <li><a href="#" onclick="App.switchTab('eventsTab'); return false;"><i class="fa-solid fa-calendar-star" style="color: #f59e0b;"></i> Sự Kiện Sức Khỏe Cộng Đồng</a></li>
+            <li><a href="#" onclick="App.switchTab('bmiTab'); return false;"><i class="fa-solid fa-scale-balanced" style="color: var(--primary);"></i> Công Cụ Tính Chỉ Số BMI</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Dịch Vụ & Tiện Ích -->
+        <div class="footer-col">
+          <h4 class="footer-title">Dịch Vụ & Tiện Ích</h4>
+          <ul class="footer-links">
+            <li><span><i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> Đo quét chỉ số InBody miễn phí</span></li>
+            <li><span><i class="fa-solid fa-clipboard-list" style="color: var(--primary);"></i> Tư vấn thực đơn cá nhân hóa 1:1</span></li>
+            <li><span><i class="fa-solid fa-person-running" style="color: var(--accent-sport);"></i> Lớp vận động Morning Cardio & HIIT</span></li>
+            <li><span><i class="fa-solid fa-mug-hot" style="color: var(--secondary);"></i> Trà thảo mộc thanh lọc cơ thể</span></li>
+            <li><span><i class="fa-solid fa-bowl-food" style="color: var(--primary);"></i> Bữa sáng cân bằng dinh dưỡng</span></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Liên Hệ & Kết Nối -->
+        <div class="footer-col">
+          <h4 class="footer-title">Kết Nối Với Chúng Tôi</h4>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6;">
+            Trở thành đối tác hoặc đăng ký nhóm dinh dưỡng ngay hôm nay để nhận hỗ trợ truyền thông toàn quốc.
+          </p>
+          <div class="footer-social-chips">
+            <span class="social-chip"><i class="fa-solid fa-comments" style="color: #0068ff;"></i> Zalo Hotline: 0902030185</span>
+            <span class="social-chip"><i class="fa-solid fa-globe" style="color: var(--primary);"></i> Nhomdinhduong.vn Network</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Bottom Bar -->
+      <div class="footer-bottom">
+        <div>
+          © 2026 <strong>Nhomdinhduong.vn</strong>. Tất cả quyền được bảo lưu.
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          Đồng hành cùng sức khỏe & vóc dáng người Việt
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================
+       MODALS SECTION
+       =================================================================== -->
+
+  <!-- Modal 1: Đăng Nhập -->
+  <div id="loginModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Đăng Nhập Tài Khoản</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitLogin(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Số điện thoại hoặc Email</label>
+            <input type="text" name="loginAccount" class="form-control" placeholder="Ví dụ: 0912345678" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mật khẩu</label>
+            <input type="password" name="loginPassword" class="form-control" placeholder="Mật khẩu của bạn" value="123" required>
+          </div>
+
+          <!-- Gợi ý tài khoản mẫu để test nhanh -->
+          <div style="background: var(--bg-main); padding: 12px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-top: 10px;">
+            <div style="font-weight: 700; margin-bottom: 6px; color: var(--primary);"><i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-right: 4px;"></i> Nhấp vào tài khoản mẫu để đăng nhập nhanh (Pass: 123):</div>
+            <div style="cursor: pointer; padding: 4px 8px; border-radius: 4px; background: var(--bg-card); margin-bottom: 4px; border: 1px solid var(--border-color);" onclick="document.querySelector('input[name=loginAccount]').value='0912345678'; document.querySelector('input[name=loginPassword]').value='123';">
+              <i class="fa-solid fa-user-check" style="color: var(--primary); margin-right: 4px;"></i> SĐT: <strong>0912345678</strong> (HLV Nguyễn Văn Hùng)
+            </div>
+            <div style="cursor: pointer; padding: 4px 8px; border-radius: 4px; background: var(--bg-card); border: 1px solid var(--border-color);" onclick="document.querySelector('input[name=loginAccount]').value='0987654321'; document.querySelector('input[name=loginPassword]').value='123';">
+              <i class="fa-solid fa-user-check" style="color: var(--primary); margin-right: 4px;"></i> SĐT: <strong>0987654321</strong> (HLV Trần Thị Mai Anh)
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">Đăng Nhập Ngay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Đăng Ký Tài Khoản -->
+  <div id="registerModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Đăng Ký Thành Viên Mới</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitRegister(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Họ và tên *</label>
+            <input type="text" name="regName" class="form-control" placeholder="Nguyễn Văn A" required>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Số điện thoại *</label>
+              <input type="tel" name="regPhone" class="form-control" placeholder="09xxxxxxx" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" name="regEmail" class="form-control" placeholder="name@email.com">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mật khẩu *</label>
+            <input type="password" name="regPassword" class="form-control" placeholder="Tạo mật khẩu an toàn" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🎁 Mã / SĐT Người Giới Thiệu (Nếu Có)</label>
+            <input type="text" id="regRefCodeInput" name="regRefCode" class="form-control" placeholder="Ví dụ: 0902030185">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">Tạo Tài Khoản</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Đăng Nhóm Dinh Dưỡng Mới -->
+  <div id="createClubModal" class="modal-backdrop">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">🌿 Đăng Nhóm Dinh Dưỡng Của Bạn</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitCreateClub(event)">
+        <div class="modal-body">
+          
+          <!-- Tên nhóm & Loại hình -->
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Tên nhóm dinh dưỡng *</label>
+              <input type="text" name="clubName" class="form-control" placeholder="Ví dụ: Nhóm Dinh Dưỡng Vui Khỏe Cầu Giấy" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Loại hình nhóm *</label>
+              <select name="clubType" class="filter-select" required>
+                <option value="Nhóm dinh dưỡng chuyên sâu">🩺 Nhóm dinh dưỡng chuyên sâu</option>
+                <option value="Nhóm dinh dưỡng vận động">🏃 Nhóm dinh dưỡng vận động</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Hình ảnh nhóm -->
+          <div class="form-group">
+            <label class="form-label">Hình ảnh không gian / Hoạt động của nhóm (URL)</label>
+            <input type="url" name="clubImage" class="form-control" placeholder="https://... (để trống sẽ dùng ảnh mặc định chất lượng cao)" value="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80">
+          </div>
+
+          <!-- Địa chỉ 2 cấp: Tỉnh/TP -> Xã/Phường -> Địa chỉ chi tiết -->
+          <div style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 18px;">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; color: var(--primary);">📍 Địa chỉ hoạt động của nhóm:</div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+              <div>
+                <label class="form-label">Tỉnh / Thành phố *</label>
+                <select id="clubProvince" name="clubProvince" class="filter-select" onchange="App.onClubProvinceChange()" required>
+                  <option value="">-- Chọn Tỉnh / TP --</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Xã / Phường *</label>
+                <select id="clubDistrict" name="clubDistrict" class="filter-select" required>
+                  <option value="">-- Chọn Xã / Phường --</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Địa chỉ chi tiết (Số nhà, Tòa nhà, Tên đường) *</label>
+              <input type="text" name="clubAddressDetail" class="form-control" placeholder="Ví dụ: Số 88 Đường Trần Duy Hưng" required>
+            </div>
+          </div>
+
+          <!-- Thông tin Chủ nhóm & Số điện thoại (Lấy mặc định từ user đăng nhập) -->
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Chủ nhóm (Mặc định User)</label>
+              <input type="text" id="clubOwnerName" class="form-control" readonly style="background: var(--border-color); cursor: not-allowed;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số điện thoại liên hệ (Mặc định SĐT)</label>
+              <input type="text" id="clubOwnerPhone" class="form-control" readonly style="background: var(--border-color); cursor: not-allowed;">
+            </div>
+          </div>
+
+          <!-- Đồng vận hành: Tìm kiếm các user trong hệ thống -->
+          <div class="form-group co-op-selector-wrap">
+            <label class="form-label">
+              Đội ngũ Đồng Vận Hành (Tìm kiếm & chọn thành viên trong hệ thống)
+            </label>
+            <div class="co-op-chips-container">
+              <div id="coOpChipsList" style="display: inline-flex; gap: 6px; flex-wrap: wrap;"></div>
+              <input type="text" id="coOpSearchInput" class="co-op-search-input" placeholder="Gõ tên hoặc SĐT để tìm đồng vận hành...">
+            </div>
+            
+            <!-- Danh sách gợi ý tìm kiếm -->
+            <div id="coOpAutocompleteList" class="co-op-autocomplete-list"></div>
+          </div>
+
+          <!-- Giờ mở cửa -->
+          <div class="form-group">
+            <label class="form-label">Giờ mở cửa hàng ngày</label>
+            <input type="text" name="clubOpeningHours" class="form-control" value="Sáng: 05:30 - 09:30 | Chiều: 16:30 - 19:30" placeholder="Ví dụ: Sáng: 05:30 - 09:30 | Chiều: 16:30 - 19:30">
+          </div>
+
+          <!-- Giới thiệu câu chuyện chủ nhóm -->
+          <div class="form-group">
+            <label class="form-label">Giới thiệu câu chuyện chủ nhóm (Hành trình thay đổi bản thân & sứ mệnh)</label>
+            <textarea name="clubStory" class="form-control" rows="4" placeholder="Chia sẻ câu chuyện truyền cảm hứng của bạn: Trước đây bạn thế nào, bạn đã thay đổi vóc dáng và sức khỏe ra sao, và lý do bạn muốn giúp đỡ cộng đồng xung quanh..."></textarea>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">Xác Nhận Đăng Nhóm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Đăng Sự Kiện Mới -->
+  <div id="createEventModal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-calendar-plus" style="color: var(--secondary);"></i> Đăng Sự Kiện Nhóm Dinh Dưỡng</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitCreateEvent(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> Chọn nhóm dinh dưỡng tổ chức *</label>
+            <select id="eventClubSelect" name="eventClubSelect" class="filter-select" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-heading" style="color: var(--secondary);"></i> Tên sự kiện *</label>
+            <input type="text" name="eventTitle" class="form-control" placeholder="Ví dụ: Ngày Hội Quét Chỉ Số InBody Miễn Phí" required>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Ngày diễn ra *</label>
+              <input type="date" name="eventDate" class="form-control" value="2026-09-15" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-clock" style="color: var(--secondary);"></i> Khung giờ *</label>
+              <input type="text" name="eventTime" class="form-control" placeholder="07:30 - 11:00" value="07:30 - 11:00" required>
+            </div>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-map-location-dot" style="color: var(--accent-sport);"></i> Hình thức địa điểm</label>
+              <select name="eventLocationType" class="filter-select">
+                <option value="Trực tiếp tại nhóm">Trực tiếp tại nhóm</option>
+                <option value="Trực tiếp ngoài trời">Trực tiếp ngoài trời</option>
+                <option value="Online Zoom">Online Zoom</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-users" style="color: var(--primary);"></i> Số lượng tối đa</label>
+              <input type="number" name="eventMaxParticipants" class="form-control" value="50" min="5" max="500">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-location-pin" style="color: var(--primary);"></i> Địa chỉ tổ chức (Để trống nếu dùng địa chỉ của nhóm)</label>
+            <input type="text" name="eventAddress" class="form-control" placeholder="Nhập địa chỉ cụ thể nếu khác địa chỉ nhóm">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-pen-to-square" style="color: var(--secondary);"></i> Mô tả nội dung & Lợi ích người tham gia *</label>
+            <textarea name="eventDescription" class="form-control" rows="3" placeholder="Mô tả các hoạt động, quà tặng, nội dung workshop..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-image" style="color: var(--accent-sport);"></i> Hình ảnh sự kiện (URL)</label>
+            <input type="url" name="eventImage" class="form-control" placeholder="https://..." value="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-secondary" style="font-weight: 800;"><i class="fa-solid fa-calendar-check"></i> Đăng Sự Kiện Ngay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Xem Chi Tiết Nhóm Dinh Dưỡng -->
+  <div id="clubDetailModal" class="modal-backdrop">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <h3 id="clubDetailModalTitle" class="modal-title">Chi Tiết Nhóm Dinh Dưỡng</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <div id="clubDetailModalBody" class="modal-body">
+        <!-- Rendered dynamically by ClubManager.showClubDetailModal -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="App.closeAllModals()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 6: Nâng Cấp Gói Thành Viên VIP -->
+  <div id="vipUpgradeModal" class="modal-backdrop">
+    <div class="modal-container modal-lg" style="max-width: 820px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #b45309;">
+          <i class="fa-solid fa-crown" style="color: #f59e0b;"></i> Nâng Cấp Gói Thành Viên Nhomdinhduong.vn VIP
+        </h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- VIP STEP PROGRESS WIZARD BAR -->
+        <div class="vip-step-progress">
+          <div class="vip-step-pill active" data-step="1" onclick="App.setVIPStep(1)">
+            <span class="step-num">1</span>
+            <span>Bước 1: Chọn Gói</span>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+          <div class="vip-step-pill" data-step="2" onclick="App.setVIPStep(2)">
+            <span class="step-num">2</span>
+            <span>Bước 2: Quét Mã QR / Chuyển Khoản</span>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+          <div class="vip-step-pill" data-step="3" onclick="App.setVIPStep(3)">
+            <span class="step-num">3</span>
+            <span>Bước 3: Gửi Bill Zalo</span>
+          </div>
+        </div>
+
+        <!-- STEP 1: CHỌN GÓI ĐĂNG KÝ -->
+        <div id="vipStep1Panel" class="vip-step-panel">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <p style="font-size: 1.02rem; color: var(--text-main); font-weight: 600; max-width: 640px; margin: 0 auto; line-height: 1.6;">
+              🔒 Mở khóa trọn bộ Số điện thoại đầy đủ, Số nhà/Tên đường chi tiết & Bản đồ chỉ đường Leaflet cho hơn 10.000+ Nhóm dinh dưỡng toàn quốc!
+            </p>
+          </div>
+
+          <div class="vip-plans-grid">
+            <!-- Gói Tháng 99k -->
+            <div class="vip-plan-card" style="cursor: pointer;" onclick="App.selectVIPPlan('monthly', 99000)">
+              <div class="vip-plan-tag">GÓI THÁNG</div>
+              <div class="vip-plan-price">99.000đ <span>/ tháng</span></div>
+              <p class="vip-plan-desc">Trải nghiệm linh hoạt đầy đủ tính năng mở khóa 30 ngày.</p>
+              <ul class="vip-plan-features">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Mở khóa SĐT tất cả Chủ nhóm toàn quốc</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Xem Số nhà & Tên đường chi tiết</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Xem Bản đồ vị trí & chỉ đường Leaflet</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Tham gia các sự kiện sức khỏe cộng đồng</li>
+              </ul>
+              <button type="button" class="btn btn-outline" style="width: 100%; margin-top: 16px; font-weight: 700;" onclick="App.selectVIPPlan('monthly', 99000); event.stopPropagation();">
+                Đăng Ký Gói Tháng (99k) <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+
+            <!-- Gói Năm 999k (Featured) -->
+            <div class="vip-plan-card featured" style="cursor: pointer;" onclick="App.selectVIPPlan('yearly', 999000)">
+              <div class="vip-plan-badge">TIẾT KIỆM KHỦNG</div>
+              <div class="vip-plan-tag" style="color: var(--primary);">GÓI NĂM</div>
+              <div class="vip-plan-price" style="color: var(--primary);">999.000đ <span>/ năm</span></div>
+              <p class="vip-plan-desc">Sử dụng trọn gói 12 tháng, tiết kiệm hơn mua lẻ theo tháng + Ưu tiên hiển thị thương hiệu nhóm.</p>
+              <ul class="vip-plan-features">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Mở khóa SĐT tất cả Chủ nhóm toàn quốc</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Xem Số nhà & Tên đường chi tiết</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Xem Bản đồ vị trí & chỉ đường Leaflet</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Đăng bài Sự kiện nhóm không giới hạn</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Hỗ trợ duyệt gói & Zalo Hotline 24/7</li>
+              </ul>
+              <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 16px; font-weight: 700;" onclick="App.selectVIPPlan('yearly', 999000); event.stopPropagation();">
+                🚀 Đăng Ký Gói VIP Năm (999k) <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: QUÉT MÃ QR HOẶC CHUYỂN KHOẢN -->
+        <div id="vipStep2Panel" class="vip-step-panel" style="display: none;">
+          
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="font-size: 0.95rem; color: var(--text-muted);">Bạn đã chọn: <strong id="vipSelectedPlanTitle" style="color: var(--primary); font-size: 1.05rem;">Gói Tháng VIP (99.000đ)</strong></div>
+          </div>
+
+          <!-- Switch Mode: QR vs Manual STK -->
+          <div class="vip-pay-toggle-bar">
+            <button type="button" id="btnPayMethodQR" class="vip-pay-toggle-btn active" onclick="App.toggleVIPPayMethod('qr')">
+              <i class="fa-solid fa-qrcode"></i> Quét Mã QR VietQR
+            </button>
+            <button type="button" id="btnPayMethodManual" class="vip-pay-toggle-btn" onclick="App.toggleVIPPayMethod('manual')">
+              <i class="fa-solid fa-credit-card"></i> Nhập Số Tài Khoản Ngân Hàng
+            </button>
+          </div>
+
+          <!-- Tab A: Quét mã QR VietQR Image -->
+          <div id="vipPayMethodQR" class="vip-pay-tab-content">
+            <div class="vip-qr-card">
+              <img id="vipQRImage" src="images/qr_99k.jpg" alt="Mã QR VietQR Thanh Toán VIP">
+              <div style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+                <i class="fa-solid fa-mobile-screen-button" style="color: var(--primary);"></i> Quét mã QR trên bằng App Ngân Hàng (Vietcombank, MB, Techcombank, Momo...) để thanh toán nhanh.
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab B: Chuyển khoản thủ công -->
+          <div id="vipPayMethodManual" class="vip-pay-tab-content" style="display: none;">
+            <div class="vip-payment-box">
+              <h4 style="font-size: 1.05rem; font-weight: 800; color: #1e3a8a; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-building-columns"></i> THÔNG TIN TÀI KHOẢN NGÂN HÀNG VIETCOMBANK
+              </h4>
+
+              <div class="bank-info-grid">
+                <div class="bank-info-item">
+                  <span class="bank-label">Ngân hàng:</span>
+                  <strong class="bank-val" style="color: #0056b3; font-size: 1.05rem;">Vietcombank (Ngân hàng Ngoại Thương)</strong>
+                </div>
+                <div class="bank-info-item">
+                  <span class="bank-label">Số tài khoản:</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <strong id="vipBankSTK" class="bank-val" style="font-size: 1.3rem; color: #d97706; font-family: monospace;">0201000559232</strong>
+                    <button type="button" class="btn-copy-sm" onclick="App.copyText('0201000559232')"><i class="fa-solid fa-copy"></i> Copy STK</button>
+                  </div>
+                </div>
+                <div class="bank-info-item">
+                  <span class="bank-label">Chủ tài khoản:</span>
+                  <strong class="bank-val" style="font-size: 1.05rem; color: var(--text-main);">Phan Tiến Dũng</strong>
+                </div>
+                <div class="bank-info-item">
+                  <span class="bank-label">Số tiền:</span>
+                  <strong id="vipSelectedPriceText" class="bank-val" style="color: #10b981; font-size: 1.2rem;">99.000đ</strong>
+                </div>
+                <div class="bank-info-item" style="grid-column: 1 / -1;">
+                  <span class="bank-label">Nội dung chuyển tiền:</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <strong id="vipTransferContent" class="bank-val" style="color: var(--primary); font-size: 1.05rem;">[SĐT của bạn] - VIP Nhomdinhduong.vn</strong>
+                    <button type="button" class="btn-copy-sm" onclick="App.copyText(document.getElementById('vipTransferContent').innerText)"><i class="fa-solid fa-copy"></i> Copy Nội Dung</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 Navigation Buttons -->
+          <div style="display: flex; justify-content: space-between; gap: 12px; margin-top: 20px;">
+            <button type="button" class="btn btn-outline" onclick="App.setVIPStep(1)">
+              <i class="fa-solid fa-arrow-left"></i> Quay lại chọn gói
+            </button>
+            <button type="button" class="btn btn-primary" onclick="App.setVIPStep(3)">
+              Tôi Đã Chuyển Khoản -> Sang Bước 3 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- STEP 3: XÁC NHẬN & GỬI BILL QUA ZALO -->
+        <div id="vipStep3Panel" class="vip-step-panel" style="display: none;">
+          <div class="zalo-bill-notice" style="text-align: center; padding: 24px;">
+            <!-- Khung thông báo Zalo Bot tự động phát khi sang Bước 3 -->
+            <div id="zaloBotNotificationBox" style="display: none; background: #e0f2fe; border: 1px solid #0284c7; color: #0369a1; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.95rem; font-weight: 600; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <span style="color: #0284c7; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                  <i class="fa-solid fa-comment-dots" style="font-size: 1.25rem; color: #0068ff;"></i> Zalo Bot Notification
+                </span>
+                <span style="font-size: 0.75rem; color: #0284c7; background: #bae6fd; padding: 2px 8px; border-radius: 10px;">Vừa xong</span>
+              </div>
+              <div style="color: #0c4a6e; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-bell" style="color: #0068ff;"></i> bạn có giao dịch mới trên bot zalo
+              </div>
+            </div>
+
+            <div style="font-size: 2.5rem; color: #10b981; margin-bottom: 10px;">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e3a8a; margin-bottom: 8px;">
+              BƯỚC CUỐI: GỬI BILL QUA ZALO ĐỂ KÍCH HOẠT VIP
+            </h3>
+            <p style="font-size: 0.95rem; color: #334155; line-height: 1.6; max-width: 580px; margin: 0 auto 20px auto;">
+              Quý khách vui lòng bấm nút dưới đây để chuyển tới **Zalo 0902030185** và gửi ảnh chụp màn hình **bill chuyển khoản** để hệ thống kích hoạt gói VIP ngay tức thì!
+            </p>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 420px; margin: 0 auto;">
+              <a id="zaloBotDeepLinkBtn" href="https://zalo.me/0902030185" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background: #0068ff; border-color: #0068ff; width: 100%; padding: 12px 20px; font-size: 1rem; font-weight: 700;">
+                <i class="fa-solid fa-comments"></i> 1. Mở Chat Zalo 0902030185 Để Gửi Bill
+              </a>
+              <a id="zaloBotGroupInviteBtn" href="https://bot.zaloplatforms.com/groups/invite/bot.XMfZaHSU" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="width: 100%; padding: 10px 18px; font-size: 0.95rem; font-weight: 700; border-color: #0284c7; color: #0284c7;">
+                <i class="fa-solid fa-users"></i> Tham Gia Nhóm Zalo Bot (bot.XMfZaHSU)
+              </a>
+              <button type="button" class="btn btn-primary" style="background: #10b981; border-color: #10b981; width: 100%; padding: 12px 20px; font-size: 1rem; font-weight: 700;" onclick="App.confirmVIPPaymentSent()">
+                <i class="fa-solid fa-circle-check"></i> 2. Xác Nhận Đã Gửi Bill & Kích Hoạt VIP
+              </button>
+              <button type="button" class="btn btn-outline" style="width: 100%; border: none; color: var(--text-muted);" onclick="App.setVIPStep(2)">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại xem thông tin thanh toán
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 7: Đăng Bán Công Cụ / Thiết Bị Mở Nhóm -->
+  <div id="createProductModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🛒 Đăng Bán Công Cụ Mở Nhóm Dinh Dưỡng</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitCreateProduct(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên công cụ / thiết bị *</label>
+            <input type="text" name="prodTitle" class="form-control" placeholder="Ví dụ: Máy quét chỉ số InBody H20N" required>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Danh mục công cụ *</label>
+              <select name="prodCategory" class="filter-select" required>
+                <option value="Cân & Máy Quét InBody">Cân & Máy Quét InBody</option>
+                <option value="Dụng Cụ Pha Chế & Ấm Ly">Dụng Cụ Pha Chế & Ấm Ly</option>
+                <option value="Decor & Bộ Nhận Diện">Decor & Bộ Nhận Diện</option>
+                <option value="Giáo Trình & Bộ Đồ Dùng">Giáo Trình & Bộ Đồ Dùng</option>
+                <option value="Combo Trọn Gói A-Z">Combo Trọn Gói A-Z</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giá bán (VNĐ) *</label>
+              <input type="number" name="prodPrice" class="form-control" placeholder="Ví dụ: 12500000" required>
+            </div>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Tình trạng *</label>
+              <select name="prodCondition" class="filter-select">
+                <option value="Mới 100%">Mới 100% (Nguyên hộp)</option>
+                <option value="Like New 99%">Like New 99% (Đã qua sử dụng)</option>
+                <option value="Thanh Lý Giá Tốt">Thanh Lý Giá Tốt</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Khu vực / Tỉnh Thành *</label>
+              <select name="prodProvince" class="filter-select" required>
+                <option value="Hà Nội">Hà Nội</option>
+                <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                <option value="Đà Nẵng">Đà Nẵng</option>
+                <option value="Hải Phòng">Hải Phòng</option>
+                <option value="Cần Thơ">Cần Thơ</option>
+                <option value="Bình Dương">Bình Dương</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hình ảnh sản phẩm (URL)</label>
+            <input type="url" name="prodImage" class="form-control" placeholder="https://..." value="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-cart-shopping" style="color: #ee4d2d;"></i> Link Affiliate Shopee (không bắt buộc)</label>
+            <input type="url" name="prodShopeeLink" id="prodShopeeLinkInput" class="form-control" placeholder="https://shopee.vn/..." oninput="App.onShopeeLinkInput(this.value)">
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Dán link Shopee affiliate của bạn — sản phẩm sẽ hiện nút "Mua Trên Shopee" trỏ thẳng ra link này.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mô tả chi tiết & Thông số công cụ *</label>
+            <textarea name="prodDescription" class="form-control" rows="3" placeholder="Mô tả công dụng, tính năng, chính sách bảo hành..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">Đăng Bán Ngay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 8: Xem Chi Tiết Công Cụ & Đặt Mua -->
+  <div id="productDetailModal" class="modal-backdrop">
+    <div class="modal-container modal-lg" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 id="productDetailModalTitle" class="modal-title">Chi Tiết Công Cụ Mở Nhóm</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <div id="productDetailModalBody" class="modal-body">
+        <!-- Rendered dynamically by ShopManager.showProductDetailModal -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="App.closeAllModals()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 9: Trang Hồ Sơ Cá Nhân Dashboard -->
+  <div id="userProfileModal" class="modal-backdrop">
+    <div class="modal-container modal-lg" style="max-width: 880px;">
+      <div class="modal-header">
+        <h3 class="modal-title">👤 Hồ Sơ Cá Nhân & Quản Lý Hoạt Động</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <div id="userProfileModalBody" class="modal-body">
+        <!-- Rendered dynamically by App.openUserProfileModal -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="App.closeAllModals()">Đóng Hồ Sơ</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal 11: Admin Sửa Thành Viên -->
+  <div id="adminEditUserModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Admin Sửa Thông Tin Thành Viên</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitEditUser(event)">
+        <input type="hidden" id="editUserId" name="editUserId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Họ và Tên</label>
+            <input type="text" id="editUserName" name="editUserName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại</label>
+            <input type="text" id="editUserPhone" name="editUserPhone" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="editUserEmail" name="editUserEmail" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Chức danh / Vai trò</label>
+            <input type="text" id="editUserRole" name="editUserRole" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gói Dịch Vụ VIP</label>
+            <select id="editUserPackage" name="editUserPackage" class="form-control">
+              <option value="trial">🔒 Dùng Thử</option>
+              <option value="monthly">⭐ VIP 1 Tháng (199k)</option>
+              <option value="yearly">⭐ VIP 1 Năm (1.999k)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập Nhật Thành Viên</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 12: Admin Sửa Nhóm Dinh Dưỡng -->
+  <div id="adminEditClubModal" class="modal-backdrop">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Admin Sửa Nhóm Dinh Dưỡng</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitEditClub(event)">
+        <input type="hidden" id="editClubId" name="editClubId">
+        <div class="modal-body">
+
+          <!-- Tên nhóm & Loại hình -->
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Tên nhóm dinh dưỡng *</label>
+              <input type="text" id="editClubName" name="editClubName" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Loại hình nhóm *</label>
+              <select id="editClubType" name="editClubType" class="filter-select" required>
+                <option value="Nhóm dinh dưỡng chuyên sâu">🩺 Nhóm dinh dưỡng chuyên sâu</option>
+                <option value="Nhóm dinh dưỡng vận động">🏃 Nhóm dinh dưỡng vận động</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Hình ảnh nhóm -->
+          <div class="form-group">
+            <label class="form-label">Hình ảnh không gian / Hoạt động của nhóm (URL)</label>
+            <input type="url" id="editClubImage" name="editClubImage" class="form-control" placeholder="https://...">
+          </div>
+
+          <!-- Địa chỉ 2 cấp: Tỉnh/TP -> Xã/Phường -> Địa chỉ chi tiết -->
+          <div style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 18px;">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 12px; color: var(--primary);">📍 Địa chỉ hoạt động của nhóm:</div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+              <div>
+                <label class="form-label">Tỉnh / Thành phố *</label>
+                <select id="editClubProvince" name="editClubProvince" class="filter-select" onchange="App.onEditClubProvinceChange()" required>
+                  <option value="">-- Chọn Tỉnh / TP --</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Xã / Phường *</label>
+                <select id="editClubWard" name="editClubWard" class="filter-select" required>
+                  <option value="">-- Chọn Xã / Phường --</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Địa chỉ chi tiết (Số nhà, Tòa nhà, Tên đường) *</label>
+              <input type="text" id="editClubAddress" name="editClubAddress" class="form-control" required>
+            </div>
+          </div>
+
+          <!-- Thông tin Chủ nhóm & Số điện thoại -->
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Chủ nhóm</label>
+              <input type="text" id="editClubOwner" name="editClubOwner" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số điện thoại liên hệ</label>
+              <input type="text" id="editClubOwnerPhone" name="editClubOwnerPhone" class="form-control">
+            </div>
+          </div>
+
+          <!-- Đồng vận hành: Tìm kiếm các user trong hệ thống -->
+          <div class="form-group co-op-selector-wrap" id="editCoOpSelectorWrap">
+            <label class="form-label">
+              Đội ngũ Đồng Vận Hành (Tìm kiếm & chọn thành viên trong hệ thống)
+            </label>
+            <div class="co-op-chips-container">
+              <div id="editCoOpChipsList" style="display: inline-flex; gap: 6px; flex-wrap: wrap;"></div>
+              <input type="text" id="editCoOpSearchInput" class="co-op-search-input" placeholder="Gõ tên hoặc SĐT để tìm đồng vận hành...">
+            </div>
+
+            <!-- Danh sách gợi ý tìm kiếm -->
+            <div id="editCoOpAutocompleteList" class="co-op-autocomplete-list"></div>
+          </div>
+
+          <!-- Giờ mở cửa -->
+          <div class="form-group">
+            <label class="form-label">Giờ mở cửa hàng ngày</label>
+            <input type="text" id="editClubOpeningHours" name="editClubOpeningHours" class="form-control" placeholder="Ví dụ: Sáng: 05:30 - 09:30 | Chiều: 16:30 - 19:30">
+          </div>
+
+          <!-- Giới thiệu câu chuyện chủ nhóm -->
+          <div class="form-group">
+            <label class="form-label">Giới thiệu câu chuyện chủ nhóm (Hành trình thay đổi bản thân & sứ mệnh)</label>
+            <textarea id="editClubStory" name="editClubStory" class="form-control" rows="4"></textarea>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập Nhật Nhóm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 13: Admin Sửa Sự Kiện -->
+  <div id="adminEditEventModal" class="modal-backdrop">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Admin Sửa Sự Kiện</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitEditEvent(event)">
+        <input type="hidden" id="editEventId" name="editEventId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> Nhóm dinh dưỡng tổ chức *</label>
+            <select id="editEventClubSelect" name="editEventClubSelect" class="filter-select" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-heading" style="color: var(--secondary);"></i> Tên sự kiện *</label>
+            <input type="text" id="editEventTitle" name="editEventTitle" class="form-control" required>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Ngày diễn ra *</label>
+              <input type="date" id="editEventDate" name="editEventDate" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-clock" style="color: var(--secondary);"></i> Khung giờ *</label>
+              <input type="text" id="editEventTime" name="editEventTime" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-map-location-dot" style="color: var(--accent-sport);"></i> Hình thức địa điểm</label>
+              <select id="editEventLocationType" name="editEventLocationType" class="filter-select">
+                <option value="Trực tiếp tại nhóm">Trực tiếp tại nhóm</option>
+                <option value="Trực tiếp ngoài trời">Trực tiếp ngoài trời</option>
+                <option value="Online Zoom">Online Zoom</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="fa-solid fa-users" style="color: var(--primary);"></i> Số lượng tối đa</label>
+              <input type="number" id="editEventMaxParticipants" name="editEventMaxParticipants" class="form-control" min="5" max="500">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-location-pin" style="color: var(--primary);"></i> Địa chỉ tổ chức</label>
+            <input type="text" id="editEventAddress" name="editEventAddress" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-pen-to-square" style="color: var(--secondary);"></i> Mô tả nội dung & Lợi ích người tham gia *</label>
+            <textarea id="editEventDescription" name="editEventDescription" class="form-control" rows="3" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-image" style="color: var(--accent-sport);"></i> Hình ảnh sự kiện (URL)</label>
+            <input type="url" id="editEventImage" name="editEventImage" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập Nhật Sự Kiện</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 14: Admin Sửa Sản Phẩm Shop -->
+  <div id="adminEditProductModal" class="modal-backdrop">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Admin Sửa Sản Phẩm Shop</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitEditProduct(event)">
+        <input type="hidden" id="editProductId" name="editProductId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên công cụ / thiết bị *</label>
+            <input type="text" id="editProductTitle" name="editProductTitle" class="form-control" required>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Danh mục công cụ *</label>
+              <select id="editProductCategory" name="editProductCategory" class="filter-select" required>
+                <option value="Cân & Máy Quét InBody">📊 Cân & Máy Quét InBody</option>
+                <option value="Dụng Cụ Pha Chế & Ấm Ly">🍵 Pha Chế & Ấm Ly</option>
+                <option value="Decor & Bộ Nhận Diện">🖼️ Decor & Bộ Nhận Diện</option>
+                <option value="Giáo Trình & Bộ Đồ Dùng">📚 Giáo Trình & Quà Tặng</option>
+                <option value="Combo Trọn Gói A-Z">🎁 Combo Trọn Gói A-Z</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giá bán (VNĐ) *</label>
+              <input type="number" id="editProductPrice" name="editProductPrice" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Tình trạng</label>
+              <select id="editProductCondition" name="editProductCondition" class="filter-select">
+                <option value="Mới 100%">Mới 100% (Nguyên hộp)</option>
+                <option value="Like New 99%">Like New 99% (Đã qua sử dụng)</option>
+                <option value="Thanh Lý Giá Tốt">Thanh Lý Giá Tốt</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Khu vực / Tỉnh Thành</label>
+              <select id="editProductProvince" name="editProductProvince" class="filter-select">
+                <option value="Hà Nội">Hà Nội</option>
+                <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                <option value="Đà Nẵng">Đà Nẵng</option>
+                <option value="Hải Phòng">Hải Phòng</option>
+                <option value="Cần Thơ">Cần Thơ</option>
+                <option value="Bình Dương">Bình Dương</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Hình ảnh sản phẩm (URL)</label>
+            <input type="url" id="editProductImage" name="editProductImage" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-cart-shopping" style="color: #ee4d2d;"></i> Link Affiliate Shopee (không bắt buộc)</label>
+            <input type="url" id="editProductShopeeLink" name="editProductShopeeLink" class="form-control" placeholder="https://shopee.vn/...">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mô tả chi tiết & Thông số công cụ</label>
+            <textarea id="editProductDescription" name="editProductDescription" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập Nhật Sản Phẩm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 15: Xem Video Khóa Học YouTube Trực Tiếp -->
+  <div id="courseVideoModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 860px; width: 95%; padding: 0; overflow: hidden;">
+      <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color);">
+        <h3 id="courseVideoModalTitle" class="modal-title" style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-play" style="color: #ef4444;"></i> <span>Xem Video Bài Giảng</span>
+        </h3>
+        <button class="modal-close-btn" onclick="App.closeCourseVideoModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
+        <!-- YouTube Responsive Iframe Player -->
+        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000;">
+          <iframe id="courseYoutubeIframe" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border: 0;" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div id="courseVideoModalDetails" style="padding: 20px; background: var(--bg-card);">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 16: Đăng Khóa Học Mới -->
+  <div id="createCourseModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-graduation-cap" style="color: var(--primary);"></i> Đăng Bài Giảng Khóa Học Mới</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitCreateCourse(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tiêu Đề Bài Giảng Khóa Học *</label>
+            <input type="text" name="courseTitle" class="form-control" placeholder="Ví dụ: Kỹ thuật pha chế Shake 15 vị ngon chuẩn calo" required>
+          </div>
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Chủ Đề Khóa Học *</label>
+              <select id="createCourseCategorySelect" name="courseCategory" class="form-control" required>
+                <option value="nutrition">🌿 Dinh Dưỡng Chuyên Sâu</option>
+                <option value="workout">🏃 Luyện Tập & Cardio</option>
+                <option value="operation">🏢 Vận Hành Nhóm</option>
+                <option value="recipes">🥗 Chế Biến & Thực Đơn</option>
+                <option value="coaching">👨‍⚕️ Tư Vấn & Chăm Sóc</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Mức Độ Bài Giảng</label>
+              <select name="courseLevel" class="form-control">
+                <option value="Cơ Bản">Cơ Bản</option>
+                <option value="Trung Cấp">Trung Cấp</option>
+                <option value="Nâng Cao">Nâng Cao</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link Video YouTube Hoặc Mã Video ID *</label>
+            <input type="text" name="courseYoutubeUrl" class="form-control" placeholder="Ví dụ: https://www.youtube.com/watch?v=ml6cT4AZdqI" required>
+          </div>
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Tên Giảng Viên / HLV</label>
+              <input type="text" name="courseInstructor" class="form-control" placeholder="Tên của bạn">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Thời Lượng Video</label>
+              <input type="text" name="courseDuration" class="form-control" placeholder="Ví dụ: 35 phút">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 12px;">
+            <label class="form-label">Link Ảnh Thumbnail (Tùy chọn)</label>
+            <input type="url" name="courseThumbnail" class="form-control" placeholder="https://images.unsplash.com/...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mô Tả Bài Giảng Khóa Học *</label>
+            <textarea name="courseDescription" class="form-control" rows="3" placeholder="Tóm tắt nội dung bài giảng và lợi ích nhận được..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-cloud-arrow-up"></i> Đăng Khóa Học</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 16b: Admin Sửa Bài Giảng Khóa Học -->
+  <div id="adminEditCourseModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Admin Sửa Bài Giảng Khóa Học</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitEditCourse(event)">
+        <input type="hidden" id="editCourseId" name="editCourseId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tiêu Đề Khóa Học / Bài Giảng *</label>
+            <input type="text" id="editCourseTitle" name="editCourseTitle" class="form-control" required>
+          </div>
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Chủ Đề Khóa Học *</label>
+              <select id="editCourseCategory" name="editCourseCategory" class="form-control" required>
+                <option value="nutrition">🌿 Dinh Dưỡng Chuyên Sâu</option>
+                <option value="workout">🏃 Luyện Tập & Cardio</option>
+                <option value="operation">🏢 Vận Hành Nhóm</option>
+                <option value="recipes">🥗 Chế Biến & Thực Đơn</option>
+                <option value="coaching">👨‍⚕️ Tư Vấn & Chăm Sóc</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Mức Độ Bài Giảng</label>
+              <select id="editCourseLevel" name="editCourseLevel" class="form-control">
+                <option value="Cơ Bản">Cơ Bản</option>
+                <option value="Trung Cấp">Trung Cấp</option>
+                <option value="Nâng Cao">Nâng Cao</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 12px;">
+            <label class="form-label">Link Video YouTube Hoặc Video ID *</label>
+            <input type="text" id="editCourseYoutubeUrl" name="editCourseYoutubeUrl" class="form-control" required>
+          </div>
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Tên Giảng Viên / HLV</label>
+              <input type="text" id="editCourseInstructor" name="editCourseInstructor" class="form-control">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Thời Lượng Video</label>
+              <input type="text" id="editCourseDuration" name="editCourseDuration" class="form-control">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 12px;">
+            <label class="form-label">Link Ảnh Thumbnail</label>
+            <input type="url" id="editCourseThumbnail" name="editCourseThumbnail" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mô Tả Bài Giảng Khóa Học *</label>
+            <textarea id="editCourseDescription" name="editCourseDescription" class="form-control" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập Nhật Khóa Học</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 16c: Admin Thêm Chủ Đề Khóa Học -->
+  <div id="adminAddCourseCategoryModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">➕ Admin Thêm Chủ Đề Khóa Học Mới</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitAddCourseCategory(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên Chủ Đề Khóa Học *</label>
+            <input type="text" name="categoryName" class="form-control" placeholder="Ví dụ: Yoga & Phục Hồi Thể Trạng" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Biểu Tượng Icon (Emoji hoặc Icon Text)</label>
+            <input type="text" name="categoryIcon" class="form-control" placeholder="Ví dụ: 🧘" value="📚">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">➕ Thêm Chủ Đề</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 16d: Admin Sửa Chủ Đề Khóa Học -->
+  <div id="adminEditCourseCategoryModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Admin Sửa Chủ Đề Khóa Học</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitEditCourseCategory(event)">
+        <input type="hidden" id="editCategoryId" name="editCategoryId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên Chủ Đề Khóa Học *</label>
+            <input type="text" id="editCategoryName" name="editCategoryName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Biểu Tượng Icon (Emoji)</label>
+            <input type="text" id="editCategoryIcon" name="editCategoryIcon" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập Nhật Chủ Đề</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 17: Nhập Chỉ Số Theo Dõi Sức Khỏe InBody Hôm Nay -->
+  <div id="addMetricsModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-notes-medical" style="color: var(--primary);"></i> Nhập Chỉ Số Sức Khỏe InBody Hôm Nay</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitAddMetrics(event)">
+        <div class="modal-body">
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Ngày Đo *</label>
+              <input type="date" name="metricDate" id="metricDateInput" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Cân Nặng (Weight - kg) *</label>
+              <input type="number" step="0.1" name="metricWeight" class="form-control" placeholder="Ví dụ: 64.5" required>
+            </div>
+          </div>
+
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Tỷ Lệ Mỡ Cơ Thể (% Body Fat) *</label>
+              <input type="number" step="0.1" name="metricBodyFat" class="form-control" placeholder="Ví dụ: 20.2" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Khối Lượng Cơ (Muscle Mass - kg) *</label>
+              <input type="number" step="0.1" name="metricMuscle" class="form-control" placeholder="Ví dụ: 49.5" required>
+            </div>
+          </div>
+
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Lượng Nước (% Total Body Water) *</label>
+              <input type="number" step="0.1" name="metricWater" class="form-control" placeholder="Ví dụ: 57.5" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Mỡ Nội Tạng (Visceral Fat 1-59) *</label>
+              <input type="number" name="metricVisceralFat" class="form-control" placeholder="Ví dụ: 4" required>
+            </div>
+          </div>
+
+          <div class="form-group-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Tỷ Lệ Trao Đổi Chất BMR (kcal)</label>
+              <input type="number" name="metricBmr" class="form-control" placeholder="Ví dụ: 1510">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">Tuổi Sinh Học (Metabolic Age)</label>
+              <input type="number" name="metricMetabolicAge" class="form-control" placeholder="Ví dụ: 26">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label class="form-label">Đánh Giá Vóc Dáng (Physique Rating 1-9)</label>
+            <select name="metricPhysiqueRating" class="form-control">
+              <option value="1">1. Béo Phì Ẩn (Thừa mỡ ít cơ)</option>
+              <option value="2">2. Thừa Mỡ Nặng</option>
+              <option value="3">3. Thừa Cân Nhẹ</option>
+              <option value="4">4. Thiếu Vận Động</option>
+              <option value="5">5. Cân Đối Chuẩn</option>
+              <option value="6">6. Vận Động Viên Khỏe</option>
+              <option value="7" selected>7. Gầy Rắn Chắc</option>
+              <option value="8">8. Cơ Bắp Săn Chắc</option>
+              <option value="9">9. Vận Động Viên Chuyên Nghiệp</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Ghi Chú Chế Độ Ăn & Luyện Tập</label>
+            <input type="text" name="metricNotes" class="form-control" placeholder="Ví dụ: Uống 2.5L nước, ăn đúng calo gợi ý...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 800;"><i class="fa-solid fa-floppy-disk"></i> Lưu Chỉ Số Hôm Nay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 19: Thay Đổi Ảnh Đại Diện User (Avatar Uploader & Presets) -->
+  <div id="changeAvatarModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-camera" style="color: var(--primary);"></i> Thay Đổi Ảnh Đại Diện</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitChangeAvatar(event)">
+        <div class="modal-body">
+          
+          <!-- LIVE PREVIEW AVATAR CONTAINER -->
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="position: relative; display: inline-block;">
+              <img id="avatarPreviewImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar Preview" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25);">
+              <span style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 2px solid var(--bg-card);"><i class="fa-solid fa-camera"></i></span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">Xem trước ảnh đại diện mới của bạn</div>
+          </div>
+
+          <!-- OPTION 1: CHỌN TỆP TỪ MÁY TÍNH / ĐIỆN THOẠI -->
+          <div class="form-group" style="margin-bottom: 16px; background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+            <label class="form-label" style="font-weight: 800; color: var(--primary);"><i class="fa-solid fa-upload" style="margin-right: 6px;"></i> Cách 1: Tải ảnh từ máy tính hoặc điện thoại</label>
+            <input type="file" id="avatarFileInput" accept="image/*" class="form-control" onchange="App.handleAvatarFileUpload(this)" style="padding: 6px 12px; cursor: pointer;">
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">Hỗ trợ ảnh định dạng JPG, PNG, WEBP hoặc GIF</div>
+          </div>
+
+          <!-- OPTION 2: CHỌN TỪ BỘ SỰ TẬP MẪU HLV & VẬN ĐỘNG VIÊN -->
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label" style="font-weight: 800; color: var(--secondary);"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 6px;"></i> Cách 2: Chọn từ Bộ Sưu Tập HLV & Vận Động Viên</label>
+            <div class="preset-avatar-grid">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="preset-avatar-item active" title="HLV Nữ Dinh Dưỡng" onclick="App.selectPresetAvatar(this.src, this)">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" class="preset-avatar-item" title="HLV Nam Dinh Dưỡng" onclick="App.selectPresetAvatar(this.src, this)">
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150" class="preset-avatar-item" title="Hội Viên Nữ Xinh Đẹp" onclick="App.selectPresetAvatar(this.src, this)">
+              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" class="preset-avatar-item" title="HLV Thể Thao Nam" onclick="App.selectPresetAvatar(this.src, this)">
+              <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150" class="preset-avatar-item" title="HLV Thể Thao Nữ" onclick="App.selectPresetAvatar(this.src, this)">
+              <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150" class="preset-avatar-item" title="Hội Viên Nam Năng Động" onclick="App.selectPresetAvatar(this.src, this)">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=NutriCoach1" class="preset-avatar-item" title="Chibi Nutri Coach 1" onclick="App.selectPresetAvatar(this.src, this)">
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=NutriCoach2" class="preset-avatar-item" title="Chibi Nutri Coach 2" onclick="App.selectPresetAvatar(this.src, this)">
+            </div>
+          </div>
+
+          <!-- OPTION 3: DÁN ĐƯỜNG DẪN LINK URL -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" style="font-weight: 800; color: var(--text-main);"><i class="fa-solid fa-link" style="margin-right: 6px;"></i> Cách 3: Hoặc dán đường dẫn Link Ảnh (URL)</label>
+            <input type="url" name="avatarUrl" id="changeAvatarUrlInput" class="form-control" placeholder="https://..." oninput="App.previewAvatarUrl(this.value)">
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy Thao Tác</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+            <i class="fa-solid fa-circle-check"></i> Cập Nhật Ảnh Đại Diện
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Dock (Thanh Điều Hướng Mobile 📱) -->
+  <nav class="mobile-bottom-dock">
+    <button type="button" class="mobile-dock-item active" data-tab="clubsTab" onclick="App.switchTab('clubsTab')">
+      <div class="dock-icon">
+        <i class="fa-solid fa-house"></i>
+      </div>
+      <span class="dock-label">Trang Chủ</span>
+    </button>
+
+    <button type="button" class="mobile-dock-item" data-tab="eventsTab" onclick="App.switchTab('eventsTab')">
+      <div class="dock-icon">
+        <i class="fa-solid fa-calendar-days"></i>
+      </div>
+      <span class="dock-label">Sự Kiện</span>
+    </button>
+
+    <button type="button" class="mobile-dock-item" data-tab="shopTab" onclick="App.switchTab('shopTab')">
+      <div class="dock-icon">
+        <i class="fa-solid fa-cart-shopping"></i>
+      </div>
+      <span class="dock-label">Shop</span>
+    </button>
+
+    <button type="button" class="mobile-dock-item" data-tab="coursesTab" onclick="App.switchTab('coursesTab')">
+      <div class="dock-icon">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <span class="dock-label">Khóa Học</span>
+    </button>
+
+    <button type="button" class="mobile-dock-item" data-tab="profileTab" onclick="App.openUserProfilePage()">
+      <div class="dock-icon">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <span class="dock-label">Hồ Sơ</span>
+    </button>
+  </nav>
+
+  <!-- Scripts (Local core scripts loaded first for maximum reliability & zero CDN blocking) -->
+  <script src="js/data.js?v=4.0"></script>
+  <script src="js/location.js?v=4.0"></script>
+  <script src="js/auth.js?v=4.0"></script>
+  <script src="js/clubs.js?v=4.0"></script>
+  <script src="js/events.js?v=4.0"></script>
+  <script src="js/shop.js?v=4.0"></script>
+  <script src="js/bmi.js?v=4.0"></script>
+  <script src="js/courses.js?v=4.0"></script>
+  <script src="js/metrics.js?v=4.0"></script>
+  <script src="js/app.js?v=4.0"></script>
+  <script>
+    (function() {
+      function runInit() {
+        if (window.App && typeof window.App.init === 'function') {
+          try {
+            window.App.init();
+          } catch(e) {
+            console.error("App init error:", e);
+          }
+        }
+      }
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        runInit();
+      } else {
+        window.addEventListener('load', runInit);
+        document.addEventListener('DOMContentLoaded', runInit);
+      }
+    })();
+  </script>
+
+  <!-- External Map CDN Library (Loaded async so slow CDN never blocks local UI) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous" async></script>
+
+</body>
+</html>
