@@ -43,8 +43,9 @@ const ClubManager = {
     try {
       for (const club of clubs) {
         if (club && club.id) {
+          const cleanClub = JSON.parse(JSON.stringify(club));
           const clubRef = doc(db, "clubs", String(club.id));
-          await setDoc(clubRef, club, { merge: true });
+          await setDoc(clubRef, cleanClub, { merge: true });
         }
       }
     } catch (err) {
@@ -58,9 +59,11 @@ const ClubManager = {
     const { doc, setDoc } = window.firestoreHelpers;
     const db = window.firebaseDb;
     try {
+      // Loại bỏ các trường undefined để Firestore không từ chối ghi dữ liệu
+      const cleanClub = JSON.parse(JSON.stringify(club));
       const clubRef = doc(db, "clubs", String(club.id));
-      await setDoc(clubRef, club, { merge: true });
-      console.log("🔥 Club synced to Firestore:", club.name);
+      await setDoc(clubRef, cleanClub, { merge: true });
+      console.log("🔥 Club successfully synced to Firestore Database:", club.name);
     } catch (err) {
       console.error("Firestore syncSingle error:", err);
     }
