@@ -389,39 +389,9 @@ const App = {
       deepLinkBtn.href = deepLinkUrl;
     }
 
-    // 3. Thực hiện gửi HTTP Webhook POST tới Zalo Bot API kèm Bot Token chính thức
-    const botToken = (window.SEED_CMS_CONFIG && window.SEED_CMS_CONFIG.zaloBotToken) || "2262638760896289994:ipeanoJLhtGpmNBMnnQvqxQWolQbUmJJVTUTteHqXjObkWnBZPzGfdkscVUYgjtW";
-    const webhookUrl = (window.SEED_CMS_CONFIG && window.SEED_CMS_CONFIG.zaloBotWebhookUrl) || "https://bot.zaloplatforms.com/api/v1/sendMessage";
-    
-    const payload = {
-      token: botToken,
-      botToken: botToken,
-      event: "NEW_TRANSACTION",
-      message: zaloMsgText,
-      fullText: fullMessage,
-      userPhone: userPhone,
-      userName: userName,
-      plan: planName,
-      amount: amountVal,
-      transferContent: transferCode,
-      timestamp: new Date().toISOString()
-    };
-
-    if (typeof fetch !== "undefined") {
-      fetch(webhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${botToken}`,
-          "X-Bot-Token": botToken
-        },
-        body: JSON.stringify(payload)
-      }).then(res => {
-        console.log("[Zalo Bot API] Message dispatched with Token, status:", res.status);
-      }).catch(err => {
-        console.log("[Zalo Bot API] Fallback to client deep link mode:", err.message);
-      });
-    }
+    // 3. Gửi qua relay server-side (Zalo Bot API không hỗ trợ CORS nên
+    // trình duyệt không thể gọi thẳng — xem cloudflare-worker/README.md)
+    this.sendZaloBotNotification(fullMessage);
 
     // 4. Hiển thị Toast Popup thông báo giao dịch mới
     this.showToastNotification(`📲 Zalo Bot: ${zaloMsgText}`, "info");
@@ -514,44 +484,38 @@ const App = {
     }
   },
 
-  // Gửi thông báo đến Zalo Bot HTTP API
+  // Gửi thông báo đến Zalo qua relay server-side (Cloudflare Worker).
+  // Zalo Bot API không trả CORS header nên trình duyệt không thể gọi thẳng;
+  // relay giữ bot token thật và forward tin nhắn hộ. Xem cloudflare-worker/README.md.
   async sendZaloBotNotification(messageText) {
-    const botToken = "2262638760896289994:ipeanoJLhtGpmNBMnnQvqxQWolQbUmJJVTUTteHqXjObkWnBZPzGfdkscVUYgjtW";
-    const secretToken = "ndd_zalo_secret_2026";
-    const zaloApiUrl = "https://bot.zaloplatforms.com/api/v1/sendMessage";
+    const relayUrl = window.SEED_CMS_CONFIG && window.SEED_CMS_CONFIG.zaloRelayUrl;
+    const relaySecret = window.SEED_CMS_CONFIG && window.SEED_CMS_CONFIG.zaloRelaySecret;
 
-    console.log("🤖 [Zalo Bot API] Sending notification:", messageText);
-
-    // 1. Gửi qua fetch với mode: 'no-cors' để tránh trình duyệt chặn CORS
-    try {
-      await fetch(zaloApiUrl, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${botToken}`,
-          "X-Secret-Token": secretToken,
-          "Secret-Token": secretToken
-        },
-        body: JSON.stringify({
-          text: messageText,
-          message: messageText,
-          secret_token: secretToken
-        })
-      });
-      console.log("🤖 Zalo Bot notification request dispatched (no-cors)");
-    } catch (error) {
-      console.warn("🤖 Zalo Bot fetch notice:", error.message);
+    if (!relayUrl || relayUrl.indexOf("<subdomain>") !== -1) {
+      console.warn("🤖 Zalo relay chưa được cấu hình (zaloRelayUrl trong js/data.js). Xem cloudflare-worker/README.md.");
+      return false;
     }
 
-    // 2. Dự phòng bằng Webhook GET image beacon
     try {
-      const beaconUrl = `${zaloApiUrl}?token=${encodeURIComponent(botToken)}&text=${encodeURIComponent(messageText)}&secret=${secretToken}`;
-      const img = new Image();
-      img.src = beaconUrl;
-    } catch(err) {}
-
-    return true;
+      const res = await fetch(relayUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Relay-Secret": relaySecret || ""
+        },
+        body: JSON.stringify({ text: messageText })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        console.warn("🤖 Zalo relay báo lỗi:", data);
+        return false;
+      }
+      console.log("🤖 Zalo Bot notification sent via relay");
+      return true;
+    } catch (error) {
+      console.warn("🤖 Zalo relay fetch error:", error.message);
+      return false;
+    }
   },
 
   confirmVIPPaymentSent() {

@@ -4079,9 +4079,12 @@ var SEED_CMS_CONFIG = {
     subText: "Trở thành đối tác hoặc đăng ký nhóm dinh dưỡng ngay hôm nay để nhận hỗ trợ truyền thông toàn quốc."
   },
   zaloBotPhone: "0902030185",
-  zaloBotToken: "2262638760896289994:ipeanoJLhtGpmNBMnnQvqxQWolQbUmJJVTUTteHqXjObkWnBZPzGfdkscVUYgjtW",
   zaloBotGroupInviteUrl: "https://bot.zaloplatforms.com/groups/invite/bot.XMfZaHSU",
-  zaloBotWebhookUrl: "https://bot.zaloplatforms.com/api/v1/sendMessage",
+  // Zalo Bot API khong ho tro CORS nen khong the goi thang tu trinh duyet.
+  // Front-end goi relay nay (Cloudflare Worker), relay moi la noi giu that
+  // ZALO_BOT_TOKEN va goi Zalo. Xem cloudflare-worker/README.md de deploy.
+  zaloRelayUrl: "https://ndd-zalo-relay.nhomdinhduong-ndd.workers.dev",
+  zaloRelaySecret: "adb19766be24c8639e6f960ae1812483",
   zaloBotNotificationMessage: "bạn có giao dịch mới trên bot zalo"
 };
 
