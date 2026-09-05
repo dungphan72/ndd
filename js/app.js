@@ -571,6 +571,44 @@ const App = {
     this.syncMapWithFilters();
   },
 
+  onClubProvinceChange() {
+    const provinceVal = document.getElementById("clubProvince") ? document.getElementById("clubProvince").value : "";
+    const clubDistrict = document.getElementById("clubDistrict");
+    if (!clubDistrict) return;
+
+    if (!provinceVal) {
+      clubDistrict.innerHTML = `<option value="">-- Chọn Xã / Phường --</option>`;
+      return;
+    }
+
+    const wards = typeof LocationManager !== "undefined" ? LocationManager.getWards(provinceVal) : [];
+    if (wards.length > 0) {
+      clubDistrict.innerHTML = `<option value="">-- Chọn Xã / Phường (${wards.length}) --</option>` +
+        wards.map(w => `<option value="${w.wardName}">${w.wardName}</option>`).join('');
+    } else {
+      clubDistrict.innerHTML = `<option value="">-- Chọn Xã / Phường --</option>`;
+    }
+  },
+
+  onEditClubProvinceChange() {
+    const provinceVal = document.getElementById("editClubProvince") ? document.getElementById("editClubProvince").value : "";
+    const editClubDistrict = document.getElementById("editClubDistrict") || document.getElementById("editClubWard");
+    if (!editClubDistrict) return;
+
+    if (!provinceVal) {
+      editClubDistrict.innerHTML = `<option value="">-- Chọn Xã / Phường --</option>`;
+      return;
+    }
+
+    const wards = typeof LocationManager !== "undefined" ? LocationManager.getWards(provinceVal) : [];
+    if (wards.length > 0) {
+      editClubDistrict.innerHTML = `<option value="">-- Chọn Xã / Phường (${wards.length}) --</option>` +
+        wards.map(w => `<option value="${w.wardName}">${w.wardName}</option>`).join('');
+    } else {
+      editClubDistrict.innerHTML = `<option value="">-- Chọn Xã / Phường --</option>`;
+    }
+  },
+
   onSearchSortChange(val) {
     this.selectedSortBy = val;
     this.renderClubs();
@@ -1932,6 +1970,11 @@ const App = {
     if (ownerNameInput) ownerNameInput.value = currentUser.name;
     if (ownerPhoneInput) ownerPhoneInput.value = currentUser.phone;
 
+    // Cập nhật lại dropdown Tỉnh / TP & Xã / Phường
+    this.setupLocationDropdowns();
+    const clubDistrict = document.getElementById("clubDistrict");
+    if (clubDistrict) clubDistrict.innerHTML = `<option value="">-- Chọn Xã / Phường --</option>`;
+
     // Reset danh sách đồng vận hành đã chọn
     this.selectedCoOperators = [];
     this.renderCoOpChips();
@@ -1980,6 +2023,18 @@ const App = {
 
     const result = ClubManager.createClub(newClubData);
     if (result && result.success) {
+      // Reset bộ lọc về tất cả để hiển thị nhóm mới vừa tạo ngay lập tức
+      this.selectedType = 'all';
+      this.selectedProvince = 'all';
+      this.selectedDistrict = 'all';
+      this.selectedWard = 'all';
+      this.searchKeyword = '';
+
+      const searchProvEl = document.getElementById("searchProvince");
+      if (searchProvEl) searchProvEl.value = 'all';
+      const searchDistEl = document.getElementById("searchDistrict") || document.getElementById("searchWard");
+      if (searchDistEl) searchDistEl.value = 'all';
+
       // Đồng bộ trực tiếp lên Firebase Firestore
       ClubManager.syncSingleClubToFirestore(result.club);
 
@@ -1989,6 +2044,7 @@ const App = {
 
       this.closeAllModals();
       this.renderClubs();
+      this.syncMapWithFilters();
       this.showToast("🎉 Đăng Nhóm Dinh Dưỡng thành công! Dữ liệu đã được đồng bộ lên Firebase.");
     } else {
       this.showToast(result ? result.message : "Có lỗi xảy ra khi đăng nhóm!", "error");
