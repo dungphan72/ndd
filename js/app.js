@@ -564,19 +564,20 @@ const App = {
     
     AuthManager.upgradeUserVIP(this.selectedVIPPlan || "monthly");
 
-    // Gửi thông báo về Zalo Bot
+    // Gửi thông báo ngầm về Zalo Bot HTTP API
     const msg = `🔔 [GIAO DỊCH MỚI] Thành viên ${currentUser.name} (${currentUser.phone}) vừa xác nhận chuyển khoản gói VIP (${this.selectedVIPPlan || 'monthly'}) trên bot zalo!`;
     this.sendZaloBotNotification(msg);
 
     this.setupAuthUI();
     this.renderClubs();
     this.closeAllModals();
-    this.showToast("🎉 Kích hoạt gói VIP thành công! Đã gửi thông báo giao dịch về Zalo.");
+    this.showToast("🎉 Kích hoạt gói VIP thành công! Đang mở Zalo để gửi bill xác nhận...");
 
-    // Tự động mở khung chat Zalo 0902030185 để người dùng gửi ảnh Bill chuyển khoản
+    // Tự động mở Zalo với tin nhắn mẫu sẵn sàng gửi bill
+    const zaloText = encodeURIComponent(`Xin chào Admin! Tôi là ${currentUser.name} (${currentUser.phone}), tôi vừa thực hiện chuyển khoản kích hoạt gói VIP (${this.selectedVIPPlan || 'monthly'}). Tôi gửi kèm ảnh bill chuyển khoản để xác nhận!`);
     setTimeout(() => {
-      window.open(`https://zalo.me/0902030185`, '_blank');
-    }, 800);
+      window.open(`https://zalo.me/0902030185?text=${zaloText}`, '_blank');
+    }, 600);
   },
 
   copyText(text) {
