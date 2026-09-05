@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Nhomdinhduong.vn</title>
+  <script>
+    // GitHub Pages Single Page Application Router
+    // Tự động chuyển hướng các đường dẫn sạch như /courses, /events, /shop về index.html và giữ nguyên trang
+    (function() {
+      var pathSegments = window.location.pathname.replace(/^\/|\/$/g, '').split('/');
+      var firstSegment = pathSegments[0] || '';
+      var search = window.location.search;
+      var hash = window.location.hash;
+
+      var redirectUrl = window.location.origin + '/?page=' + encodeURIComponent(firstSegment) + hash;
+      window.location.replace(redirectUrl);
+    })();
+  </script>
+</head>
+<body>
+</body>
+</html>

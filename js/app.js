@@ -37,6 +37,61 @@ const App = {
   selectedEditCoOperators: [], // Danh sách đồng vận hành được chọn khi Admin sửa nhóm
   selectedCourseCategory: 'all',
 
+  tabSlugMap: {
+    'clubsTab': '',
+    'eventsTab': 'events',
+    'shopTab': 'shop',
+    'coursesTab': 'courses',
+    'bmiTab': 'bmi',
+    'profileTab': 'profile',
+    'trackerTab': 'tracker',
+    'adminTab': 'admin'
+  },
+
+  slugToTabMap: {
+    '': 'clubsTab',
+    'home': 'clubsTab',
+    'clubs': 'clubsTab',
+    'clubstab': 'clubsTab',
+    'events': 'eventsTab',
+    'eventstab': 'eventsTab',
+    'shop': 'shopTab',
+    'shoptab': 'shopTab',
+    'courses': 'coursesTab',
+    'coursestab': 'coursesTab',
+    'bmi': 'bmiTab',
+    'bmitab': 'bmiTab',
+    'profile': 'profileTab',
+    'profiletab': 'profileTab',
+    'tracker': 'trackerTab',
+    'trackertab': 'trackerTab',
+    'admin': 'adminTab',
+    'admintab': 'adminTab'
+  },
+
+  getTabFromURL() {
+    // 1. Kiểm tra Path (ví dụ: /courses hoặc /events)
+    let path = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase().trim();
+    if (path && this.slugToTabMap[path]) {
+      return this.slugToTabMap[path];
+    }
+
+    // 2. Kiểm tra Query Param (?page=courses hoặc ?tab=courses)
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = (urlParams.get("page") || urlParams.get("tab") || "").toLowerCase().trim();
+    if (pageParam && this.slugToTabMap[pageParam]) {
+      return this.slugToTabMap[pageParam];
+    }
+
+    // 3. Kiểm tra Hash (#courses hoặc #coursesTab)
+    let hash = (window.location.hash || '').replace('#', '').toLowerCase().trim();
+    if (hash && this.slugToTabMap[hash]) {
+      return this.slugToTabMap[hash];
+    }
+
+    return 'clubsTab';
+  },
+
   init() {
     // Khởi tạo các sự kiện giao diện
     this.setupAuthUI();
@@ -45,23 +100,14 @@ const App = {
     this.setupEditCoOpSearch();
     this.setupSearchSuggestionDismissal();
 
-    // Kiểm tra URL Hash ban đầu (ví dụ: #eventsTab, #shopTab, #coursesTab, #bmiTab)
-    const initialHash = (window.location.hash || '').replace('#', '');
-    const validTabs = ['clubsTab', 'eventsTab', 'shopTab', 'coursesTab', 'bmiTab', 'profileTab', 'trackerTab', 'adminTab'];
-    if (initialHash && validTabs.includes(initialHash)) {
-      this.switchTab(initialHash, false);
-    } else {
-      this.switchTab('clubsTab', false);
-    }
+    // Kiểm tra URL ban đầu và chuyển về tab tương ứng (sạch dấu # và chữ Tab)
+    const initialTab = this.getTabFromURL();
+    this.switchTab(initialTab, false);
 
-    // Đăng ký lắng nghe sự kiện Back/Forward của trình duyệt & Hash change
+    // Đăng ký lắng nghe sự kiện Back/Forward của trình duyệt
     window.addEventListener("popstate", () => {
-      const hash = (window.location.hash || '').replace('#', '');
-      if (hash && validTabs.includes(hash)) {
-        this.switchTab(hash, false);
-      } else {
-        this.switchTab('clubsTab', false);
-      }
+      const currentTab = this.getTabFromURL();
+      this.switchTab(currentTab, false);
     });
 
     this.renderEvents();
@@ -94,16 +140,21 @@ const App = {
   },
 
   // Chuyển đổi giữa các Trang / Tab (Nhóm Dinh Dưỡng | Sự Kiện | Shop Công Cụ | Khóa Học | Tính BMI | Quản Trị Admin)
-  switchTab(tabId, updateHash = true) {
+  switchTab(tabId, updateUrl = true) {
     if (!tabId) return;
     this.activeTab = tabId;
 
-    // 0. Cập nhật Hash trên thanh địa chỉ URL của trình duyệt
-    if (updateHash && window.location.hash !== '#' + tabId) {
+    // 0. Cập nhật URL sạch trên thanh địa chỉ của trình duyệt (Không còn dấu # và chữ Tab)
+    if (updateUrl) {
+      const slug = this.tabSlugMap[tabId] || '';
+      let targetUrl = window.location.origin + '/';
+      if (slug) {
+        targetUrl = window.location.origin + '/' + slug;
+      }
       try {
-        history.pushState(null, '', '#' + tabId);
+        history.pushState({ tabId }, '', targetUrl);
       } catch (e) {
-        window.location.hash = tabId;
+        console.warn("History pushState notice:", e.message);
       }
     }
 
