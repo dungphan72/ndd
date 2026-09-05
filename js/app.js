@@ -317,7 +317,7 @@ const App = {
   setVIPStep(stepNum) {
     this.currentVIPStep = stepNum;
 
-    // Cập nhật trạng thái các nút tiến trình Step 1 -> 2 -> 3
+    // Cập nhật trạng thái các nút tiến trình Step 1 -> 2
     document.querySelectorAll(".vip-step-pill").forEach(pill => {
       const s = parseInt(pill.dataset.step);
       if (s === stepNum) {
@@ -333,103 +333,12 @@ const App = {
     });
 
     // Chuyển đổi hiển thị các panel Step
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
       const panel = document.getElementById(`vipStep${i}Panel`);
       if (panel) {
         panel.style.display = (i === stepNum) ? "block" : "none";
       }
     }
-
-    // Khi chuyển sang Bước 3: Gửi tin nhắn Zalo Bot thông báo giao dịch mới
-    if (stepNum === 3) {
-      this.sendZaloTransactionNotification();
-    }
-  },
-
-  sendZaloTransactionNotification() {
-    const currentUser = (typeof AuthManager !== "undefined" && AuthManager.getCurrentUser()) || {};
-    const userPhone = currentUser.phone || "0902030185";
-    const userName = currentUser.name || "Khách hàng";
-    const planName = this.selectedVIPPlan === 'yearly' ? 'Gói 1 Năm (899.000đ)' : 'Gói 1 Tháng (99.000đ)';
-    const amountVal = this.selectedVIPPrice || 99000;
-    const amountStr = amountVal.toLocaleString("vi-VN") + "đ";
-    const transferCode = `${userPhone} - VIP Nhomdinhduong.vn`;
-    const zaloMsgText = "bạn có giao dịch mới trên bot zalo";
-
-    // 1. Hiển thị khung thông báo Zalo Bot trong Step 3 Panel
-    const botBox = document.getElementById("zaloBotNotificationBox");
-    if (botBox) {
-      botBox.style.display = "block";
-      botBox.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <span style="color: #0284c7; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-robot" style="font-size: 1.25rem; color: #0068ff;"></i> Zalo Bot Notification API
-          </span>
-          <span style="font-size: 0.75rem; color: #0284c7; background: #bae6fd; padding: 2px 8px; border-radius: 10px; font-weight: 700;">Vừa kết nối</span>
-        </div>
-        <div style="color: #0c4a6e; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <i class="fa-solid fa-bell" style="color: #0068ff;"></i> ${zaloMsgText}
-        </div>
-        <div style="font-size: 0.88rem; color: #0369a1; background: #ffffff; padding: 10px 14px; border-radius: 8px; border: 1px dashed #7dd3fc; line-height: 1.5;">
-          <div>📱 <strong>Tài khoản:</strong> ${userName} (${userPhone})</div>
-          <div>💎 <strong>Gói đăng ký:</strong> ${planName}</div>
-          <div>💰 <strong>Số tiền:</strong> ${amountStr}</div>
-          <div>📝 <strong>Nội dung:</strong> ${transferCode}</div>
-        </div>
-      `;
-    }
-
-    // 2. Cập nhật Deep Link Zalo Bot để mở Zalo có sẵn tin nhắn chuẩn bị gửi
-    const zaloPhone = (window.SEED_CMS_CONFIG && window.SEED_CMS_CONFIG.zaloBotPhone) || "0902030185";
-    const fullMessage = `${zaloMsgText}\n- SĐT: ${userPhone}\n- Gói: ${planName}\n- Số tiền: ${amountStr}\n- Nội dung: ${transferCode}`;
-    const deepLinkUrl = `https://zalo.me/${zaloPhone}?text=${encodeURIComponent(fullMessage)}`;
-
-    const deepLinkBtn = document.getElementById("zaloBotDeepLinkBtn");
-    if (deepLinkBtn) {
-      deepLinkBtn.href = deepLinkUrl;
-    }
-
-    // 3. Gửi qua relay server-side (Zalo Bot API không hỗ trợ CORS nên
-    // trình duyệt không thể gọi thẳng — xem cloudflare-worker/README.md)
-    this.sendZaloBotNotification(fullMessage);
-
-    // 4. Hiển thị Toast Popup thông báo giao dịch mới
-    this.showToastNotification(`📲 Zalo Bot: ${zaloMsgText}`, "info");
-  },
-
-  showToastNotification(message, type = "info") {
-    if (typeof document === "undefined") return;
-
-    let toastContainer = document.getElementById("globalToastContainer");
-    if (!toastContainer) {
-      toastContainer = document.createElement("div");
-      toastContainer.id = "globalToastContainer";
-      toastContainer.style.cssText = "position: fixed; top: 20px; right: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;";
-      document.body.appendChild(toastContainer);
-    }
-
-    const toast = document.createElement("div");
-    toast.className = `toast-popup toast-${type}`;
-    toast.style.cssText = "pointer-events: auto; background: #0f172a; color: #ffffff; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; border-left: 4px solid #0068ff; animation: slideInRight 0.3s ease;";
-
-    toast.innerHTML = `
-      <i class="fa-solid fa-comment-dots" style="color: #0068ff; font-size: 1.25rem;"></i>
-      <span>${message}</span>
-    `;
-
-    toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      toast.style.transition = "opacity 0.3s ease";
-      setTimeout(() => {
-        if (toast && typeof toast.remove === "function") {
-          toast.remove();
-        } else if (toast && toast.parentNode) {
-          toast.parentNode.removeChild(toast);
-        }
-      }, 300);
-    }, 4500);
   },
 
   selectVIPPlan(planType, price) {

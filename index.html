@@ -1106,11 +1106,6 @@
             <span class="step-num">2</span>
             <span>Bước 2: Quét Mã QR / Chuyển Khoản</span>
           </div>
-          <i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; color: var(--text-muted);"></i>
-          <div class="vip-step-pill" data-step="3" onclick="App.setVIPStep(3)">
-            <span class="step-num">3</span>
-            <span>Bước 3: Gửi Bill Zalo</span>
-          </div>
         </div>
 
         <!-- STEP 1: CHỌN GÓI ĐĂNG KÝ -->
@@ -1228,54 +1223,11 @@
             <button type="button" class="btn btn-outline" onclick="App.setVIPStep(1)">
               <i class="fa-solid fa-arrow-left"></i> Quay lại chọn gói
             </button>
-            <button type="button" class="btn btn-primary" onclick="App.setVIPStep(3)">
-              Tôi Đã Chuyển Khoản -> Sang Bước 3 <i class="fa-solid fa-arrow-right"></i>
+            <button type="button" class="btn btn-primary" style="background: #10b981; border-color: #10b981;" onclick="App.confirmVIPPaymentSent()">
+              <i class="fa-solid fa-circle-check"></i> Tôi Đã Chuyển Khoản - Kích Hoạt VIP
             </button>
           </div>
 
-        </div>
-
-        <!-- STEP 3: XÁC NHẬN & GỬI BILL QUA ZALO -->
-        <div id="vipStep3Panel" class="vip-step-panel" style="display: none;">
-          <div class="zalo-bill-notice" style="text-align: center; padding: 24px;">
-            <!-- Khung thông báo Zalo Bot tự động phát khi sang Bước 3 -->
-            <div id="zaloBotNotificationBox" style="display: none; background: #e0f2fe; border: 1px solid #0284c7; color: #0369a1; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; text-align: left; font-size: 0.95rem; font-weight: 600; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <span style="color: #0284c7; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                  <i class="fa-solid fa-comment-dots" style="font-size: 1.25rem; color: #0068ff;"></i> Zalo Bot Notification
-                </span>
-                <span style="font-size: 0.75rem; color: #0284c7; background: #bae6fd; padding: 2px 8px; border-radius: 10px;">Vừa xong</span>
-              </div>
-              <div style="color: #0c4a6e; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-bell" style="color: #0068ff;"></i> bạn có giao dịch mới trên bot zalo
-              </div>
-            </div>
-
-            <div style="font-size: 2.5rem; color: #10b981; margin-bottom: 10px;">
-              <i class="fa-solid fa-circle-check"></i>
-            </div>
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: #1e3a8a; margin-bottom: 8px;">
-              BƯỚC CUỐI: GỬI BILL QUA ZALO ĐỂ KÍCH HOẠT VIP
-            </h3>
-            <p style="font-size: 0.95rem; color: #334155; line-height: 1.6; max-width: 580px; margin: 0 auto 20px auto;">
-              Quý khách vui lòng bấm nút dưới đây để chuyển tới **Zalo 0902030185** và gửi ảnh chụp màn hình **bill chuyển khoản** để hệ thống kích hoạt gói VIP ngay tức thì!
-            </p>
-
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 420px; margin: 0 auto;">
-              <a id="zaloBotDeepLinkBtn" href="https://zalo.me/0902030185" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background: #0068ff; border-color: #0068ff; width: 100%; padding: 12px 20px; font-size: 1rem; font-weight: 700;">
-                <i class="fa-solid fa-comments"></i> 1. Mở Chat Zalo 0902030185 Để Gửi Bill
-              </a>
-              <a id="zaloBotGroupInviteBtn" href="https://bot.zaloplatforms.com/groups/invite/bot.XMfZaHSU" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="width: 100%; padding: 10px 18px; font-size: 0.95rem; font-weight: 700; border-color: #0284c7; color: #0284c7;">
-                <i class="fa-solid fa-users"></i> Tham Gia Nhóm Zalo Bot (bot.XMfZaHSU)
-              </a>
-              <button type="button" class="btn btn-primary" style="background: #10b981; border-color: #10b981; width: 100%; padding: 12px 20px; font-size: 1rem; font-weight: 700;" onclick="App.confirmVIPPaymentSent()">
-                <i class="fa-solid fa-circle-check"></i> 2. Xác Nhận Đã Gửi Bill & Kích Hoạt VIP
-              </button>
-              <button type="button" class="btn btn-outline" style="width: 100%; border: none; color: var(--text-muted);" onclick="App.setVIPStep(2)">
-                <i class="fa-solid fa-arrow-left"></i> Quay lại xem thông tin thanh toán
-              </button>
-            </div>
-          </div>
         </div>
 
       </div>
