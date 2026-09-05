@@ -1,6 +1,15 @@
 // Firebase Configuration & Initialization
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  getDocs, 
+  onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCCbnuruybHIx3NMb4blrfcEtIi8gShICo",
@@ -12,11 +21,16 @@ const firebaseConfig = {
   measurementId: "G-3PCB30C2Y7"
 };
 
-// Initialize Firebase
+// Initialize Firebase App, Analytics & Firestore Database
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const db = getFirestore(app);
 
-// Expose globally for convenience
+// Expose globally for application use
 window.firebaseApp = app;
 window.firebaseAnalytics = analytics;
-console.log("🔥 Firebase & Analytics initialized for ndd1-b7e7e");
+window.firebaseDb = db;
+window.firestoreHelpers = { collection, doc, setDoc, deleteDoc, getDocs, onSnapshot };
+
+console.log("🔥 Firebase App, Analytics & Firestore Database initialized for ndd1-b7e7e");
+

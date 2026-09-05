@@ -71,6 +71,15 @@ const App = {
     this.initTheme();
     this.renderDynamicCMS();
 
+    // Khởi tạo Lắng nghe Firestore Realtime Database
+    if (typeof ClubManager !== "undefined" && typeof ClubManager.initFirestoreSync === "function") {
+      ClubManager.initFirestoreSync(() => {
+        if (this.activeTab === 'clubsTab') {
+          this.renderClubs();
+        }
+      });
+    }
+
     // Khởi tạo tính toán BMI ban đầu
     this.calculateBMI();
 
@@ -444,6 +453,34 @@ const App = {
     }
   },
 
+  // Gửi thông báo đến Zalo Bot HTTP API
+  async sendZaloBotNotification(messageText) {
+    const botToken = "2262638760896289994:ipeanoJLhtGpmNBMnnQvqxQWolQbUmJJVTUTteHqXjObkWnBZPzGfdkscVUYgjtW";
+    const zaloApiUrl = "https://bot.zaloplatforms.com/api/v1/sendMessage";
+
+    console.log("🤖 [Zalo Bot API] Sending notification:", messageText);
+
+    try {
+      const response = await fetch(zaloApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${botToken}`
+        },
+        body: JSON.stringify({
+          text: messageText,
+          message: messageText
+        })
+      });
+
+      console.log("🤖 Zalo Bot HTTP API response status:", response.status);
+      return true;
+    } catch (error) {
+      console.warn("🤖 Zalo Bot HTTP API call notice:", error.message);
+      return false;
+    }
+  },
+
   confirmVIPPaymentSent() {
     const currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
@@ -453,10 +490,15 @@ const App = {
     }
     
     AuthManager.upgradeUserVIP(this.selectedVIPPlan || "monthly");
+
+    // Gửi thông báo về Zalo Bot
+    const msg = `🔔 [GIAO DỊCH MỚI] Thành viên ${currentUser.name} (${currentUser.phone}) vừa xác nhận chuyển khoản gói VIP (${this.selectedVIPPlan || 'monthly'}) trên bot zalo!`;
+    this.sendZaloBotNotification(msg);
+
     this.setupAuthUI();
     this.renderClubs();
     this.closeAllModals();
-    this.showToast("🎉 Kích hoạt gói VIP thành công! Đã mở khóa trọn bộ Số điện thoại, Địa chỉ chi tiết & Bản đồ.");
+    this.showToast("🎉 Kích hoạt gói VIP thành công! Đã gửi thông báo giao dịch về Zalo Bot.");
   },
 
   copyText(text) {
@@ -1895,6 +1937,62 @@ const App = {
     this.renderCoOpChips();
 
     this.openModal("createClubModal");
+  },
+
+  // Xử lý nộp Form Đăng Nhóm Dinh Dưỡng Mới
+  submitCreateClub(e) {
+    if (e) e.preventDefault();
+    const currentUser = AuthManager.getCurrentUser();
+    if (!currentUser) {
+      this.showToast("⚠️ Vui lòng đăng nhập!", "warning");
+      return;
+    }
+
+    const form = e.target;
+    const name = (form.clubName ? form.clubName.value : "").trim();
+    const type = form.clubType ? form.clubType.value : "Nhóm dinh dưỡng chuyên sâu";
+    const image = (form.clubImage ? form.clubImage.value : "").trim();
+    const province = form.clubProvince ? form.clubProvince.value : "";
+    const district = form.clubDistrict ? form.clubDistrict.value : "";
+    const addressDetail = (form.clubAddressDetail ? form.clubAddressDetail.value : "").trim();
+    const openingHours = (form.clubOpeningHours ? form.clubOpeningHours.value : "").trim();
+    const story = (form.clubStory ? form.clubStory.value : "").trim();
+
+    if (!name || !province || !district || !addressDetail) {
+      this.showToast("⚠️ Vui lòng điền đầy đủ các thông tin bắt buộc!", "warning");
+      return;
+    }
+
+    const newClubData = {
+      name,
+      type,
+      image,
+      province,
+      ward: district,
+      addressDetail,
+      openingHours,
+      story,
+      ownerId: currentUser.id,
+      ownerName: currentUser.name,
+      ownerPhone: currentUser.phone,
+      coOperators: this.selectedCoOperators || []
+    };
+
+    const result = ClubManager.addClub(newClubData);
+    if (result && result.success) {
+      // Đồng bộ trực tiếp lên Firebase Firestore
+      ClubManager.syncSingleClubToFirestore(result.club);
+
+      // Gửi thông báo tự động về Zalo Bot
+      const zaloMsg = `🏠 [NHÓM MỚI DỰ ÁN] ${currentUser.name} (${currentUser.phone}) vừa đăng Nhóm Dinh Dưỡng mới: "${name}" tại ${district}, ${province}!`;
+      this.sendZaloBotNotification(zaloMsg);
+
+      this.closeAllModals();
+      this.renderClubs();
+      this.showToast("🎉 Đăng Nhóm Dinh Dưỡng thành công! Dữ liệu đã được đồng bộ lên Firebase.");
+    } else {
+      this.showToast(result ? result.message : "Có lỗi xảy ra khi đăng nhóm!", "error");
+    }
   },
 
   // Mở Form Đăng Sự Kiện

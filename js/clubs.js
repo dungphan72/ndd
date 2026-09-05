@@ -24,21 +24,112 @@ const ClubManager = {
     return [];
   },
 
-  // Lưu danh sách nhóm
+  // Lưu danh sách nhóm vào LocalStorage & Đồng bộ lên Firebase Firestore
   saveClubs(clubs) {
-    localStorage.setItem("nutriclub_clubs", JSON.stringify(clubs));
+    try {
+      localStorage.setItem("nutriclub_clubs", JSON.stringify(clubs));
+    } catch(e) {}
+
+    // Async sync to Firebase Firestore if available
+    this.syncAllToFirestore(clubs);
+  },
+
+  // Đồng bộ toàn bộ danh sách nhóm lên Firestore
+  async syncAllToFirestore(clubs) {
+    if (!window.firebaseDb || !window.firestoreHelpers) return;
+    const { collection, doc, setDoc } = window.firestoreHelpers;
+    const db = window.firebaseDb;
+
+    try {
+      for (const club of clubs) {
+        if (club && club.id) {
+          const clubRef = doc(db, "clubs", String(club.id));
+          await setDoc(clubRef, club, { merge: true });
+        }
+      }
+    } catch (err) {
+      console.warn("Firestore syncAll warning:", err.message);
+    }
+  },
+
+  // Đồng bộ 1 nhóm duy nhất lên Firestore
+  async syncSingleClubToFirestore(club) {
+    if (!window.firebaseDb || !window.firestoreHelpers || !club || !club.id) return;
+    const { doc, setDoc } = window.firestoreHelpers;
+    const db = window.firebaseDb;
+    try {
+      const clubRef = doc(db, "clubs", String(club.id));
+      await setDoc(clubRef, club, { merge: true });
+      console.log("🔥 Club synced to Firestore:", club.name);
+    } catch (err) {
+      console.error("Firestore syncSingle error:", err);
+    }
+  },
+
+  // Khởi tạo Lắng nghe Real-time Sync từ Firestore Database
+  initFirestoreSync(onDataChange) {
+    if (!window.firebaseDb || !window.firestoreHelpers) {
+      console.log("Firestore unavailable, fallback to local storage mode");
+      return;
+    }
+    const { collection, onSnapshot, doc, setDoc } = window.firestoreHelpers;
+    const db = window.firebaseDb;
+    const clubsRef = collection(db, "clubs");
+
+    try {
+      onSnapshot(clubsRef, (snapshot) => {
+        if (snapshot.empty) {
+          // Nếu Firestore chưa có dữ liệu, seed SEED_CLUBS lên Firestore
+          const localClubs = this.getClubs();
+          console.log("🔥 Firestore collection 'clubs' empty. Seeding initial clubs...");
+          localClubs.forEach(club => {
+            setDoc(doc(db, "clubs", String(club.id)), club, { merge: true });
+          });
+          return;
+        }
+
+        const firestoreClubs = [];
+        snapshot.forEach(docSnap => {
+          firestoreClubs.push(docSnap.data());
+        });
+
+        if (firestoreClubs.length > 0) {
+          console.log(`🔥 Received ${firestoreClubs.length} clubs from Firebase Firestore real-time sync`);
+          localStorage.setItem("nutriclub_clubs", JSON.stringify(firestoreClubs));
+          if (typeof onDataChange === "function") {
+            onDataChange(firestoreClubs);
+          }
+        }
+      }, (error) => {
+        console.warn("Firestore snapshot listener notice:", error.message);
+      });
+    } catch (e) {
+      console.error("Error setting up Firestore listener:", e);
+    }
   },
 
   // Lấy chi tiết 1 nhóm theo ID
   getClubById(id) {
     const clubs = this.getClubs();
-    return clubs.find(c => c.id === id);
+    return clubs.find(c => String(c.id) === String(id));
   },
 
-  // Xóa nhóm dinh dưỡng
+  // Xóa nhóm dinh dưỡng (Cập nhật Local & Firebase Firestore)
   deleteClub(id) {
-    const clubs = this.getClubs().filter(c => c.id !== id);
-    this.saveClubs(clubs);
+    const clubs = this.getClubs().filter(c => String(c.id) !== String(id));
+    try {
+      localStorage.setItem("nutriclub_clubs", JSON.stringify(clubs));
+    } catch(e) {}
+
+    if (window.firebaseDb && window.firestoreHelpers) {
+      const { doc, deleteDoc } = window.firestoreHelpers;
+      try {
+        deleteDoc(doc(window.firebaseDb, "clubs", String(id)));
+        console.log("🔥 Deleted club from Firestore:", id);
+      } catch(err) {
+        console.error("Error deleting from Firestore:", err);
+      }
+    }
   },
 
   // Loại bỏ dấu tiếng Việt để tìm kiếm gần đúng (Fuzzy Accent-Insensitive Matching)
