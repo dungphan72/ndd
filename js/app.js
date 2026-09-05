@@ -517,6 +517,7 @@ const App = {
   // Gửi thông báo đến Zalo Bot HTTP API
   async sendZaloBotNotification(messageText) {
     const botToken = "2262638760896289994:ipeanoJLhtGpmNBMnnQvqxQWolQbUmJJVTUTteHqXjObkWnBZPzGfdkscVUYgjtW";
+    const secretToken = "ndd_zalo_secret_2026";
     const zaloApiUrl = "https://bot.zaloplatforms.com/api/v1/sendMessage";
 
     console.log("🤖 [Zalo Bot API] Sending notification:", messageText);
@@ -526,11 +527,14 @@ const App = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${botToken}`
+          "Authorization": `Bearer ${botToken}`,
+          "X-Secret-Token": secretToken,
+          "Secret-Token": secretToken
         },
         body: JSON.stringify({
           text: messageText,
-          message: messageText
+          message: messageText,
+          secret_token: secretToken
         })
       });
 
