@@ -467,6 +467,11 @@ const ClubManager = {
     return { success: true, club: newClub };
   },
 
+  // Alias tương thích
+  addClub(clubData) {
+    return this.createClub(clubData);
+  },
+
   // Render HTML danh sách nhóm dạng Card
   renderClubCards(clubs) {
     if (!clubs || clubs.length === 0) {

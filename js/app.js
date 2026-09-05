@@ -1978,7 +1978,7 @@ const App = {
       coOperators: this.selectedCoOperators || []
     };
 
-    const result = ClubManager.addClub(newClubData);
+    const result = ClubManager.createClub(newClubData);
     if (result && result.success) {
       // Đồng bộ trực tiếp lên Firebase Firestore
       ClubManager.syncSingleClubToFirestore(result.club);
