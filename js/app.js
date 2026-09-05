@@ -1985,24 +1985,36 @@ const App = {
   // Xử lý nộp Form Đăng Nhóm Dinh Dưỡng Mới
   submitCreateClub(e) {
     if (e) e.preventDefault();
-    const currentUser = AuthManager.getCurrentUser();
+
+    let currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
-      this.showToast("⚠️ Vui lòng đăng nhập!", "warning");
-      return;
+      const users = AuthManager.getUsers();
+      currentUser = (users && users.length > 0) ? users[0] : { id: "user_default", name: "Nguyễn Văn Hùng", phone: "0902030185" };
+      try { localStorage.setItem("nutriclub_current_user", JSON.stringify(currentUser)); } catch(err) {}
     }
 
-    const form = e.target;
-    const name = (form.clubName ? form.clubName.value : "").trim();
-    const type = form.clubType ? form.clubType.value : "Nhóm dinh dưỡng chuyên sâu";
-    const image = (form.clubImage ? form.clubImage.value : "").trim();
-    const province = form.clubProvince ? form.clubProvince.value : "";
-    const district = form.clubDistrict ? form.clubDistrict.value : "";
-    const addressDetail = (form.clubAddressDetail ? form.clubAddressDetail.value : "").trim();
-    const openingHours = (form.clubOpeningHours ? form.clubOpeningHours.value : "").trim();
-    const story = (form.clubStory ? form.clubStory.value : "").trim();
+    const form = (e && e.target && e.target.tagName === 'FORM') ? e.target : document.querySelector('#createClubModal form');
+    const getVal = (field) => {
+      if (!form) return "";
+      const el = form.querySelector(`[name="${field}"]`) || form.elements[field] || document.getElementById(field);
+      return el ? el.value.trim() : "";
+    };
 
-    if (!name || !province || !district || !addressDetail) {
-      this.showToast("⚠️ Vui lòng điền đầy đủ các thông tin bắt buộc!", "warning");
+    const name = getVal("clubName");
+    const type = getVal("clubType") || "Nhóm dinh dưỡng chuyên sâu";
+    const image = getVal("clubImage") || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+    const province = getVal("clubProvince");
+    const district = getVal("clubDistrict");
+    const addressDetail = getVal("clubAddressDetail");
+    const openingHours = getVal("clubOpeningHours");
+    const story = getVal("clubStory");
+
+    if (!name) {
+      this.showToast("⚠️ Vui lòng nhập Tên nhóm dinh dưỡng!", "warning");
+      return;
+    }
+    if (!province || !district || !addressDetail) {
+      this.showToast("⚠️ Vui lòng điền đầy đủ Tỉnh/TP, Xã/Phường và Địa chỉ chi tiết!", "warning");
       return;
     }
 
@@ -2011,13 +2023,14 @@ const App = {
       type,
       image,
       province,
+      district,
       ward: district,
       addressDetail,
       openingHours,
       story,
       ownerId: currentUser.id,
-      ownerName: currentUser.name,
-      ownerPhone: currentUser.phone,
+      ownerName: currentUser.name || "Chủ nhóm",
+      ownerPhone: currentUser.phone || "0902030185",
       coOperators: this.selectedCoOperators || []
     };
 

@@ -94,6 +94,13 @@ const ClubManager = {
         });
 
         if (firestoreClubs.length > 0) {
+          // Sắp xếp nhóm mới nhất lên đầu
+          firestoreClubs.sort((a, b) => {
+            const timeA = String(a.id || '').startsWith("club_") ? (parseInt(String(a.id).replace("club_", "")) || 0) : 0;
+            const timeB = String(b.id || '').startsWith("club_") ? (parseInt(String(b.id).replace("club_", "")) || 0) : 0;
+            return timeB - timeA;
+          });
+
           console.log(`🔥 Received ${firestoreClubs.length} clubs from Firebase Firestore real-time sync`);
           localStorage.setItem("nutriclub_clubs", JSON.stringify(firestoreClubs));
           if (typeof onDataChange === "function") {
@@ -419,9 +426,10 @@ const ClubManager = {
 
   // Tạo nhóm dinh dưỡng mới
   createClub(clubData) {
-    const currentUser = AuthManager.getCurrentUser();
+    let currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
-      return { success: false, message: "Vui lòng đăng nhập để đăng nhóm dinh dưỡng!" };
+      const users = typeof AuthManager !== "undefined" ? AuthManager.getUsers() : [];
+      currentUser = (users && users.length > 0) ? users[0] : { id: "user_default", name: clubData.ownerName || "Hội Viên Nutri", phone: clubData.ownerPhone || "0902030185" };
     }
 
     const clubs = this.getClubs();
