@@ -144,17 +144,27 @@ const App = {
     if (!tabId) return;
     this.activeTab = tabId;
 
-    // 0. Cập nhật URL sạch trên thanh địa chỉ của trình duyệt (Không còn dấu # và chữ Tab)
+    // Cập nhật URL sạch trên thanh địa chỉ của trình duyệt (Không còn dấu # và chữ Tab)
     if (updateUrl) {
       const slug = this.tabSlugMap[tabId] || '';
-      let targetUrl = window.location.origin + '/';
-      if (slug) {
-        targetUrl = window.location.origin + '/' + slug;
+      
+      let pathSegments = window.location.pathname.split('/').filter(Boolean);
+      let basePath = '/';
+      if (pathSegments.length > 0 && pathSegments[0].toLowerCase() === 'ndd') {
+        basePath = '/ndd/';
       }
+
+      let targetUrl = basePath;
+      if (slug) {
+        targetUrl = basePath + (basePath.endsWith('/') ? '' : '/') + slug;
+      }
+
       try {
         history.pushState({ tabId }, '', targetUrl);
       } catch (e) {
-        console.warn("History pushState notice:", e.message);
+        try {
+          history.pushState({ tabId }, '', basePath + (slug ? '?page=' + slug : ''));
+        } catch (err) {}
       }
     }
 
