@@ -3880,15 +3880,11 @@ const App = {
 
   adminDeleteClub(clubId) {
     if (!confirm("Bạn có chắc chắn muốn xóa nhóm dinh dưỡng này?")) return;
-    let clubs = ClubManager.getClubs();
-    clubs = clubs.filter(c => c.id !== clubId);
-    ClubManager.saveClubs(clubs);
+    ClubManager.deleteClub(clubId);
     this.renderClubs();
     this.showToast("Đã xóa nhóm dinh dưỡng.");
     this.openAdminDashboardModal();
   },
-
-
 
   // Dark / Light Mode Toggle
   initTheme() {
@@ -3981,7 +3977,8 @@ const App = {
       c.type = document.getElementById("editClubType").value;
       c.image = document.getElementById("editClubImage").value.trim() || c.image;
       c.province = document.getElementById("editClubProvince").value.trim();
-      const ward = document.getElementById("editClubWard").value.trim();
+      const editWardEl = document.getElementById("editClubWard") || document.getElementById("editClubDistrict");
+      const ward = editWardEl ? editWardEl.value.trim() : '';
       c.ward = ward;
       c.district = ward;
       c.addressDetail = document.getElementById("editClubAddress").value.trim();
@@ -3990,10 +3987,14 @@ const App = {
       c.openingHours = document.getElementById("editClubOpeningHours").value.trim();
       c.story = document.getElementById("editClubStory").value.trim();
       c.coOperators = this.selectedEditCoOperators;
+
+      // 1. Lưu LocalStorage & 2. Đồng bộ Firestore ngay lập tức
       ClubManager.saveClubs(clubs);
+      ClubManager.syncSingleClubToFirestore(c);
+
       this.renderClubs();
       this.closeAllModals();
-      this.showToast(`💾 Đã cập nhật thông tin nhóm "${c.name}"!`);
+      this.showToast(`💾 Đã cập nhật thành công thông tin nhóm "${c.name}"!`);
       this.openAdminDashboardModal();
     }
   },
