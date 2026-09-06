@@ -2015,6 +2015,98 @@ const App = {
     document.querySelectorAll(".modal-backdrop").forEach(m => m.classList.remove("show"));
   },
 
+  // Xử lý upload và preview ảnh nhóm (tối đa 5 hình)
+  uploadedClubImages: [],
+  editUploadedClubImages: [],
+
+  handleClubImagesUpload(e, isEdit = false) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    if (isEdit && !this.editUploadedClubImages) this.editUploadedClubImages = [];
+    if (!isEdit && !this.uploadedClubImages) this.uploadedClubImages = [];
+
+    const targetArr = isEdit ? this.editUploadedClubImages : this.uploadedClubImages;
+    const remainingSlots = 5 - targetArr.length;
+
+    if (remainingSlots <= 0) {
+      this.showToast("⚠️ Đã đạt tối đa 5 hình ảnh!", "warning");
+      e.target.value = "";
+      return;
+    }
+
+    const filesToProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      this.showToast(`⚠️ Chỉ thêm tối đa 5 hình ảnh. ${remainingSlots} hình ảnh sẽ được xử lý.`, "warning");
+    }
+
+    filesToProcess.forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        this.showToast(`⚠️ File "${file.name}" vượt quá 5MB và đã bị bỏ qua.`, "warning");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const base64Str = evt.target.result;
+        if (targetArr.length < 5) {
+          targetArr.push(base64Str);
+        }
+        this.renderClubImagesPreview(isEdit);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    e.target.value = "";
+  },
+
+  onClubImageUrlChange(urlVal, isEdit = false) {
+    const url = (urlVal || "").trim();
+    if (!url) return;
+
+    if (isEdit && !this.editUploadedClubImages) this.editUploadedClubImages = [];
+    if (!isEdit && !this.uploadedClubImages) this.uploadedClubImages = [];
+
+    const targetArr = isEdit ? this.editUploadedClubImages : this.uploadedClubImages;
+    if (targetArr.length >= 5) {
+      this.showToast("⚠️ Đã đạt tối đa 5 hình ảnh!", "warning");
+      return;
+    }
+    if (!targetArr.includes(url)) {
+      targetArr.push(url);
+      this.renderClubImagesPreview(isEdit);
+    }
+  },
+
+  removeClubImagePreview(index, isEdit = false) {
+    const targetArr = isEdit ? this.editUploadedClubImages : this.uploadedClubImages;
+    if (targetArr && index >= 0 && index < targetArr.length) {
+      targetArr.splice(index, 1);
+      this.renderClubImagesPreview(isEdit);
+    }
+  },
+
+  renderClubImagesPreview(isEdit = false) {
+    const gridId = isEdit ? "editClubImagesPreviewGrid" : "clubImagesPreviewGrid";
+    const container = document.getElementById(gridId);
+    if (!container) return;
+
+    const targetArr = isEdit ? this.editUploadedClubImages : this.uploadedClubImages;
+
+    if (!targetArr || targetArr.length === 0) {
+      container.innerHTML = "";
+      return;
+    }
+
+    container.innerHTML = targetArr.map((imgSrc, idx) => `
+      <div class="club-image-preview-item" title="Ảnh ${idx + 1}">
+        <img src="${escapeHtml(imgSrc)}" alt="Preview ${idx + 1}" onerror="this.src='https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80'">
+        <button type="button" class="remove-img-btn" onclick="App.removeClubImagePreview(${idx}, ${isEdit})">&times;</button>
+        ${idx === 0 ? '<span class="main-badge">Ảnh chính</span>' : ''}
+      </div>
+    `).join('');
+  },
+
   // Mở Form Đăng Nhóm Dinh Dưỡng
   openCreateClubModal() {
     const currentUser = AuthManager.getCurrentUser();
@@ -2023,6 +2115,10 @@ const App = {
       this.openModal("loginModal");
       return;
     }
+
+    // Reset danh sách ảnh upload
+    this.uploadedClubImages = [];
+    this.renderClubImagesPreview(false);
 
     // Tự động gán mặc định tên user và SĐT đăng ký
     const ownerNameInput = document.getElementById("clubOwnerName");
@@ -2062,7 +2158,18 @@ const App = {
 
     const name = getVal("clubName");
     const type = getVal("clubType") || "Nhóm dinh dưỡng chuyên sâu";
-    const image = getVal("clubImage") || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+
+    // Thu thập hình ảnh (tối đa 5 ảnh)
+    let images = [...(this.uploadedClubImages || [])];
+    const inputUrl = getVal("clubImage");
+    if (inputUrl && !images.includes(inputUrl)) {
+      images.unshift(inputUrl);
+    }
+    images = images.slice(0, 5);
+    const defaultImg = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+    const image = images.length > 0 ? images[0] : defaultImg;
+    if (images.length === 0) images = [defaultImg];
+
     const province = getVal("clubProvince");
     const district = getVal("clubDistrict");
     const addressDetail = getVal("clubAddressDetail");
@@ -2088,6 +2195,7 @@ const App = {
       name,
       type,
       image,
+      images,
       province,
       district,
       ward: district,
@@ -2121,6 +2229,7 @@ const App = {
       const zaloMsg = `🏠 [NHÓM MỚI DỰ ÁN] ${currentUser.name} (${currentUser.phone}) vừa đăng Nhóm Dinh Dưỡng mới: "${name}" tại ${district}, ${province}!`;
       this.sendZaloBotNotification(zaloMsg);
 
+      this.uploadedClubImages = [];
       this.closeAllModals();
       this.renderClubs();
       this.syncMapWithFilters();
@@ -2157,50 +2266,7 @@ const App = {
     this.openModal("createEventModal");
   },
 
-  // Submit Tạo Nhóm Mới
-  submitCreateClub(e) {
-    e.preventDefault();
-    const form = e.target;
-    const name = form.clubName.value.trim();
-    const type = form.clubType.value;
-    const province = form.clubProvince.value;
-    const district = form.clubDistrict.value;
-    const ward = form.clubWard ? form.clubWard.value : district;
-    const addressDetail = form.clubAddressDetail.value.trim();
-    const openingHours = form.clubOpeningHours.value.trim();
-    const story = form.clubStory.value.trim();
-    const image = form.clubImage.value.trim();
 
-    if (!name || !province || !district || !addressDetail) {
-      App.showToast("Vui lòng điền đầy đủ các thông tin bắt buộc!", "error");
-      return;
-    }
-
-    const res = ClubManager.createClub({
-      name,
-      type,
-      province,
-      district,
-      ward,
-      addressDetail,
-      openingHours,
-      story,
-      image,
-      coOperators: this.selectedCoOperators
-    });
-
-    if (res.success) {
-      this.closeAllModals();
-      form.reset();
-      this.selectedCoOperators = [];
-      this.renderCoOpChips();
-      this.renderClubs();
-      this.showToast(`🎉 Nhóm dinh dưỡng "${res.club.name}" đã được đăng thành công!`);
-      this.switchTab('clubsTab');
-    } else {
-      this.showToast(res.message, "error");
-    }
-  },
 
   // Submit Tạo Sự Kiện Mới
   submitCreateEvent(e) {
@@ -4093,6 +4159,12 @@ const App = {
     document.getElementById("editClubOpeningHours").value = c.openingHours || '';
     document.getElementById("editClubStory").value = c.story || '';
 
+    // Nạp danh sách ảnh hiện tại của nhóm
+    this.editUploadedClubImages = (c.images && Array.isArray(c.images) && c.images.length > 0)
+      ? [...c.images]
+      : (c.image ? [c.image] : []);
+    this.renderClubImagesPreview(true);
+
     // Nạp danh sách đồng vận hành hiện có của nhóm
     this.selectedEditCoOperators = c.coOperators && Array.isArray(c.coOperators) ? [...c.coOperators] : [];
     this.renderEditCoOpChips();
@@ -4108,7 +4180,17 @@ const App = {
     if (c) {
       c.name = document.getElementById("editClubName").value.trim();
       c.type = document.getElementById("editClubType").value;
-      c.image = document.getElementById("editClubImage").value.trim() || c.image;
+
+      let images = [...(this.editUploadedClubImages || [])];
+      const inputUrl = document.getElementById("editClubImage").value.trim();
+      if (inputUrl && !images.includes(inputUrl)) {
+        images.unshift(inputUrl);
+      }
+      images = images.slice(0, 5);
+      const defaultImg = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+      c.images = images;
+      c.image = images.length > 0 ? images[0] : (inputUrl || c.image || defaultImg);
+
       c.province = document.getElementById("editClubProvince").value.trim();
       const editWardEl = document.getElementById("editClubWard") || document.getElementById("editClubDistrict");
       const ward = editWardEl ? editWardEl.value.trim() : '';

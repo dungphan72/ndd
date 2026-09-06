@@ -981,8 +981,15 @@
 
           <!-- Hình ảnh nhóm -->
           <div class="form-group">
-            <label class="form-label">Hình ảnh không gian / Hoạt động của nhóm (URL)</label>
-            <input type="url" name="clubImage" class="form-control" placeholder="https://... (để trống sẽ dùng ảnh mặc định chất lượng cao)" value="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80">
+            <label class="form-label">Hình ảnh nhóm</label>
+            <div style="margin-bottom: 8px;">
+              <input type="file" id="clubImageFiles" accept="image/*" multiple onchange="App.handleClubImagesUpload(event, false)" class="form-control">
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
+              💡 Tải lên từ máy/điện thoại (tối đa 5 hình) hoặc dán URL bên dưới:
+            </div>
+            <input type="url" id="clubImage" name="clubImage" class="form-control" placeholder="https://... (URL ảnh ngoài nếu có)" value="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80" onchange="App.onClubImageUrlChange(this.value, false)">
+            <div id="clubImagesPreviewGrid" class="club-images-preview-grid"></div>
           </div>
 
           <!-- Địa chỉ 2 cấp: Tỉnh/TP -> Xã/Phường -> Địa chỉ chi tiết -->
@@ -1488,8 +1495,15 @@
 
           <!-- Hình ảnh nhóm -->
           <div class="form-group">
-            <label class="form-label">Hình ảnh không gian / Hoạt động của nhóm (URL)</label>
-            <input type="url" id="editClubImage" name="editClubImage" class="form-control" placeholder="https://...">
+            <label class="form-label">Hình ảnh nhóm</label>
+            <div style="margin-bottom: 8px;">
+              <input type="file" id="editClubImageFiles" accept="image/*" multiple onchange="App.handleClubImagesUpload(event, true)" class="form-control">
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">
+              💡 Tải lên từ máy/điện thoại (tối đa 5 hình) hoặc dán URL bên dưới:
+            </div>
+            <input type="url" id="editClubImage" name="editClubImage" class="form-control" placeholder="https://..." onchange="App.onClubImageUrlChange(this.value, true)">
+            <div id="editClubImagesPreviewGrid" class="club-images-preview-grid"></div>
           </div>
 
           <!-- Địa chỉ 2 cấp: Tỉnh/TP -> Xã/Phường -> Địa chỉ chi tiết -->

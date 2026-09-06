@@ -454,7 +454,8 @@ const ClubManager = {
       id: "club_" + Date.now(),
       name: clubData.name,
       type: clubData.type || "Nhóm dinh dưỡng chuyên sâu",
-      image: clubData.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+      image: clubData.image || (clubData.images && clubData.images[0]) || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+      images: clubData.images && clubData.images.length > 0 ? clubData.images : [(clubData.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80")],
       ownerId: currentUser.id,
       ownerName: clubData.ownerName || currentUser.name || "Chủ nhóm",
       ownerPhone: clubData.ownerPhone || currentUser.phone || "0902030185",
@@ -658,12 +659,28 @@ const ClubManager = {
       `;
     }
 
+    const clubImages = (club.images && Array.isArray(club.images) && club.images.length > 0)
+      ? club.images
+      : [safeImage];
+
+    let galleryHtml = '';
+    if (clubImages.length > 1) {
+      galleryHtml = `
+        <div style="display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; padding-bottom: 4px;">
+          ${clubImages.map((img, i) => `
+            <img src="${sanitizeUrl(img, safeImage)}" alt="Gallery image ${i+1}" style="width: 64px; height: 64px; border-radius: var(--radius-md); object-fit: cover; cursor: pointer; border: 2px solid ${i === 0 ? 'var(--primary)' : 'var(--border-color)'};" onclick="document.getElementById('clubDetailHeroImg').src='${sanitizeUrl(img, safeImage)}'">
+          `).join('')}
+        </div>
+      `;
+    }
+
     if (modalContent) {
       modalContent.innerHTML = `
         <div class="club-detail-hero">
-          <img src="${safeImage}" class="club-detail-img" alt="${safeName}">
+          <img id="clubDetailHeroImg" src="${safeImage}" class="club-detail-img" alt="${safeName}">
           <span class="club-type-badge ${badgeClass}" style="top: 16px; left: 16px;">${safeType}</span>
         </div>
+        ${galleryHtml}
 
         <div style="margin-bottom: 16px;">
           <div class="club-info-row">
