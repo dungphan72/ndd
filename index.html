@@ -2165,6 +2165,143 @@
     </button>
   </nav>
 
+  <!-- MODAL ĐĂNG KÝ THAM GIA SỰ KIỆN -->
+  <div id="eventJoinModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="eventJoinModalTitle"><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Đăng Ký Tham Gia Sự Kiện</h3>
+        <button type="button" class="close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitEventJoinForm(event)">
+        <input type="hidden" id="eventJoinId">
+        <div class="modal-body" style="padding: 20px;">
+          <div id="eventJoinSummaryBox" style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px;">
+            <!-- Summary filled dynamically -->
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Họ và tên người tham gia *</label>
+            <input type="text" id="eventJoinName" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Số điện thoại liên hệ *</label>
+            <input type="tel" id="eventJoinPhone" class="form-control" placeholder="Ví dụ: 0912345678" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Số lượng người tham gia đi cùng</label>
+            <select id="eventJoinAttendees" class="form-control">
+              <option value="1">1 người (Đi một mình)</option>
+              <option value="2">2 người (Đi cùng bạn/người thân)</option>
+              <option value="3">3 người</option>
+              <option value="4">4 người trở lên</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Nhu cầu / Ghi chú cho Chủ nhóm</label>
+            <textarea id="eventJoinNote" class="form-control" rows="2" placeholder="Ví dụ: Muốn kiểm tra chỉ số InBody, Muốn tư vấn thực đơn giảm cân..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 800;">
+            <i class="fa-solid fa-paper-plane"></i> Xác Nhận Đăng Ký
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL QUẢN LÝ ĐĂNG KÝ SỰ KIỆN CHO CHỦ NHÓM -->
+  <div id="eventRegistrationsModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 920px; width: 95%;">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding: 16px 20px;">
+        <div>
+          <h3 id="eventRegModalTitle" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
+            <i class="fa-solid fa-users-gear" style="color: var(--primary);"></i> Quản Lý Người Đăng Ký Sự Kiện
+          </h3>
+          <div id="eventRegModalSub" style="font-size: 0.85rem; color: var(--text-muted);"></div>
+        </div>
+        <button type="button" class="close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 20px;">
+        <!-- Thống kê nhanh & Thanh công cụ -->
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <div id="eventRegStatsRow" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <!-- Stats pills filled dynamically -->
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" onclick="App.openAddManualRegistrationModal()" style="font-size: 0.83rem; padding: 6px 12px; font-weight: 700;">
+              <i class="fa-solid fa-user-plus"></i> Thêm Khách Đăng Ký
+            </button>
+            <button type="button" class="btn btn-outline" onclick="App.exportEventRegistrationsCSV()" style="font-size: 0.83rem; padding: 6px 12px; font-weight: 700; color: #059669; border-color: #059669;">
+              <i class="fa-solid fa-file-csv"></i> Xuất Danh Sách CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Bộ lọc & Tìm kiếm khách đăng ký -->
+        <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+          <input type="text" id="eventRegSearchInput" class="form-control" placeholder="🔍 Tìm theo Họ tên hoặc SĐT khách..." oninput="App.filterEventRegistrationsList()" style="flex-grow: 1;">
+          <select id="eventRegStatusFilter" class="filter-select" onchange="App.filterEventRegistrationsList()" style="width: auto;">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="confirmed">Đã đăng ký</option>
+            <option value="attended">Đã tham gia / Điểm danh</option>
+            <option value="cancelled">Đã hủy</option>
+          </select>
+        </div>
+
+        <!-- Bảng danh sách người đăng ký -->
+        <div id="eventRegistrationsTableWrap" class="admin-table-wrap" style="max-height: 420px; overflow-y: auto;">
+          <!-- Table rendered dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL THÊM NGƯỜI ĐĂNG KÝ THỦ CÔNG -->
+  <div id="addManualRegistrationModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> Thêm Khách Tham Gia Sự Kiện</h3>
+        <button type="button" class="close-btn" onclick="App.closeModal('addManualRegistrationModal')">&times;</button>
+      </div>
+      <form onsubmit="App.submitManualRegistration(event)">
+        <input type="hidden" id="manualRegEventId">
+        <div class="modal-body" style="padding: 20px;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Họ và tên khách *</label>
+            <input type="text" id="manualRegName" class="form-control" required placeholder="Nhập tên khách hàng">
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Số điện thoại *</label>
+            <input type="tel" id="manualRegPhone" class="form-control" required placeholder="09xxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số người đi cùng</label>
+            <input type="number" id="manualRegAttendees" class="form-control" value="1" min="1" max="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nhu cầu / Ghi chú</label>
+            <textarea id="manualRegNote" class="form-control" rows="2" placeholder="Ghi chú thêm về khách..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeModal('addManualRegistrationModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Lưu Đăng Ký</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts (Local core scripts loaded first for maximum reliability & zero CDN blocking) -->
   <script src="js/data.js?v=5.0"></script>
   <script src="js/location.js?v=5.0"></script>

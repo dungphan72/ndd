@@ -64,17 +64,65 @@ const EventManager = {
   },
 
   joinEvent(eventId) {
-    const currentUser = AuthManager.getCurrentUser();
+    if (typeof App !== "undefined" && typeof App.openEventJoinModal === "function") {
+      App.openEventJoinModal(eventId);
+    } else {
+      const events = this.getEvents();
+      const eventIndex = events.findIndex(e => e.id === eventId);
+      if (eventIndex === -1) return;
+      events[eventIndex].participantsCount = (events[eventIndex].participantsCount || 0) + 1;
+      this.saveEvents(events);
+      alert(`🎉 Bạn đã đăng ký tham gia sự kiện "${events[eventIndex].title}" thành công!`);
+    }
+  },
+
+  addRegistration(eventId, regData) {
     const events = this.getEvents();
     const eventIndex = events.findIndex(e => e.id === eventId);
-    
-    if (eventIndex === -1) return;
+    if (eventIndex === -1) return { success: false, message: "Không tìm thấy sự kiện!" };
 
-    events[eventIndex].participantsCount = (events[eventIndex].participantsCount || 0) + 1;
+    const evt = events[eventIndex];
+    if (!evt.registrations) evt.registrations = [];
+
+    const newReg = {
+      id: "reg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+      name: (regData.name || "").trim(),
+      phone: (regData.phone || "").trim(),
+      note: (regData.note || "").trim(),
+      numAttendees: parseInt(regData.numAttendees) || 1,
+      registeredAt: new Date().toLocaleDateString("vi-VN") + " " + new Date().toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }),
+      status: regData.status || "confirmed"
+    };
+
+    evt.registrations.unshift(newReg);
+    evt.participantsCount = evt.registrations.length;
     this.saveEvents(events);
-    
-    App.showToast(`🎉 Bạn đã đăng ký tham gia sự kiện "${events[eventIndex].title}" thành công! Chủ nhóm sẽ liên hệ để xác nhận.`);
-    App.renderEvents();
+    return { success: true, registration: newReg, event: evt };
+  },
+
+  updateRegistrationStatus(eventId, regId, newStatus) {
+    const events = this.getEvents();
+    const evt = events.find(e => e.id === eventId);
+    if (!evt || !evt.registrations) return { success: false };
+
+    const reg = evt.registrations.find(r => r.id === regId);
+    if (reg) {
+      reg.status = newStatus;
+      this.saveEvents(events);
+      return { success: true, event: evt };
+    }
+    return { success: false };
+  },
+
+  deleteRegistration(eventId, regId) {
+    const events = this.getEvents();
+    const evt = events.find(e => e.id === eventId);
+    if (!evt || !evt.registrations) return { success: false };
+
+    evt.registrations = evt.registrations.filter(r => r.id !== regId);
+    evt.participantsCount = evt.registrations.length;
+    this.saveEvents(events);
+    return { success: true, event: evt };
   },
 
   renderEventCards(events) {
@@ -87,6 +135,9 @@ const EventManager = {
         </div>
       `;
     }
+
+    const currentUser = typeof AuthManager !== "undefined" ? AuthManager.getCurrentUser() : null;
+    const isAdmin = typeof AuthManager !== "undefined" ? AuthManager.isAdminUser() : false;
 
     return events.map(evt => {
       const safeTitle = escapeHtml(evt.title || '');
@@ -110,6 +161,34 @@ const EventManager = {
         catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(217, 119, 6, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-utensils" style="color: #fde68a;"></i> Workshop Dinh Dưỡng</span>`;
       } else if (textLower.includes("thử thách") || textLower.includes("21 ngày")) {
         catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(217, 119, 6, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-trophy" style="color: #fde68a;"></i> Thử Thách 21 Ngày</span>`;
+      }
+
+      const isHostOrAdmin = currentUser && (isAdmin || evt.hostName === currentUser.name || (currentUser.phone && evt.hostPhone === currentUser.phone));
+      const regList = evt.registrations || [];
+      const countReg = regList.length > 0 ? regList.length : (evt.participantsCount || 0);
+
+      let actionBtnHtml = '';
+      if (isHostOrAdmin) {
+        actionBtnHtml = `
+          <button class="btn btn-primary" style="width: 100%; padding: 8px 14px; font-size: 0.88rem; font-weight: 700; background: #059669; border-color: #059669; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="App.openEventRegistrationsModal('${escapeJsAttr(evt.id)}')">
+            <i class="fa-solid fa-users-gear"></i> Quản Lý Người Đăng Ký (${countReg})
+          </button>
+        `;
+      } else {
+        const userReg = currentUser && regList.find(r => r.phone === currentUser.phone || r.name === currentUser.name);
+        if (userReg) {
+          actionBtnHtml = `
+            <button class="btn btn-outline" style="width: 100%; padding: 8px 14px; font-size: 0.88rem; font-weight: 700; color: #059669; border-color: #059669; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="EventManager.joinEvent('${escapeJsAttr(evt.id)}')">
+              <i class="fa-solid fa-circle-check"></i> Bạn Đã Đăng Ký (${userReg.numAttendees || 1} người)
+            </button>
+          `;
+        } else {
+          actionBtnHtml = `
+            <button class="btn btn-primary" style="width: 100%; padding: 8px 14px; font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="EventManager.joinEvent('${escapeJsAttr(evt.id)}')">
+              <i class="fa-solid fa-calendar-check"></i> Đăng Ký Tham Gia
+            </button>
+          `;
+        }
       }
 
       return `
@@ -151,11 +230,9 @@ const EventManager = {
 
             <div class="event-footer" style="display: flex; flex-direction: column; gap: 10px; align-items: stretch; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-color);">
               <span style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">
-                <i class="fa-solid fa-users" style="color: var(--accent-sport);"></i> Đã có ${evt.participantsCount || 0} / ${evt.maxParticipants || 50} người tham gia
+                <i class="fa-solid fa-users" style="color: var(--accent-sport);"></i> Đã có ${countReg} / ${evt.maxParticipants || 50} người tham gia
               </span>
-              <button class="btn btn-primary" style="width: 100%; padding: 8px 14px; font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="EventManager.joinEvent('${escapeJsAttr(evt.id)}')">
-                <i class="fa-solid fa-calendar-check"></i> Đăng Ký Tham Gia
-              </button>
+              ${actionBtnHtml}
             </div>
           </div>
         </div>

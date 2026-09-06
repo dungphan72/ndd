@@ -2868,6 +2868,9 @@ const App = {
                   </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 700; background: #059669; border-color: #059669;" onclick="App.openEventRegistrationsModal('${escapeJsAttr(e.id)}')">
+                    <i class="fa-solid fa-users-gear"></i> Người Đăng Ký (${(e.registrations || []).length})
+                  </button>
                   <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 12px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyEvent('${escapeJsAttr(e.id)}')">
                     <i class="fa-solid fa-trash-can"></i> Xóa
                   </button>
@@ -4857,6 +4860,306 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
         this.closeAllModals();
       }
     });
+  },
+
+  // ===== QUẢN LÝ ĐĂNG KÝ SỰ KIỆN DÀNH CHO CHỦ NHÓM / HOST =====
+  currentManagedEventId: null,
+
+  openEventJoinModal(eventId) {
+    const events = EventManager.getEvents();
+    const evt = events.find(e => e.id === eventId);
+    if (!evt) {
+      this.showToast("Không tìm thấy sự kiện!", "error");
+      return;
+    }
+
+    const currentUser = AuthManager.getCurrentUser();
+    document.getElementById("eventJoinId").value = eventId;
+    document.getElementById("eventJoinName").value = currentUser ? (currentUser.name || "") : "";
+    document.getElementById("eventJoinPhone").value = currentUser ? (currentUser.phone || "") : "";
+    document.getElementById("eventJoinAttendees").value = "1";
+    document.getElementById("eventJoinNote").value = "";
+
+    const summaryBox = document.getElementById("eventJoinSummaryBox");
+    if (summaryBox) {
+      summaryBox.innerHTML = `
+        <div style="font-weight: 800; font-size: 1rem; color: var(--text-main); margin-bottom: 4px;">${escapeHtml(evt.title)}</div>
+        <div style="font-size: 0.83rem; color: var(--text-muted);">
+          <i class="fa-solid fa-house" style="color: var(--primary);"></i> ${escapeHtml(evt.clubName || '')} • 
+          <i class="fa-solid fa-calendar-day" style="color: #f59e0b;"></i> ${escapeHtml(evt.date)} (${escapeHtml(evt.time)})
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
+          📍 ${escapeHtml(evt.locationType || '')}: ${escapeHtml(evt.address || '')}
+        </div>
+      `;
+    }
+
+    this.openModal("eventJoinModal");
+  },
+
+  submitEventJoinForm(e) {
+    e.preventDefault();
+    const eventId = document.getElementById("eventJoinId").value;
+    const name = document.getElementById("eventJoinName").value.trim();
+    const phone = document.getElementById("eventJoinPhone").value.trim();
+    const numAttendees = document.getElementById("eventJoinAttendees").value;
+    const note = document.getElementById("eventJoinNote").value.trim();
+
+    if (!name || !phone) {
+      this.showToast("Vui lòng điền đầy đủ Họ tên và Số điện thoại!", "error");
+      return;
+    }
+
+    const res = EventManager.addRegistration(eventId, { name, phone, numAttendees, note });
+    if (res.success) {
+      this.closeAllModals();
+      this.showToast(`🎉 Đăng ký thành công! Chủ nhóm "${res.event.hostName}" sẽ liên hệ với bạn.`);
+      this.renderEvents();
+    } else {
+      this.showToast(res.message || "Đăng ký thất bại", "error");
+    }
+  },
+
+  openEventRegistrationsModal(eventId) {
+    this.currentManagedEventId = eventId;
+    const events = EventManager.getEvents();
+    const evt = events.find(e => e.id === eventId);
+    if (!evt) {
+      this.showToast("Không tìm thấy sự kiện!", "error");
+      return;
+    }
+
+    const titleEl = document.getElementById("eventRegModalTitle");
+    const subEl = document.getElementById("eventRegModalSub");
+    if (titleEl) {
+      titleEl.innerHTML = `<i class="fa-solid fa-users-gear" style="color: var(--primary);"></i> Quản Lý Người Đăng Ký: ${escapeHtml(evt.title)}`;
+    }
+    if (subEl) {
+      subEl.innerHTML = `📅 ${escapeHtml(evt.date)} (${escapeHtml(evt.time)}) • 🏠 ${escapeHtml(evt.clubName || '')} • Chủ trì: <strong>${escapeHtml(evt.hostName || '')}</strong>`;
+    }
+
+    const searchInput = document.getElementById("eventRegSearchInput");
+    const statusFilter = document.getElementById("eventRegStatusFilter");
+    if (searchInput) searchInput.value = "";
+    if (statusFilter) statusFilter.value = "all";
+
+    this.filterEventRegistrationsList();
+    this.openModal("eventRegistrationsModal");
+  },
+
+  filterEventRegistrationsList() {
+    const eventId = this.currentManagedEventId;
+    if (!eventId) return;
+
+    const events = EventManager.getEvents();
+    const evt = events.find(e => e.id === eventId);
+    if (!evt) return;
+
+    const regList = evt.registrations || [];
+    const searchKey = (document.getElementById("eventRegSearchInput")?.value || "").toLowerCase().trim();
+    const statusVal = document.getElementById("eventRegStatusFilter")?.value || "all";
+
+    const filtered = regList.filter(r => {
+      const matchKey = !searchKey || (r.name || "").toLowerCase().includes(searchKey) || (r.phone || "").includes(searchKey);
+      const matchStatus = statusVal === "all" || r.status === statusVal;
+      return matchKey && matchStatus;
+    });
+
+    // Render Thống kê nhanh
+    const statsRow = document.getElementById("eventRegStatsRow");
+    if (statsRow) {
+      const totalReg = regList.length;
+      const totalAttendeesSum = regList.reduce((sum, r) => sum + (parseInt(r.numAttendees) || 1), 0);
+      const attendedCount = regList.filter(r => r.status === "attended").length;
+      const cancelledCount = regList.filter(r => r.status === "cancelled").length;
+
+      statsRow.innerHTML = `
+        <span style="font-size: 0.83rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: rgba(5, 150, 105, 0.1); color: var(--primary);">
+          📊 Tổng lượt đăng ký: <strong>${totalReg}</strong> (Tổng <strong>${totalAttendeesSum}</strong> người tham dự)
+        </span>
+        <span style="font-size: 0.83rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); color: #059669;">
+          ✓ Đã điểm danh: <strong>${attendedCount}</strong>
+        </span>
+        ${cancelledCount > 0 ? `
+          <span style="font-size: 0.83rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+            ❌ Đã hủy: <strong>${cancelledCount}</strong>
+          </span>
+        ` : ''}
+      `;
+    }
+
+    // Render Bảng
+    const wrap = document.getElementById("eventRegistrationsTableWrap");
+    if (!wrap) return;
+
+    if (filtered.length === 0) {
+      wrap.innerHTML = `
+        <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+          <i class="fa-solid fa-users-slash" style="font-size: 2rem; margin-bottom: 8px;"></i>
+          <div>Chưa có thông tin người đăng ký phù hợp.</div>
+        </div>
+      `;
+      return;
+    }
+
+    wrap.innerHTML = `
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">STT</th>
+            <th>Họ và Tên Khách</th>
+            <th>Số Điện Thoại</th>
+            <th>Số Người</th>
+            <th>Nhu Cầu / Ghi Chú</th>
+            <th>Thời Gian Đăng Ký</th>
+            <th>Trạng Thái</th>
+            <th style="text-align: center;">Thao Tác Quản Lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map((r, idx) => {
+            const safeName = escapeHtml(r.name || 'Khách tham gia');
+            const safePhone = escapeHtml(r.phone || '');
+            const safeNote = escapeHtml(r.note || 'Không có ghi chú');
+            const safeTime = escapeHtml(r.registeredAt || '');
+            const numAtt = parseInt(r.numAttendees) || 1;
+            const status = r.status || "confirmed";
+
+            let statusBadge = `<span style="background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-size: 0.78rem;">Chờ tham gia</span>`;
+            if (status === "attended") {
+              statusBadge = `<span style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-size: 0.78rem;">✓ Đã tham gia</span>`;
+            } else if (status === "cancelled") {
+              statusBadge = `<span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 3px 8px; border-radius: 10px; font-weight: 700; font-size: 0.78rem;">❌ Hủy đăng ký</span>`;
+            }
+
+            return `
+              <tr>
+                <td style="font-weight: 700; text-align: center;">${idx + 1}</td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(safeName)}" style="width: 32px; height: 32px; border-radius: 50%;">
+                    <div style="font-weight: 700; font-size: 0.9rem;">${safeName}</div>
+                  </div>
+                </td>
+                <td style="font-weight: 700; color: var(--primary);">${safePhone}</td>
+                <td style="text-align: center;"><span class="badge-pill" style="font-size: 0.82rem;">${numAtt} người</span></td>
+                <td style="font-size: 0.83rem; color: var(--text-muted); max-width: 200px;">${safeNote}</td>
+                <td style="font-size: 0.78rem; color: var(--text-muted);">${safeTime}</td>
+                <td>${statusBadge}</td>
+                <td>
+                  <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://zalo.me/${encodeURIComponent(safePhone)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 4px 8px; font-size: 0.75rem; background: #0068ff; border: none;" title="Chat Zalo với khách">
+                      <i class="fa-solid fa-comment-dots"></i> Zalo
+                    </a>
+                    <a href="tel:${encodeURIComponent(safePhone)}" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" title="Gọi điện">
+                      <i class="fa-solid fa-phone"></i> Gọi
+                    </a>
+                    ${status !== "attended" ? `
+                      <button type="button" class="btn btn-primary" style="padding: 4px 8px; font-size: 0.75rem; background: #059669; border: none;" onclick="App.updateEventRegistrationStatus('${escapeJsAttr(eventId)}', '${escapeJsAttr(r.id)}', 'attended')">
+                        <i class="fa-solid fa-check"></i> Điểm Danh
+                      </button>
+                    ` : `
+                      <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="App.updateEventRegistrationStatus('${escapeJsAttr(eventId)}', '${escapeJsAttr(r.id)}', 'confirmed')">
+                        <i class="fa-solid fa-undo"></i> Bỏ Điểm Danh
+                      </button>
+                    `}
+                    <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: #fca5a5;" onclick="App.deleteEventRegistration('${escapeJsAttr(eventId)}', '${escapeJsAttr(r.id)}')">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  },
+
+  updateEventRegistrationStatus(eventId, regId, status) {
+    const res = EventManager.updateRegistrationStatus(eventId, regId, status);
+    if (res.success) {
+      this.showToast("Cập nhật trạng thái thành công!");
+      this.filterEventRegistrationsList();
+      this.renderEvents();
+    }
+  },
+
+  deleteEventRegistration(eventId, regId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa lượt đăng ký này?")) return;
+    const res = EventManager.deleteRegistration(eventId, regId);
+    if (res.success) {
+      this.showToast("Đã xóa lượt đăng ký.");
+      this.filterEventRegistrationsList();
+      this.renderEvents();
+    }
+  },
+
+  exportEventRegistrationsCSV() {
+    const eventId = this.currentManagedEventId;
+    if (!eventId) return;
+
+    const events = EventManager.getEvents();
+    const evt = events.find(e => e.id === eventId);
+    if (!evt || !evt.registrations || evt.registrations.length === 0) {
+      this.showToast("Chưa có lượt đăng ký nào để xuất file!", "error");
+      return;
+    }
+
+    let csvContent = "\uFEFF"; // UTF-8 BOM cho Excel tiếng Việt
+    csvContent += `Danh Sách Đăng Ký Sự Kiện: "${evt.title.replace(/"/g, '""')}"\n`;
+    csvContent += `Thời gian: ${evt.date} (${evt.time})\n`;
+    csvContent += `Địa điểm: ${evt.address}\n\n`;
+    csvContent += "STT,Họ và Tên,Số Điện Thoại,Số Người Đi Cùng,Nhu Cầu Ghi Chú,Thời Gian Đăng Ký,Trạng Thái\n";
+
+    evt.registrations.forEach((r, idx) => {
+      const statusText = r.status === "attended" ? "Đã tham gia" : (r.status === "cancelled" ? "Đã hủy" : "Đã đăng ký");
+      csvContent += `${idx + 1},"${(r.name || "").replace(/"/g, '""')}","${r.phone || ""}",${r.numAttendees || 1},"${(r.note || "").replace(/"/g, '""')}","${r.registeredAt || ""}",${statusText}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Danh_Sach_Dang_Ky_${evt.id}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    this.showToast("📊 Đã xuất file CSV thành công!");
+  },
+
+  openAddManualRegistrationModal() {
+    if (!this.currentManagedEventId) return;
+    document.getElementById("manualRegEventId").value = this.currentManagedEventId;
+    document.getElementById("manualRegName").value = "";
+    document.getElementById("manualRegPhone").value = "";
+    document.getElementById("manualRegAttendees").value = "1";
+    document.getElementById("manualRegNote").value = "";
+    this.openModal("addManualRegistrationModal");
+  },
+
+  submitManualRegistration(e) {
+    e.preventDefault();
+    const eventId = document.getElementById("manualRegEventId").value;
+    const name = document.getElementById("manualRegName").value.trim();
+    const phone = document.getElementById("manualRegPhone").value.trim();
+    const numAttendees = document.getElementById("manualRegAttendees").value;
+    const note = document.getElementById("manualRegNote").value.trim();
+
+    if (!name || !phone) {
+      this.showToast("Vui lòng nhập Tên và Số điện thoại!", "error");
+      return;
+    }
+
+    const res = EventManager.addRegistration(eventId, { name, phone, numAttendees, note, status: "confirmed" });
+    if (res.success) {
+      this.closeModal("addManualRegistrationModal");
+      this.showToast("🎉 Đã thêm khách đăng ký thành công!");
+      this.filterEventRegistrationsList();
+      this.renderEvents();
+    } else {
+      this.showToast(res.message || "Thêm thất bại", "error");
+    }
   }
 };
 
