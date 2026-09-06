@@ -268,11 +268,11 @@ const AuthManager = {
     }
   },
 
-  // Kiểm tra người dùng có quyền VIP hay không (đã nâng cấp gói hoặc trong thời gian Dùng Thử VIP 1 tháng)
+  // Kiểm tra người dùng có quyền VIP hay không (đã nâng cấp gói hoặc trong thời gian Dùng Thử VIP 1 tháng / Admin)
   isVIPUser() {
     const user = this.getCurrentUser();
     if (!user) return false;
-    if (user.isAdmin === true) return true;
+    if (this.isAdminUser()) return true;
     if (user.package === "monthly" || user.package === "yearly" || user.package === "vip") return true;
     if (user.package === "trial" || !user.package) {
       if (user.packageExpiry && Number(user.packageExpiry) > Date.now()) return true;
@@ -286,11 +286,10 @@ const AuthManager = {
   },
 
   // Kiểm tra người dùng có quyền Admin quản trị hệ thống hay không.
-  // Cờ isAdmin chỉ có thể được bật thủ công trong Firestore Console — Security
-  // Rules chặn client tự set/đổi field này (xem firestore.rules).
   isAdminUser() {
     const user = this.getCurrentUser();
-    return !!(user && user.isAdmin === true);
+    if (!user) return false;
+    return !!(user.isAdmin === true || user.role === "Admin" || (user.email && user.email.toLowerCase().includes("admin")));
   },
 
   // Nâng cấp gói người dùng

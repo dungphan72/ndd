@@ -515,9 +515,11 @@ const ClubManager = {
       const safeImage = sanitizeUrl(club.image, 'images/default-club.jpg');
 
       // Xử lý bảo mật thông tin cho tài khoản Dùng Thử
+      const fullAddr = [club.addressDetail, club.ward, club.province].filter(Boolean).join(", ");
+      const shortAddr = [club.ward, club.province].filter(Boolean).join(", ");
       const addressText = isVIP
-        ? `${club.addressDetail || ''}, ${club.ward || ''}, ${club.province || ''}`
-        : `*** ${club.ward || ''}, ${club.province || ''}`;
+        ? (fullAddr || shortAddr || "Chưa cập nhật địa chỉ")
+        : `*** ${shortAddr || 'Khu vực'}`;
       const phoneText = isVIP ? (club.ownerPhone || '') : maskPhone(club.ownerPhone || '0902030185');
       const ctaText = isLoggedIn ? "Nâng cấp tài khoản để hiển thị thông tin" : "Đăng nhập tài khoản để hiển thị thông tin";
 
@@ -585,9 +587,11 @@ const ClubManager = {
     const safeImage = sanitizeUrl(club.image, 'images/default-club.jpg');
 
     // Định dạng Địa chỉ và Số điện thoại bảo mật
+    const fullAddr = [club.addressDetail, club.ward, club.province].filter(Boolean).join(", ");
+    const shortAddr = [club.ward, club.province].filter(Boolean).join(", ");
     const addressText = isVIP
-      ? `${club.addressDetail || ''}, ${club.ward || ''}, ${club.province || ''}`
-      : `*** ${club.ward || ''}, ${club.province || ''}`;
+      ? (fullAddr || shortAddr || "Chưa cập nhật địa chỉ")
+      : `*** ${shortAddr || 'Khu vực'}`;
     const rawPhone = escapeHtml(club.ownerPhone || '0902030185');
     const phoneText = isVIP ? (club.ownerPhone || '') : maskPhone(club.ownerPhone || '0902030185');
     const ctaText = isLoggedIn ? "Nâng cấp tài khoản để hiển thị thông tin" : "Đăng nhập tài khoản để hiển thị thông tin";

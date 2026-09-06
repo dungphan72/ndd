@@ -131,6 +131,12 @@ const App = {
     if (typeof AuthManager !== "undefined" && typeof AuthManager.initAuth === "function") {
       AuthManager.initAuth(() => {
         this.setupAuthUI();
+        if (typeof ClubManager !== "undefined" && typeof ClubManager.renderClubs === "function") {
+          ClubManager.renderClubs();
+        }
+        if (this.leafletMap) {
+          this.syncMapWithFilters();
+        }
       });
     }
 
@@ -1883,9 +1889,16 @@ const App = {
   },
 
   // Khởi tạo bản đồ Leaflet Map
+  // Khởi tạo bản đồ Leaflet Map
   initLeafletMap() {
     const mapElement = document.getElementById("leafletMap");
     if (!mapElement) return;
+
+    if (typeof L === "undefined") {
+      console.warn("Leaflet library JS (L) chưa sẵn sàng.");
+      setTimeout(() => this.initLeafletMap(), 300);
+      return;
+    }
 
     if (!this.leafletMap) {
       // Tọa độ trung tâm Việt Nam
@@ -1931,12 +1944,16 @@ const App = {
       sidebarList.innerHTML = filteredClubs.length === 0
         ? `<div style="text-align: center; color: var(--text-muted); padding: 20px;">Không có nhóm nào trong khu vực này</div>`
         : filteredClubs.map(c => {
-          const sidebarAddr = isVIP ? `${escapeHtml(c.addressDetail || '')}, ${escapeHtml(c.province)}` : `${escapeHtml(c.ward || '')}, ${escapeHtml(c.province)} (🔒 Ẩn số nhà)`;
+          const fullAddr = [c.addressDetail, c.ward, c.province].filter(Boolean).join(", ");
+          const shortAddr = [c.ward, c.province].filter(Boolean).join(", ");
+          const sidebarAddr = isVIP
+            ? (fullAddr || shortAddr || "Chưa cập nhật địa chỉ")
+            : `${shortAddr || 'Khu vực'} (🔒 Ẩn số nhà)`;
           return `
             <div class="map-mini-card" onclick="App.focusMapMarker(${Number(c.lat) || 0}, ${Number(c.lng) || 0}, '${escapeJsAttr(c.id)}')">
               <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">${escapeHtml(c.name)}</div>
               <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">${escapeHtml(c.type)}</div>
-              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">📍 ${sidebarAddr}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">📍 ${escapeHtml(sidebarAddr)}</div>
             </div>
           `;
         }).join('');
@@ -1947,7 +1964,7 @@ const App = {
       if (c.lat && c.lng) {
         bounds.push([c.lat, c.lng]);
 
-        const isDeep = c.type.includes("chuyên sâu");
+        const isDeep = (c.type || '').includes("chuyên sâu");
         const markerColor = isDeep ? "#d97706" : "#059669";
 
         // Custom Icon SVG Marker
@@ -1966,14 +1983,18 @@ const App = {
         const marker = L.marker([c.lat, c.lng], { icon: customIcon });
         
         const popupPhone = escapeHtml(isVIP ? (c.ownerPhone || 'Hotline') : maskPhone(c.ownerPhone || '0902030185'));
-        const popupAddr = isVIP ? `${escapeHtml(c.addressDetail || '')}, ${escapeHtml(c.ward || '')}, ${escapeHtml(c.province || '')}` : `${escapeHtml(c.ward || '')}, ${escapeHtml(c.province || '')} (🔒 Ẩn số nhà)`;
+        const fullAddr = [c.addressDetail, c.ward, c.province].filter(Boolean).join(", ");
+        const shortAddr = [c.ward, c.province].filter(Boolean).join(", ");
+        const popupAddr = isVIP
+          ? (fullAddr || shortAddr || "Chưa cập nhật địa chỉ")
+          : `${shortAddr || 'Khu vực'} (🔒 Ẩn số nhà)`;
 
         const popupContent = `
           <div style="min-width: 220px; font-family: inherit;">
             <img src="${sanitizeUrl(c.image, 'images/default-club.jpg')}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;">
             <h4 style="font-size: 0.95rem; margin-bottom: 4px; color: #0f172a;">${escapeHtml(c.name)}</h4>
             <div style="font-size: 0.78rem; color: ${markerColor}; font-weight: 700; margin-bottom: 4px;">${escapeHtml(c.type)}</div>
-            <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 8px;">📍 ${popupAddr}</div>
+            <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 8px;">📍 ${escapeHtml(popupAddr)}</div>
             <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 10px;">Chủ nhóm: ${escapeHtml(c.ownerName)} (${popupPhone})</div>
             <button onclick="ClubManager.showClubDetailModal('${escapeJsAttr(c.id)}')" style="width: 100%; padding: 6px; background: #10b981; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.82rem;">Xem Chi Tiết</button>
           </div>
