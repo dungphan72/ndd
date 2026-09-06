@@ -3,7 +3,7 @@ var SEED_CMS_CONFIG = window.SEED_CMS_CONFIG || {
     { id: "clubsTab", tab: "Trang Chủ", label: "Trang Chủ", enabled: true },
     { id: "eventsTab", tab: "Sự Kiện", label: "Sự Kiện", enabled: true },
     { id: "shopTab", tab: "Shop", label: "Shop Công Cụ", enabled: true },
-    { id: "coursesTab", tab: "Khóa Học", label: "Khóa Học E-Learning", enabled: true },
+    { id: "coursesTab", tab: "Kiến Thức", label: "Thư Viện Kiến Thức", enabled: true },
     { id: "bmiTab", tab: "Tính BMI", label: "Công Cụ BMI", enabled: true }
   ],
   footer: {
