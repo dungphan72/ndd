@@ -1061,35 +1061,35 @@
   <div id="createEventModal" class="modal-backdrop">
     <div class="modal-container">
       <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-solid fa-calendar-plus" style="color: var(--secondary);"></i> Đăng Sự Kiện Nhóm Dinh Dưỡng</h3>
+        <h3 class="modal-title">Đăng Sự Kiện Nhóm Dinh Dưỡng</h3>
         <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
       </div>
       <form onsubmit="App.submitCreateEvent(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> Chọn nhóm dinh dưỡng tổ chức *</label>
+            <label class="form-label">Chọn nhóm dinh dưỡng tổ chức *</label>
             <select id="eventClubSelect" name="eventClubSelect" class="filter-select" required></select>
           </div>
 
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-heading" style="color: var(--secondary);"></i> Tên sự kiện *</label>
+            <label class="form-label">Tên sự kiện *</label>
             <input type="text" name="eventTitle" class="form-control" placeholder="Ví dụ: Ngày Hội Quét Chỉ Số InBody Miễn Phí" required>
           </div>
 
           <div class="form-group-row">
             <div class="form-group">
-              <label class="form-label"><i class="fa-solid fa-calendar-days" style="color: var(--primary);"></i> Ngày diễn ra *</label>
+              <label class="form-label">Ngày diễn ra *</label>
               <input type="date" name="eventDate" class="form-control" value="2026-09-15" required>
             </div>
             <div class="form-group">
-              <label class="form-label"><i class="fa-solid fa-clock" style="color: var(--secondary);"></i> Khung giờ *</label>
+              <label class="form-label">Khung giờ *</label>
               <input type="text" name="eventTime" class="form-control" placeholder="07:30 - 11:00" value="07:30 - 11:00" required>
             </div>
           </div>
 
           <div class="form-group-row">
             <div class="form-group">
-              <label class="form-label"><i class="fa-solid fa-map-location-dot" style="color: var(--accent-sport);"></i> Hình thức địa điểm</label>
+              <label class="form-label">Hình thức địa điểm</label>
               <select name="eventLocationType" class="filter-select">
                 <option value="Trực tiếp tại nhóm">Trực tiếp tại nhóm</option>
                 <option value="Trực tiếp ngoài trời">Trực tiếp ngoài trời</option>
@@ -1097,29 +1097,29 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label"><i class="fa-solid fa-users" style="color: var(--primary);"></i> Số lượng tối đa</label>
+              <label class="form-label">Số lượng tối đa</label>
               <input type="number" name="eventMaxParticipants" class="form-control" value="50" min="5" max="500">
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-location-pin" style="color: var(--primary);"></i> Địa chỉ tổ chức (Để trống nếu dùng địa chỉ của nhóm)</label>
+            <label class="form-label">Địa chỉ tổ chức (Để trống nếu dùng địa chỉ của nhóm)</label>
             <input type="text" name="eventAddress" class="form-control" placeholder="Nhập địa chỉ cụ thể nếu khác địa chỉ nhóm">
           </div>
 
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-pen-to-square" style="color: var(--secondary);"></i> Mô tả nội dung & Lợi ích người tham gia *</label>
+            <label class="form-label">Mô tả nội dung & Lợi ích người tham gia *</label>
             <textarea name="eventDescription" class="form-control" rows="3" placeholder="Mô tả các hoạt động, quà tặng, nội dung workshop..." required></textarea>
           </div>
 
           <div class="form-group">
-            <label class="form-label"><i class="fa-solid fa-image" style="color: var(--accent-sport);"></i> Hình ảnh sự kiện (URL)</label>
+            <label class="form-label">Hình ảnh sự kiện (URL)</label>
             <input type="url" name="eventImage" class="form-control" placeholder="https://..." value="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
-          <button type="submit" class="btn btn-secondary" style="font-weight: 800;"><i class="fa-solid fa-calendar-check"></i> Đăng Sự Kiện Ngay</button>
+          <button type="submit" class="btn btn-secondary" style="font-weight: 800;">Đăng Sự Kiện Ngay</button>
         </div>
       </form>
     </div>
