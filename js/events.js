@@ -100,7 +100,7 @@ const EventManager = {
       const safeImage = sanitizeUrl(evt.image, 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80');
 
       const textLower = (evt.title + " " + (evt.description || "")).toLowerCase();
-      let catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(5, 150, 105, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-calendar-star" style="color: #fde68a;"></i> Sự Kiện</span>`;
+      let catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(5, 150, 105, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-calendar-days" style="color: #fde68a;"></i> Sự Kiện</span>`;
       
       if (textLower.includes("inbody") || textLower.includes("đo") || textLower.includes("quét")) {
         catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(5, 150, 105, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-notes-medical" style="color: #34d399;"></i> Đo InBody</span>`;
@@ -118,7 +118,7 @@ const EventManager = {
             ${catBadge}
             <img src="${safeImage}" alt="${safeTitle}" class="event-img" onerror="this.src='https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80'">
             <div class="event-date-badge">
-              <i class="fa-solid fa-calendar-star" style="color: var(--secondary);"></i>
+              <i class="fa-solid fa-calendar-days" style="color: var(--secondary);"></i>
               <span>${safeDate}</span>
             </div>
           </div>

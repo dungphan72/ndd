@@ -591,14 +591,16 @@ const ClubManager = {
     const phoneText = isVIP ? (club.ownerPhone || '') : maskPhone(club.ownerPhone || '0902030185');
     const ctaText = isLoggedIn ? "Nâng cấp tài khoản để hiển thị thông tin" : "Đăng nhập tài khoản để hiển thị thông tin";
 
+    const mapLat = Number(club.lat) || 21.0285;
+    const mapLng = Number(club.lng) || 105.8542;
     const actionButtonsHtml = isVIP
       ? `<div style="display: flex; gap: 8px; margin-top: 12px;">
-          <a href="tel:${encodeURIComponent(club.ownerPhone || '0902030185')}" class="btn btn-primary" style="border-radius: var(--radius-lg);">
-            <i class="fa-solid fa-phone"></i> Gọi: ${rawPhone}
+          <a href="https://zalo.me/${encodeURIComponent(club.ownerPhone || '0902030185')}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="border-radius: var(--radius-lg); background: #0068ff; border-color: #0068ff;">
+            <i class="fa-solid fa-comment-dots"></i> Kết Nối Zalo: ${rawPhone}
           </a>
-          <button class="btn btn-outline" style="border-radius: var(--radius-lg);" onclick="App.showOnMap(${Number(club.lat) || 21.0285}, ${Number(club.lng) || 105.8542}, '${escapeJsAttr(club.name || '')}')">
-            <i class="fa-solid fa-map-location-dot"></i> Xem Bản Đồ
-          </button>
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${mapLat},${mapLng}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border-radius: var(--radius-lg);">
+            <i class="fa-solid fa-diamond-turn-right"></i> Chỉ Đường
+          </a>
          </div>`
       : `<button type="button" class="locked-cta-btn" onclick="${lockAction}">${ctaText}</button>`;
 
@@ -634,7 +636,7 @@ const ClubManager = {
       eventsHtml = `
         <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color);">
           <h4 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--secondary); display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-calendar-star" style="color: var(--secondary);"></i> Sự Kiện Sắp Diễn Ra Tại Nhóm:
+            <i class="fa-solid fa-calendar-days" style="color: var(--secondary);"></i> Sự Kiện Sắp Diễn Ra Tại Nhóm:
           </h4>
           <div style="display: flex; flex-direction: column; gap: 10px;">
             ${events.map(ev => `

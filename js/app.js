@@ -122,6 +122,7 @@ const App = {
       ClubManager.initFirestoreSync(() => {
         if (this.activeTab === 'clubsTab') {
           this.renderClubs();
+          this.renderFeaturedClubs();
         }
       });
     }
@@ -204,6 +205,7 @@ const App = {
     // 3. Xử lý tải dữ liệu theo từng tab
     if (tabId === "clubsTab") {
       this.renderClubs();
+      this.renderFeaturedClubs();
       this.renderEvents();
       this.renderProducts();
       this.renderCourses();
@@ -1069,6 +1071,119 @@ const App = {
     }
   },
 
+  // Render 3 nhóm dinh dưỡng nổi bật (rating cao nhất) trên trang chủ
+  renderFeaturedClubs() {
+    const featuredContainer = document.getElementById("clubsFeaturedGridContainer");
+    if (!featuredContainer) return;
+    const topClubs = ClubManager.getClubs()
+      .slice()
+      .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+      .slice(0, 3);
+    featuredContainer.innerHTML = ClubManager.renderClubCards(topClubs);
+  },
+
+  // ===== Chế độ xem Lịch Tháng cho Sự Kiện =====
+  calendarYear: new Date().getFullYear(),
+  calendarMonth: new Date().getMonth(), // 0-11
+
+  // scope: 'home' (trang chủ) hoặc 'full' (tab Sự Kiện đầy đủ)
+  setEventsViewMode(mode, scope) {
+    const gridId = scope === 'home' ? 'eventsHomeGridContainer' : 'eventsGridContainer';
+    const calId = scope === 'home' ? 'eventsHomeCalendarContainer' : 'eventsCalendarContainer';
+    const listBtnId = scope === 'home' ? 'eventsHomeViewListBtn' : 'eventsFullViewListBtn';
+    const calBtnId = scope === 'home' ? 'eventsHomeViewCalendarBtn' : 'eventsFullViewCalendarBtn';
+
+    const gridEl = document.getElementById(gridId);
+    const calEl = document.getElementById(calId);
+    const listBtn = document.getElementById(listBtnId);
+    const calBtn = document.getElementById(calBtnId);
+
+    if (mode === 'calendar') {
+      if (gridEl) gridEl.style.display = 'none';
+      if (calEl) calEl.style.display = 'block';
+      if (listBtn) listBtn.classList.remove('active');
+      if (calBtn) calBtn.classList.add('active');
+      this.renderEventsCalendar(scope);
+    } else {
+      if (gridEl) gridEl.style.display = 'grid';
+      if (calEl) calEl.style.display = 'none';
+      if (listBtn) listBtn.classList.add('active');
+      if (calBtn) calBtn.classList.remove('active');
+    }
+  },
+
+  changeCalendarMonth(delta, scope) {
+    this.calendarMonth += delta;
+    if (this.calendarMonth < 0) { this.calendarMonth = 11; this.calendarYear--; }
+    if (this.calendarMonth > 11) { this.calendarMonth = 0; this.calendarYear++; }
+    this.renderEventsCalendar(scope);
+  },
+
+  // Lịch tháng hiển thị TẤT CẢ sự kiện (không giới hạn 3, không theo bộ lọc
+  // danh mục) vì mục đích là xem sự kiện theo ngày, không phải xem trước
+  renderEventsCalendar(scope) {
+    const calId = scope === 'home' ? 'eventsHomeCalendarContainer' : 'eventsCalendarContainer';
+    const calEl = document.getElementById(calId);
+    if (!calEl) return;
+
+    const year = this.calendarYear;
+    const month = this.calendarMonth; // 0-11
+    const events = EventManager.getEvents();
+
+    // Gộp sự kiện theo ngày "YYYY-MM-DD"
+    const eventsByDate = {};
+    events.forEach(e => {
+      if (!e.date) return;
+      if (!eventsByDate[e.date]) eventsByDate[e.date] = [];
+      eventsByDate[e.date].push(e);
+    });
+
+    const firstOfMonth = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    // Thứ trong tuần của ngày 1 (0=CN...6=T7) -> quy đổi về tuần bắt đầu Thứ 2
+    const firstWeekday = (firstOfMonth.getDay() + 6) % 7; // 0=T2 ... 6=CN
+
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const weekdayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+    let cellsHtml = weekdayLabels.map(d => `<div class="calendar-weekday">${d}</div>`).join('');
+
+    for (let i = 0; i < firstWeekday; i++) {
+      cellsHtml += `<div class="calendar-day-cell is-outside"></div>`;
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${pad2(month + 1)}-${pad2(day)}`;
+      const dayEvents = eventsByDate[dateStr] || [];
+      const hasEvents = dayEvents.length > 0;
+      cellsHtml += `
+        <div class="calendar-day-cell ${hasEvents ? 'has-events' : ''}" ${hasEvents ? `onclick="App.showEventsForDay('${dateStr}')"` : ''}>
+          <span class="calendar-day-num">${day}</span>
+          ${hasEvents ? `<span class="calendar-day-count">${dayEvents.length} sự kiện</span>` : ''}
+        </div>
+      `;
+    }
+
+    calEl.innerHTML = `
+      <div class="calendar-nav">
+        <button type="button" class="calendar-nav-btn" onclick="App.changeCalendarMonth(-1, '${scope}')"><i class="fa-solid fa-chevron-left"></i></button>
+        <span class="calendar-nav-title">Tháng ${month + 1} / ${year}</span>
+        <button type="button" class="calendar-nav-btn" onclick="App.changeCalendarMonth(1, '${scope}')"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+      <div class="calendar-grid">${cellsHtml}</div>
+    `;
+  },
+
+  showEventsForDay(dateStr) {
+    const events = EventManager.getEvents().filter(e => e.date === dateStr);
+    const [y, m, d] = dateStr.split('-');
+    const titleEl = document.getElementById('dayEventsModalTitle');
+    const bodyEl = document.getElementById('dayEventsModalBody');
+    if (titleEl) titleEl.innerText = `Sự Kiện Ngày ${d}/${m}/${y}`;
+    if (bodyEl) bodyEl.innerHTML = EventManager.renderEventCards(events);
+    this.openModal('dayEventsModal');
+  },
+
   currentEventCategory: "all",
 
   filterEventsCategory(cat, btn) {
@@ -1098,9 +1213,10 @@ const App = {
       });
     }
 
-    const html = EventManager.renderEventCards(events);
-    if (eventsContainer) eventsContainer.innerHTML = html;
-    if (homeEventsContainer) homeEventsContainer.innerHTML = html;
+    if (eventsContainer) eventsContainer.innerHTML = EventManager.renderEventCards(events);
+    // Trang chủ chỉ xem trước 3 sự kiện — chế độ Lịch Tháng thì bỏ qua giới
+    // hạn này (xem renderEventsCalendar), nên chỉ ghi khi đang ở chế độ Danh Sách
+    if (homeEventsContainer) homeEventsContainer.innerHTML = EventManager.renderEventCards(events.slice(0, 3));
   },
 
   // Render danh sách sản phẩm Shop Công Cụ
@@ -1114,9 +1230,9 @@ const App = {
       sort: this.shopPriceSort
     });
 
-    const html = ShopManager.renderProductCards(filteredProducts);
-    if (container) container.innerHTML = html;
-    if (homeContainer) homeContainer.innerHTML = html;
+    if (container) container.innerHTML = ShopManager.renderProductCards(filteredProducts);
+    // Trang chủ chỉ xem trước 6 sản phẩm
+    if (homeContainer) homeContainer.innerHTML = ShopManager.renderProductCards(filteredProducts.slice(0, 6));
   },
 
   setShopCategory(cat) {
@@ -1886,14 +2002,6 @@ const App = {
     }
   },
 
-  showOnMap(lat, lng, name) {
-    this.closeAllModals();
-    this.switchTab('mapTab');
-    setTimeout(() => {
-      this.focusMapMarker(lat, lng);
-    }, 300);
-  },
-
   // Modal Control
   openModal(modalId) {
     this.closeAllModals();
@@ -2459,7 +2567,7 @@ const App = {
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myEventsSec')">
-                <span><i class="fa-solid fa-calendar-star" style="color: var(--secondary); width: 22px;"></i> Sự Kiện Của Tôi</span>
+                <span><i class="fa-solid fa-calendar-days" style="color: var(--secondary); width: 22px;"></i> Sự Kiện Của Tôi</span>
                 <span class="badge-pill">${myEvents.length}</span>
               </button>
             </li>
@@ -2508,7 +2616,7 @@ const App = {
             </div>
             <div class="profile-stat-card" style="border-left: 4px solid var(--secondary);">
               <div class="stat-num" style="color: var(--secondary);">${myEvents.length}</div>
-              <div class="stat-label"><i class="fa-solid fa-calendar-star" style="color: var(--secondary); margin-right: 4px;"></i> Sự Kiện Đã Đăng</div>
+              <div class="stat-label"><i class="fa-solid fa-calendar-days" style="color: var(--secondary); margin-right: 4px;"></i> Sự Kiện Đã Đăng</div>
             </div>
             <div class="profile-stat-card" style="border-left: 4px solid var(--accent-sport);">
               <div class="stat-num" style="color: var(--accent-sport);">${myProducts.length}</div>
@@ -2565,7 +2673,7 @@ const App = {
       <!-- TAB 2: SỰ KIỆN CỘNG ĐỒNG CỦA TÔI -->
       <div id="myEventsSec" class="profile-tab-sec" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <h4 style="font-size: 1.05rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-calendar-star" style="color: #f59e0b; margin-right: 6px;"></i> Các Sự Kiện Sức Khỏe Bạn Đã Tổ Chức</h4>
+          <h4 style="font-size: 1.05rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-calendar-days" style="color: #f59e0b; margin-right: 6px;"></i> Các Sự Kiện Sức Khỏe Bạn Đã Tổ Chức</h4>
           <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateEventModal();" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700; background: #f59e0b; border-color: #f59e0b;">
             <i class="fa-solid fa-plus"></i> Đăng Sự Kiện Mới
           </button>
@@ -2854,8 +2962,14 @@ const App = {
   },
 
   switchProfileTab(btn, secId) {
+    // Ghi nhớ tab Admin đang mở để không bị nhảy về tab đầu tiên mỗi khi
+    // trang Quản trị được render lại (vd: sau khi xóa/duyệt một mục)
+    if (secId && secId.indexOf('admin') === 0) {
+      this._activeAdminSec = secId;
+    }
+
     const parent = btn.closest('.dashboard-grid-container') || btn.closest('.modal-body') || btn.closest('#adminTabContentContainer') || btn.closest('.tab-content-panel') || btn.closest('.modal-container') || document;
-    
+
     const tabsContainer = btn.closest(".dash-nav-list") || btn.parentElement;
     if (tabsContainer) {
       tabsContainer.querySelectorAll(".dash-nav-btn, .profile-tab-btn").forEach(b => b.classList.remove("active"));
@@ -3169,6 +3283,12 @@ const App = {
     const vipUsers = users.filter(u => u.package === "monthly" || u.package === "yearly" || u.package === "vip");
     const estimatedRev = vipUsers.reduce((sum, u) => sum + (u.package === "yearly" ? 999000 : 99000), 0);
 
+    // Giữ đúng tab Admin đang mở khi render lại (vd: sau khi xóa/duyệt),
+    // thay vì luôn nhảy về tab "Thành Viên" đầu tiên
+    const activeAdminSec = this._activeAdminSec || 'adminUsersSec';
+    const isAdminSecActive = (secId) => activeAdminSec === secId ? 'active' : '';
+    const adminSecDisplay = (secId) => activeAdminSec === secId ? 'block' : 'none';
+
     const adminHtml = `
       <div class="dashboard-grid-container">
         <!-- SIDEBAR BÊN TRÁI QUẢN TRỊ ADMIN -->
@@ -3186,49 +3306,49 @@ const App = {
 
           <ul class="dash-nav-list">
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn active" onclick="App.switchProfileTab(this, 'adminUsersSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminUsersSec')}" onclick="App.switchProfileTab(this, 'adminUsersSec')">
                 <span><i class="fa-solid fa-users" style="color: var(--primary); width: 22px;"></i> Thành Viên</span>
                 <span class="badge-pill">${users.length}</span>
               </button>
             </li>
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'adminClubsSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminClubsSec')}" onclick="App.switchProfileTab(this, 'adminClubsSec')">
                 <span><i class="fa-solid fa-leaf" style="color: var(--primary); width: 22px;"></i> Nhóm Dinh Dưỡng</span>
                 <span class="badge-pill">${clubs.length}</span>
               </button>
             </li>
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'adminEventsSec')">
-                <span><i class="fa-solid fa-calendar-star" style="color: var(--secondary); width: 22px;"></i> Sự Kiện</span>
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminEventsSec')}" onclick="App.switchProfileTab(this, 'adminEventsSec')">
+                <span><i class="fa-solid fa-calendar-days" style="color: var(--secondary); width: 22px;"></i> Sự Kiện</span>
                 <span class="badge-pill">${events.length}</span>
               </button>
             </li>
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'adminProductsSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminProductsSec')}" onclick="App.switchProfileTab(this, 'adminProductsSec')">
                 <span><i class="fa-solid fa-store" style="color: var(--accent-sport); width: 22px;"></i> Shop Công Cụ</span>
                 <span class="badge-pill">${products.length}</span>
               </button>
             </li>
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'adminCoursesSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminCoursesSec')}" onclick="App.switchProfileTab(this, 'adminCoursesSec')">
                 <span><i class="fa-solid fa-graduation-cap" style="color: #3b82f6; width: 22px;"></i> Khóa Học E-Learning</span>
                 <span class="badge-pill">${courses.length}</span>
               </button>
             </li>
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'adminLocationSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminLocationSec')}" onclick="App.switchProfileTab(this, 'adminLocationSec')">
                 <span><i class="fa-solid fa-map-location-dot" style="color: #10b981; width: 22px;"></i> Quản Lý Địa Giới</span>
                 <span class="badge-pill" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">63 Tỉnh/TP</span>
               </button>
             </li>
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'adminMenuSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminMenuSec')}" onclick="App.switchProfileTab(this, 'adminMenuSec')">
                 <span><i class="fa-solid fa-bars-staggered" style="color: var(--primary); width: 22px;"></i> Cấu Hình Menu</span>
               </button>
             </li>
 
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'adminFooterSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn ${isAdminSecActive('adminFooterSec')}" onclick="App.switchProfileTab(this, 'adminFooterSec')">
                 <span><i class="fa-solid fa-shoe-prints" style="color: var(--text-muted); width: 22px;"></i> Cấu Hình Chân Trang</span>
               </button>
             </li>
@@ -3250,7 +3370,7 @@ const App = {
               <div class="kpi-sub">Đang hoạt động toàn quốc</div>
             </div>
             <div class="admin-kpi-card" style="border-left: 4px solid var(--secondary);">
-              <div class="kpi-title"><i class="fa-solid fa-calendar-star" style="color: var(--secondary); margin-right: 4px;"></i> Sự Kiện Cộng Đồng</div>
+              <div class="kpi-title"><i class="fa-solid fa-calendar-days" style="color: var(--secondary); margin-right: 4px;"></i> Sự Kiện Cộng Đồng</div>
               <div class="kpi-num" style="color: var(--secondary);">${events.length}</div>
               <div class="kpi-sub">Workshop & Workout</div>
             </div>
@@ -3272,7 +3392,7 @@ const App = {
           </div>
 
       <!-- Admin Tab 1: Users Table -->
-      <div id="adminUsersSec" class="profile-tab-sec" style="display: block;">
+      <div id="adminUsersSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminUsersSec')};">
         ${this.renderBulkActionBar('users')}
         <div class="admin-table-wrap">
           <table class="admin-table">
@@ -3324,7 +3444,7 @@ const App = {
       </div>
 
       <!-- Admin Tab 2: Clubs Table -->
-      <div id="adminClubsSec" class="profile-tab-sec" style="display: none;">
+      <div id="adminClubsSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminClubsSec')};">
         ${this.renderBulkActionBar('clubs')}
         <div class="admin-table-wrap">
           <table class="admin-table">
@@ -3360,7 +3480,7 @@ const App = {
       </div>
 
       <!-- Admin Tab 3: Events Table -->
-      <div id="adminEventsSec" class="profile-tab-sec" style="display: none;">
+      <div id="adminEventsSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminEventsSec')};">
         ${this.renderBulkActionBar('events')}
         <div class="admin-table-wrap">
           <table class="admin-table">
@@ -3396,7 +3516,7 @@ const App = {
       </div>
 
       <!-- Admin Tab 4: Products Table -->
-      <div id="adminProductsSec" class="profile-tab-sec" style="display: none;">
+      <div id="adminProductsSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminProductsSec')};">
         ${this.renderBulkActionBar('products')}
         <div class="admin-table-wrap">
           <table class="admin-table">
@@ -3432,7 +3552,7 @@ const App = {
       </div>
 
       <!-- Admin Tab 4b: Quản Lý Khóa Học & Chủ Đề E-Learning -->
-      <div id="adminCoursesSec" class="profile-tab-sec" style="display: none;">
+      <div id="adminCoursesSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminCoursesSec')};">
         <!-- KHU VỰC 1: QUẢN LÝ DANH MỤC CHỦ ĐỀ KHÓA HỌC -->
         <div style="background: var(--bg-card); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -3539,7 +3659,7 @@ const App = {
       </div>
 
       <!-- Admin Tab 4c: Quản Lý Địa Giới Hành Chính 2 Cấp (Nghị quyết 202/2025/QH15) -->
-      <div id="adminLocationSec" class="profile-tab-sec" style="display: none;">
+      <div id="adminLocationSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminLocationSec')};">
         <div style="background: var(--bg-card); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
             <div>
@@ -3679,7 +3799,7 @@ const App = {
       </div>
 
       <!-- Admin Tab 5: Menu CMS Config -->
-      <div id="adminMenuSec" class="profile-tab-sec" style="display: none;">
+      <div id="adminMenuSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminMenuSec')};">
         <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
           <h4 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 10px;">⚙️ Quản Lý Nút Thanh Menu (Navbar Tabs)</h4>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Tùy chỉnh nhãn hiển thị và bật/tắt các nút chuyển trang trên menu chính.</p>
@@ -3704,7 +3824,7 @@ const App = {
       </div>
 
       <!-- Admin Tab 6: Footer CMS Config -->
-      <div id="adminFooterSec" class="profile-tab-sec" style="display: none;">
+      <div id="adminFooterSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminFooterSec')};">
         <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
           <h4 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 10px;">👣 Quản Lý Nội Dung Chân Trang (Footer CMS)</h4>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Chỉnh sửa thương hiệu, Hotline tư vấn, câu khẩu hiệu và thông tin bản quyền chân trang.</p>

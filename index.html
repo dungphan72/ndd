@@ -277,9 +277,22 @@
   <!-- Main Content Areas (Tab Panels) -->
   <main class="container main-section">
     
-    <!-- TAB 1: TRANG CHỦ (Hiển thị theo thứ tự: 1. Hero -> 2. Nhóm Dinh Dưỡng -> 3. Sự Kiện -> 4. Shop -> 5. Khóa Học) -->
+    <!-- TAB 1: TRANG CHỦ (Hiển thị theo thứ tự: 1. Hero -> 2. Nhóm Nổi Bật -> 3. Nhóm Dinh Dưỡng -> 4. Sự Kiện -> 5. Shop -> 6. Khóa Học) -->
     <div id="clubsTab" class="tab-content-panel">
-      
+
+      <!-- SECTION 1b: NHÓM DINH DƯỠNG NỔI BẬT -->
+      <section class="home-feature-section" style="margin-bottom: 48px;">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title"><i class="fa-solid fa-star" style="color: #f59e0b;"></i> Nhóm Dinh Dưỡng Nổi Bật</h2>
+            <p class="section-subtitle">Những nhóm dinh dưỡng được đánh giá cao nhất từ cộng đồng</p>
+          </div>
+        </div>
+        <div id="clubsFeaturedGridContainer" class="clubs-grid">
+          <!-- Rendered by JavaScript -->
+        </div>
+      </section>
+
       <!-- SECTION 2: NHÓM DINH DƯỠNG -->
       <section class="home-feature-section" style="margin-bottom: 48px;">
         <div class="section-header">
@@ -328,12 +341,24 @@
       <section class="home-feature-section" style="margin-bottom: 48px; padding-top: 32px; border-top: 1px solid var(--border-color);">
         <div class="section-header">
           <div>
-            <h2 class="section-title"><i class="fa-solid fa-calendar-star" style="color: var(--secondary);"></i> Sự Kiện Sức Khỏe & Thể Thao Cộng Đồng</h2>
+            <h2 class="section-title"><i class="fa-solid fa-calendar-days" style="color: var(--secondary);"></i> Sự Kiện Sức Khỏe & Thể Thao Cộng Đồng</h2>
             <p class="section-subtitle">Tham gia các buổi kiểm tra chỉ số InBody, Workshop dinh dưỡng, Morning Cardio & Thử thách vóc dáng</p>
           </div>
-          <button class="btn btn-outline" onclick="App.switchTab('eventsTab')">
-            <i class="fa-solid fa-arrow-right"></i> Xem Tất Cả Sự Kiện
-          </button>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div class="view-mode-toggle">
+              <button id="eventsHomeViewListBtn" class="view-toggle-btn active" onclick="App.setEventsViewMode('list', 'home')">
+                <i class="fa-solid fa-table-cells-large"></i>
+                <span>Danh Sách</span>
+              </button>
+              <button id="eventsHomeViewCalendarBtn" class="view-toggle-btn" onclick="App.setEventsViewMode('calendar', 'home')">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Lịch Tháng</span>
+              </button>
+            </div>
+            <button class="btn btn-outline" onclick="App.switchTab('eventsTab')">
+              <i class="fa-solid fa-arrow-right"></i> Xem Tất Cả Sự Kiện
+            </button>
+          </div>
         </div>
 
         <!-- Events Category Filter Bar -->
@@ -349,6 +374,11 @@
 
         <!-- Events Grid -->
         <div id="eventsHomeGridContainer" class="events-grid">
+          <!-- Rendered by JavaScript -->
+        </div>
+
+        <!-- Events Calendar View -->
+        <div id="eventsHomeCalendarContainer" class="event-calendar-wrap" style="display: none;">
           <!-- Rendered by JavaScript -->
         </div>
       </section>
@@ -426,12 +456,24 @@
     <div id="eventsTab" class="tab-content-panel" style="display: none;">
       <div class="section-header">
         <div>
-          <h2 class="section-title"><i class="fa-solid fa-calendar-star" style="color: var(--secondary);"></i> Sự Kiện Sức Khỏe & Thể Thao Cộng Đồng</h2>
+          <h2 class="section-title"><i class="fa-solid fa-calendar-days" style="color: var(--secondary);"></i> Sự Kiện Sức Khỏe & Thể Thao Cộng Đồng</h2>
           <p class="section-subtitle">Tham gia các buổi kiểm tra chỉ số InBody, Workshop dinh dưỡng, Morning Cardio & Thử thách vóc dáng</p>
         </div>
-        <button class="btn btn-secondary" onclick="App.openCreateEventModal()">
-          <i class="fa-solid fa-calendar-plus"></i> Đăng Sự Kiện Của Nhóm
-        </button>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div class="view-mode-toggle">
+            <button id="eventsFullViewListBtn" class="view-toggle-btn active" onclick="App.setEventsViewMode('list', 'full')">
+              <i class="fa-solid fa-table-cells-large"></i>
+              <span>Danh Sách</span>
+            </button>
+            <button id="eventsFullViewCalendarBtn" class="view-toggle-btn" onclick="App.setEventsViewMode('calendar', 'full')">
+              <i class="fa-solid fa-calendar-days"></i>
+              <span>Lịch Tháng</span>
+            </button>
+          </div>
+          <button class="btn btn-secondary" onclick="App.openCreateEventModal()">
+            <i class="fa-solid fa-calendar-plus"></i> Đăng Sự Kiện Của Nhóm
+          </button>
+        </div>
       </div>
 
       <!-- Events Category Filter Bar -->
@@ -447,6 +489,11 @@
 
       <!-- Events Grid -->
       <div id="eventsGridContainer" class="events-grid">
+        <!-- Rendered by JavaScript -->
+      </div>
+
+      <!-- Events Calendar View -->
+      <div id="eventsCalendarContainer" class="event-calendar-wrap" style="display: none;">
         <!-- Rendered by JavaScript -->
       </div>
     </div>
@@ -492,13 +539,6 @@
 
     <!-- TAB 5: Trang Quản Trị Hệ Thống Admin (Full-page Admin Panel) -->
     <div id="adminTab" class="tab-content-panel" style="display: none;">
-      <div class="section-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px 24px; border-radius: var(--radius-lg); color: #ffffff; margin-bottom: 24px;">
-        <div>
-          <h2 class="section-title" style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 4px;">👑 Trang Quản Trị Hệ Thống Admin</h2>
-          <p class="section-subtitle" style="color: #cbd5e1;">Bảng điều khiển KPI, quản lý thành viên toàn quốc, duyệt gói VIP 1-click & kiểm soát dữ liệu</p>
-        </div>
-      </div>
-
       <div id="adminTabContentContainer">
         <!-- Rendered dynamically by App.renderAdminTabContent -->
       </div>
@@ -769,7 +809,7 @@
           <ul class="footer-links">
             <li><a href="#" onclick="App.switchTab('clubsTab'); return false;"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> Tìm Nhóm Dinh Dưỡng</a></li>
             <li><a href="#" onclick="App.switchTab('clubsTab'); App.setClubsViewMode('map'); return false;"><i class="fa-solid fa-map-location-dot" style="color: var(--primary);"></i> Bản Đồ Vị Trí Câu Lạc Bộ</a></li>
-            <li><a href="#" onclick="App.switchTab('eventsTab'); return false;"><i class="fa-solid fa-calendar-star" style="color: #f59e0b;"></i> Sự Kiện Sức Khỏe Cộng Đồng</a></li>
+            <li><a href="#" onclick="App.switchTab('eventsTab'); return false;"><i class="fa-solid fa-calendar-days" style="color: #f59e0b;"></i> Sự Kiện Sức Khỏe Cộng Đồng</a></li>
             <li><a href="#" onclick="App.switchTab('bmiTab'); return false;"><i class="fa-solid fa-scale-balanced" style="color: var(--primary);"></i> Công Cụ Tính Chỉ Số BMI</a></li>
           </ul>
         </div>
@@ -1094,6 +1134,22 @@
       </div>
       <div id="clubDetailModalBody" class="modal-body">
         <!-- Rendered dynamically by ClubManager.showClubDetailModal -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="App.closeAllModals()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Sự Kiện Trong Ngày (Lịch Tháng) -->
+  <div id="dayEventsModal" class="modal-backdrop">
+    <div class="modal-container modal-lg">
+      <div class="modal-header">
+        <h3 id="dayEventsModalTitle" class="modal-title">Sự Kiện Trong Ngày</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <div id="dayEventsModalBody" class="modal-body events-grid">
+        <!-- Rendered dynamically by App.showEventsForDay -->
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="App.closeAllModals()">Đóng</button>
