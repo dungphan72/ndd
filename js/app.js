@@ -276,6 +276,17 @@ const App = {
     }
 
     this.updateFooterAffiliateLink();
+
+    // Tự động làm mới danh sách Nhóm Dinh Dưỡng, Sản phẩm Shop và Bản đồ để hiển thị thông tin đầy đủ sau khi Đăng Nhập
+    if (typeof ClubManager !== "undefined" && typeof ClubManager.renderClubs === "function") {
+      ClubManager.renderClubs();
+    }
+    if (typeof ShopManager !== "undefined" && typeof ShopManager.renderProducts === "function") {
+      ShopManager.renderProducts();
+    }
+    if (this.leafletMap && typeof this.syncMapWithFilters === "function") {
+      this.syncMapWithFilters();
+    }
   },
 
   updateFooterAffiliateLink() {

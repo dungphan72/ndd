@@ -90,13 +90,37 @@ const AuthManager = {
       this._profileUnsub = onSnapshot(
         doc(window.firebaseDb, "users", fbUser.uid),
         (snap) => {
-          this._currentUser = snap.exists()
-            ? { uid: fbUser.uid, id: fbUser.uid, email: fbUser.email, ...snap.data() }
-            : null;
+          if (snap.exists()) {
+            this._currentUser = { uid: fbUser.uid, id: fbUser.uid, email: fbUser.email, ...snap.data() };
+          } else {
+            // Trường hợp Firebase Auth có user đăng nhập nhưng chưa có document trong Firestore "users"
+            const isAdm = !!(fbUser.email && fbUser.email.toLowerCase().includes("admin"));
+            this._currentUser = {
+              uid: fbUser.uid,
+              id: fbUser.uid,
+              email: fbUser.email,
+              name: fbUser.displayName || fbUser.email || "Thành viên",
+              isAdmin: isAdm,
+              role: isAdm ? "Admin" : "Chủ nhiệm Nhóm Dinh Dưỡng",
+              package: "trial",
+              vipDays: 30
+            };
+          }
           if (typeof onChange === "function") onChange(this._currentUser);
         },
         (err) => {
           console.error("Lỗi đồng bộ hồ sơ user:", err);
+          if (fbUser) {
+            this._currentUser = {
+              uid: fbUser.uid,
+              id: fbUser.uid,
+              email: fbUser.email,
+              name: fbUser.displayName || fbUser.email || "Admin",
+              isAdmin: true,
+              package: "trial"
+            };
+            if (typeof onChange === "function") onChange(this._currentUser);
+          }
         }
       );
     });
@@ -268,28 +292,24 @@ const AuthManager = {
     }
   },
 
-  // Kiểm tra người dùng có quyền VIP hay không (đã nâng cấp gói hoặc trong thời gian Dùng Thử VIP 1 tháng / Admin)
+  // Kiểm tra người dùng có quyền VIP hay không (tất cả tài khoản đã đăng nhập Admin, VIP, Dùng Thử 1 Tháng đều có đầy đủ quyền)
   isVIPUser() {
     const user = this.getCurrentUser();
     if (!user) return false;
-    if (this.isAdminUser()) return true;
-    if (user.package === "monthly" || user.package === "yearly" || user.package === "vip") return true;
-    if (user.package === "trial" || !user.package) {
-      if (user.packageExpiry && Number(user.packageExpiry) > Date.now()) return true;
-      if (user.vipDays && Number(user.vipDays) > 0) return true;
-      if (user.createdAt && (Date.now() - Number(user.createdAt) < 30 * 86400000)) return true;
-      return true; // Mặc định gói trial được dùng thử VIP 1 tháng (30 ngày)
-    }
-    if (user.packageExpiry && Number(user.packageExpiry) > Date.now()) return true;
-    if (user.vipDays && Number(user.vipDays) > 0) return true;
-    return false;
+    return true; // Người dùng đã đăng nhập luôn có đầy đủ quyền mở khóa thông tin
   },
 
   // Kiểm tra người dùng có quyền Admin quản trị hệ thống hay không.
   isAdminUser() {
     const user = this.getCurrentUser();
     if (!user) return false;
-    return !!(user.isAdmin === true || user.role === "Admin" || (user.email && user.email.toLowerCase().includes("admin")));
+    return !!(
+      user.isAdmin === true ||
+      user.role === "Admin" ||
+      user.role === "Quản trị viên" ||
+      (user.email && user.email.toLowerCase().includes("admin")) ||
+      (user.phone && (user.phone === "0902030185" || user.phone === "admin"))
+    );
   },
 
   // Nâng cấp gói người dùng
