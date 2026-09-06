@@ -126,6 +126,13 @@ const App = {
       });
     }
 
+    // Khởi tạo Lắng nghe trạng thái đăng nhập thật từ Firebase Authentication
+    if (typeof AuthManager !== "undefined" && typeof AuthManager.initAuth === "function") {
+      AuthManager.initAuth(() => {
+        this.setupAuthUI();
+      });
+    }
+
     // Khởi tạo tính toán BMI ban đầu
     this.calculateBMI();
 
@@ -417,15 +424,19 @@ const App = {
     }
   },
 
-  confirmVIPPaymentSent() {
+  async confirmVIPPaymentSent() {
     const currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
       this.showToast("Vui lòng đăng nhập tài khoản trước khi kích hoạt gói VIP!", "error");
       this.openModal("loginModal");
       return;
     }
-    
-    AuthManager.upgradeUserVIP(this.selectedVIPPlan || "monthly");
+
+    const res = await AuthManager.upgradeUserVIP(this.selectedVIPPlan || "monthly");
+    if (!res.success) {
+      this.showToast(res.message, "error");
+      return;
+    }
 
     // Gửi thông báo ngầm về Zalo Bot HTTP API
     const msg = `🔔 [GIAO DỊCH MỚI] Thành viên ${currentUser.name} (${currentUser.phone}) vừa xác nhận chuyển khoản gói VIP (${this.selectedVIPPlan || 'monthly'}) trên bot zalo!`;
@@ -871,7 +882,7 @@ const App = {
 
     if (!input || !list) return;
 
-    input.addEventListener("input", (e) => {
+    input.addEventListener("input", async (e) => {
       const q = e.target.value;
       if (!q || q.trim().length < 1) {
         list.classList.remove("show");
@@ -882,7 +893,8 @@ const App = {
       const currentUser = AuthManager.getCurrentUser();
       if (currentUser) excludeIds.push(currentUser.id);
 
-      const matches = AuthManager.searchUsers(q, excludeIds);
+      const matches = await AuthManager.searchUsers(q, excludeIds);
+      this._coOpSearchCache = new Map(matches.map(u => [u.id, u]));
       if (matches.length === 0) {
         list.innerHTML = `<div style="padding: 12px; color: var(--text-muted); font-size: 0.88rem; text-align: center;">Không tìm thấy thành viên phù hợp</div>`;
       } else {
@@ -911,7 +923,7 @@ const App = {
 
   addCoOperator(id) {
     if (this.selectedCoOperators.some(c => c.id === id)) return;
-    const user = AuthManager.getUsers().find(u => u.id === id);
+    const user = this._coOpSearchCache && this._coOpSearchCache.get(id);
     if (!user) return;
     this.selectedCoOperators.push({ id: user.id, name: user.name, phone: user.phone });
 
@@ -948,7 +960,7 @@ const App = {
 
     if (!input || !list) return;
 
-    input.addEventListener("input", (e) => {
+    input.addEventListener("input", async (e) => {
       const q = e.target.value;
       if (!q || q.trim().length < 1) {
         list.classList.remove("show");
@@ -956,7 +968,8 @@ const App = {
       }
 
       const excludeIds = this.selectedEditCoOperators.map(c => c.id);
-      const matches = AuthManager.searchUsers(q, excludeIds);
+      const matches = await AuthManager.searchUsers(q, excludeIds);
+      this._editCoOpSearchCache = new Map(matches.map(u => [u.id, u]));
       if (matches.length === 0) {
         list.innerHTML = `<div style="padding: 12px; color: var(--text-muted); font-size: 0.88rem; text-align: center;">Không tìm thấy thành viên phù hợp</div>`;
       } else {
@@ -985,7 +998,7 @@ const App = {
 
   addEditCoOperator(id) {
     if (this.selectedEditCoOperators.some(c => c.id === id)) return;
-    const user = AuthManager.getUsers().find(u => u.id === id);
+    const user = this._editCoOpSearchCache && this._editCoOpSearchCache.get(id);
     if (!user) return;
     this.selectedEditCoOperators.push({ id: user.id, name: user.name, phone: user.phone });
 
@@ -2125,12 +2138,19 @@ const App = {
   },
 
   // Submit Đăng nhập
-  submitLogin(e) {
+  async submitLogin(e) {
     e.preventDefault();
     const phoneOrEmail = e.target.loginAccount.value.trim();
     const password = e.target.loginPassword.value.trim();
 
-    const res = AuthManager.login(phoneOrEmail, password);
+    const submitBtn = e.target.querySelector("button[type=submit]");
+    if (submitBtn) {
+      if (submitBtn.disabled) return;
+      submitBtn.disabled = true;
+    }
+
+    const res = await AuthManager.login(phoneOrEmail, password);
+    if (submitBtn) submitBtn.disabled = false;
     if (res.success) {
       this.setupAuthUI();
       this.closeAllModals();
@@ -2141,7 +2161,7 @@ const App = {
   },
 
   // Submit Đăng ký
-  submitRegister(e) {
+  async submitRegister(e) {
     e.preventDefault();
     const form = e.target;
     const name = form.regName.value.trim();
@@ -2152,15 +2172,15 @@ const App = {
     const role = form.regRole ? form.regRole.value : "Thành viên Nhomdinhduong.vn";
     const refCode = (form.regRefCode ? form.regRefCode.value.trim() : "") || sessionStorage.getItem("nutriclub_ref_code") || "";
 
-    if (!name || !phone || !password) {
-      this.showToast("Vui lòng điền họ tên, số điện thoại và mật khẩu!", "error");
+    if (!name || !phone || !email || !password) {
+      this.showToast("Vui lòng điền đầy đủ họ tên, số điện thoại, email và mật khẩu!", "error");
       return;
     }
     if (!/^0\d{9,10}$/.test(phone)) {
       this.showToast("Số điện thoại không hợp lệ (phải bắt đầu bằng 0, 10-11 số)!", "error");
       return;
     }
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       this.showToast("Email không đúng định dạng!", "error");
       return;
     }
@@ -2179,13 +2199,36 @@ const App = {
       submitBtn.disabled = true;
     }
 
-    const res = AuthManager.register({ name, phone, email, password, role, refCode });
+    const res = await AuthManager.register({ name, phone, email, password, role, refCode });
     if (submitBtn) submitBtn.disabled = false;
     if (res.success) {
       this.setupAuthUI();
       this.closeAllModals();
       form.reset();
       this.showToast(`🎉 Chúc mừng ${res.user.name} đã đăng ký tài khoản thành công!${res.rewardMsg || ''}`);
+    } else {
+      this.showToast(res.message, "error");
+    }
+  },
+
+  // Submit Quên mật khẩu — gửi email khôi phục thật qua Firebase Auth
+  async submitForgotPassword(e) {
+    e.preventDefault();
+    const form = e.target;
+    const email = form.forgotEmail.value.trim();
+
+    const submitBtn = form.querySelector("button[type=submit]");
+    if (submitBtn) {
+      if (submitBtn.disabled) return;
+      submitBtn.disabled = true;
+    }
+
+    const res = await AuthManager.forgotPassword(email);
+    if (submitBtn) submitBtn.disabled = false;
+    if (res.success) {
+      this.closeAllModals();
+      form.reset();
+      this.showToast("📧 Đã gửi email khôi phục mật khẩu! Vui lòng kiểm tra hộp thư.");
     } else {
       this.showToast(res.message, "error");
     }
@@ -2201,8 +2244,8 @@ const App = {
   },
 
   // Đăng xuất
-  logout() {
-    AuthManager.logout();
+  async logout() {
+    await AuthManager.logout();
     this.closeAllModals();
     this.setupAuthUI();
     const dropdown = document.getElementById("userDropdownMenu");
@@ -2727,8 +2770,8 @@ const App = {
             </div>
 
             <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-envelope" style="color: var(--secondary); margin-right: 4px;"></i> Email liên hệ</label>
-              <input type="email" name="updEmail" class="form-control" value="${escapeHtml(currentUser.email || '')}" placeholder="Nhập email của bạn">
+              <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-envelope" style="color: var(--secondary); margin-right: 4px;"></i> Email đăng nhập</label>
+              <input type="email" class="form-control" value="${escapeHtml(currentUser.email || '')}" disabled readonly style="background: var(--bg-card); opacity: 0.8;">
             </div>
 
             <div class="form-group" style="margin-bottom: 14px;">
@@ -3043,7 +3086,7 @@ const App = {
     if (previewImg) previewImg.src = url;
   },
 
-  submitChangeAvatar(event) {
+  async submitChangeAvatar(event) {
     event.preventDefault();
     const user = AuthManager.getCurrentUser();
     if (!user) return;
@@ -3051,7 +3094,7 @@ const App = {
     const inputUrl = document.getElementById("changeAvatarUrlInput");
     const newAvatar = (inputUrl && inputUrl.value.trim()) ? inputUrl.value.trim() : user.avatar;
 
-    const res = AuthManager.updateUserProfile({ avatar: newAvatar });
+    const res = await AuthManager.updateUserProfile({ avatar: newAvatar });
     if (res.success) {
       this.setupAuthUI();
       this.closeAllModals();
@@ -3062,15 +3105,14 @@ const App = {
     }
   },
 
-  submitUpdateProfile(event) {
+  async submitUpdateProfile(event) {
     event.preventDefault();
     const form = event.target;
     const name = form.updName.value.trim();
-    const email = form.updEmail.value.trim();
     const avatar = form.updAvatar.value.trim();
     const bio = form.updBio.value.trim();
 
-    const res = AuthManager.updateUserProfile({ name, email, avatar, bio });
+    const res = await AuthManager.updateUserProfile({ name, avatar, bio });
     if (res.success) {
       this.setupAuthUI();
       this.showToast("💾 Đã cập nhật hồ sơ cá nhân thành công!");
@@ -3080,7 +3122,7 @@ const App = {
     }
   },
 
-  submitChangePassword(event) {
+  async submitChangePassword(event) {
     event.preventDefault();
     const form = event.target;
     const oldPassword = form.oldPassword.value;
@@ -3091,8 +3133,12 @@ const App = {
       this.showToast("Mật khẩu mới và nhập lại mật khẩu không khớp!", "error");
       return;
     }
+    if (newPassword.length < 6) {
+      this.showToast("Mật khẩu mới phải có ít nhất 6 ký tự!", "error");
+      return;
+    }
 
-    const res = AuthManager.changePassword(oldPassword, newPassword);
+    const res = await AuthManager.changePassword(oldPassword, newPassword);
     if (res.success) {
       form.reset();
       this.showToast("🔑 Đã đổi mật khẩu thành công!");
@@ -3104,7 +3150,7 @@ const App = {
 
 
   // Open & Render Admin Dashboard Page Tab (no popup modal)
-  openAdminDashboardModal(doSwitchTab = true) {
+  async openAdminDashboardModal(doSwitchTab = true) {
     const currentUser = AuthManager.getCurrentUser();
     if (!currentUser || !AuthManager.isAdminUser()) {
       this.showToast("Bạn không có quyền truy cập trang Quản trị!", "error");
@@ -3114,7 +3160,8 @@ const App = {
 
     const tabContainer = document.getElementById("adminTabContentContainer");
 
-    const users = AuthManager.getUsers();
+    const users = await AuthManager.getUsers();
+    this._adminUsersCache = new Map(users.map(u => [u.id, u]));
     const clubs = ClubManager.getClubs();
     const events = EventManager.getEvents();
     const products = ShopManager.getProducts();
@@ -3699,53 +3746,41 @@ const App = {
   },
 
   // Thao tác Admin Duyệt VIP
-  adminApproveVIP(userId, packageType) {
-    const users = AuthManager.getUsers();
-    const u = users.find(x => x.id === userId);
-    if (u) {
-      u.package = packageType;
-      AuthManager.saveUsers(users);
-      const currentUser = AuthManager.getCurrentUser();
-      if (currentUser && currentUser.id === userId) {
-        currentUser.package = packageType;
-        AuthManager.setCurrentUser(currentUser);
-        this.setupAuthUI();
-      }
-      this.showToast(`🎉 Đã duyệt gói VIP ${packageType === 'yearly' ? '1 Năm' : '1 Tháng'} cho thành viên ${u.name}!`);
+  async adminApproveVIP(userId, packageType) {
+    const res = await AuthManager.adminUpdateUser(userId, { package: packageType });
+    if (res.success) {
+      this.showToast(`🎉 Đã duyệt gói VIP ${packageType === 'yearly' ? '1 Năm' : '1 Tháng'} cho thành viên!`);
       this.openAdminDashboardModal();
+    } else {
+      this.showToast(res.message, "error");
     }
   },
 
   // Thao tác Admin Hạ Gói VIP về Dùng Thử
-  adminRevokeVIP(userId) {
-    const users = AuthManager.getUsers();
-    const u = users.find(x => x.id === userId);
-    if (u) {
-      u.package = "trial";
-      AuthManager.saveUsers(users);
-      const currentUser = AuthManager.getCurrentUser();
-      if (currentUser && currentUser.id === userId) {
-        currentUser.package = "trial";
-        AuthManager.setCurrentUser(currentUser);
-        this.setupAuthUI();
-      }
-      this.showToast(`🔒 Đã chuyển gói thành viên ${u.name} về Dùng Thử.`, "info");
+  async adminRevokeVIP(userId) {
+    const res = await AuthManager.adminUpdateUser(userId, { package: "trial" });
+    if (res.success) {
+      this.showToast("🔒 Đã chuyển gói thành viên về Dùng Thử.", "info");
       this.openAdminDashboardModal();
+    } else {
+      this.showToast(res.message, "error");
     }
   },
 
-  adminDeleteUser(userId) {
+  async adminDeleteUser(userId) {
     const currentUser = AuthManager.getCurrentUser();
     if (currentUser && currentUser.id === userId) {
       this.showToast("⚠️ Bạn không thể xóa chính tài khoản Admin đang sử dụng!", "error");
       return;
     }
     if (!confirm("Bạn có chắc chắn muốn xóa thành viên này khỏi hệ thống?")) return;
-    let users = AuthManager.getUsers();
-    users = users.filter(u => u.id !== userId);
-    AuthManager.saveUsers(users);
-    this.showToast("Đã xóa thành viên thành công.");
-    this.openAdminDashboardModal();
+    const res = await AuthManager.adminDeleteUser(userId);
+    if (res.success) {
+      this.showToast("Đã xóa thành viên thành công.");
+      this.openAdminDashboardModal();
+    } else {
+      this.showToast(res.message, "error");
+    }
   },
 
   adminDeleteClub(clubId) {
@@ -3770,11 +3805,9 @@ const App = {
     localStorage.setItem("nutriclub_theme", isDark ? "dark" : "light");
   },
 
-  // Hiển thị Toast thông báo
   // Open & Submit Admin Edit User
   adminOpenEditUserModal(userId) {
-    const users = AuthManager.getUsers();
-    const u = users.find(x => x.id === userId);
+    const u = this._adminUsersCache && this._adminUsersCache.get(userId);
     if (!u) return;
     document.getElementById("editUserId").value = u.id;
     document.getElementById("editUserName").value = u.name || '';
@@ -3785,31 +3818,22 @@ const App = {
     this.openModal("adminEditUserModal");
   },
 
-  adminSubmitEditUser(e) {
+  async adminSubmitEditUser(e) {
     e.preventDefault();
     const userId = document.getElementById("editUserId").value;
-    const users = AuthManager.getUsers();
-    const u = users.find(x => x.id === userId);
-    if (u) {
-      u.name = document.getElementById("editUserName").value.trim();
-      u.phone = document.getElementById("editUserPhone").value.trim();
-      u.email = document.getElementById("editUserEmail").value.trim();
-      u.role = document.getElementById("editUserRole").value.trim();
-      u.package = document.getElementById("editUserPackage").value;
-      AuthManager.saveUsers(users);
-      const currentUser = AuthManager.getCurrentUser();
-      if (currentUser && currentUser.id === userId) {
-        currentUser.name = u.name;
-        currentUser.phone = u.phone;
-        currentUser.email = u.email;
-        currentUser.role = u.role;
-        currentUser.package = u.package;
-        AuthManager.setCurrentUser(currentUser);
-        this.setupAuthUI();
-      }
+    const patch = {
+      name: document.getElementById("editUserName").value.trim(),
+      phone: document.getElementById("editUserPhone").value.trim(),
+      role: document.getElementById("editUserRole").value.trim(),
+      package: document.getElementById("editUserPackage").value
+    };
+    const res = await AuthManager.adminUpdateUser(userId, patch);
+    if (res.success) {
       this.closeAllModals();
-      this.showToast(`💾 Đã cập nhật thành công thông tin thành viên ${u.name}!`);
+      this.showToast(`💾 Đã cập nhật thành công thông tin thành viên ${patch.name}!`);
       this.openAdminDashboardModal();
+    } else {
+      this.showToast(res.message, "error");
     }
   },
 

@@ -44,103 +44,220 @@ function sanitizeUrl(url, fallback = "") {
   return fallback;
 }
 
-// Global AuthManager Object
+// Quy đổi mã lỗi Firebase Auth sang thông báo tiếng Việt dễ hiểu
+function mapAuthError(err) {
+  const code = err && err.code;
+  switch (code) {
+    case "auth/email-already-in-use": return "Email này đã được sử dụng!";
+    case "auth/invalid-email": return "Email không đúng định dạng!";
+    case "auth/weak-password": return "Mật khẩu quá yếu, cần tối thiểu 6 ký tự!";
+    case "auth/user-not-found": return "Số điện thoại / Email hoặc mật khẩu không chính xác.";
+    case "auth/wrong-password": return "Số điện thoại / Email hoặc mật khẩu không chính xác.";
+    case "auth/invalid-credential": return "Số điện thoại / Email hoặc mật khẩu không chính xác.";
+    case "auth/too-many-requests": return "Bạn thử sai quá nhiều lần, vui lòng thử lại sau ít phút.";
+    default: return (err && err.message) || "Có lỗi xảy ra, vui lòng thử lại.";
+  }
+}
+
+// Global AuthManager Object — xác thực thật qua Firebase Authentication,
+// hồ sơ người dùng lưu tại Firestore collection "users/{uid}" (không còn dùng
+// localStorage làm database nghiệp vụ, chỉ Firebase mới là nguồn sự thật).
 const AuthManager = {
-  // Lấy danh sách users từ LocalStorage
-  getUsers() {
-    try {
-      const users = localStorage.getItem("nutriclub_users");
-      if (users) {
-        const parsed = JSON.parse(users);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (e) {
-      console.error("Error parsing users from localStorage:", e);
+  _currentUser: null,
+  _profileUnsub: null,
+
+  // Gọi 1 lần từ App.init() (sau khi firebase-config.js module đã chạy xong).
+  // Lắng nghe trạng thái đăng nhập thật + đồng bộ realtime hồ sơ Firestore,
+  // để getCurrentUser() vẫn có thể đồng bộ (sync) cho ~60 nơi gọi hiện có.
+  initAuth(onChange) {
+    if (!window.firebaseAuth || !window.firebaseAuthHelpers || !window.firebaseDb || !window.firestoreHelpers) {
+      console.warn("Firebase Auth chưa sẵn sàng, bỏ qua initAuth.");
+      return;
     }
-    return typeof SEED_USERS !== "undefined" ? SEED_USERS : [];
+    const { onAuthStateChanged } = window.firebaseAuthHelpers;
+    const { doc, onSnapshot } = window.firestoreHelpers;
+
+    onAuthStateChanged(window.firebaseAuth, (fbUser) => {
+      if (this._profileUnsub) {
+        this._profileUnsub();
+        this._profileUnsub = null;
+      }
+      if (!fbUser) {
+        this._currentUser = null;
+        if (typeof onChange === "function") onChange(null);
+        return;
+      }
+      this._profileUnsub = onSnapshot(
+        doc(window.firebaseDb, "users", fbUser.uid),
+        (snap) => {
+          this._currentUser = snap.exists()
+            ? { uid: fbUser.uid, id: fbUser.uid, email: fbUser.email, ...snap.data() }
+            : null;
+          if (typeof onChange === "function") onChange(this._currentUser);
+        },
+        (err) => {
+          console.error("Lỗi đồng bộ hồ sơ user:", err);
+        }
+      );
+    });
   },
 
-  // Lưu danh sách users
-  saveUsers(users) {
-    localStorage.setItem("nutriclub_users", JSON.stringify(users));
-  },
-
-  // Lấy thông tin user hiện đang đăng nhập
+  // Lấy thông tin user hiện đang đăng nhập (đồng bộ — đọc từ cache do initAuth duy trì)
   getCurrentUser() {
+    return this._currentUser || null;
+  },
+
+  async _resolveEmailByPhone(phone) {
+    if (!window.firebaseDb || !window.firestoreHelpers) return null;
+    const { collection, query, where, getDocs } = window.firestoreHelpers;
     try {
-      const userJson = localStorage.getItem("nutriclub_current_user");
-      return userJson ? JSON.parse(userJson) : null;
+      const snap = await getDocs(query(collection(window.firebaseDb, "users"), where("phone", "==", phone)));
+      if (snap.empty) return null;
+      return snap.docs[0].data().email || null;
     } catch (e) {
-      console.error("Error parsing current user:", e);
+      console.error("Lỗi tra cứu email theo SĐT:", e);
       return null;
     }
   },
 
-  // Đăng nhập
-  login(phoneOrEmail, password) {
-    const users = this.getUsers();
-    const user = users.find(u => (u.phone === phoneOrEmail || u.email === phoneOrEmail) && u.password === password);
-    if (user) {
-      localStorage.setItem("nutriclub_current_user", JSON.stringify(user));
-      return { success: true, user };
-    }
-    return { success: false, message: "Số điện thoại / Email hoặc mật khẩu không chính xác." };
+  async _fetchProfile(uid) {
+    const { doc, getDoc } = window.firestoreHelpers;
+    const snap = await getDoc(doc(window.firebaseDb, "users", uid));
+    if (!snap.exists()) return null;
+    return { uid, id: uid, ...snap.data() };
   },
 
-  // Đăng ký
-  register(userData) {
-    const users = this.getUsers();
-    // Kiểm tra trùng SĐT hoặc Email
-    if (users.some(u => u.phone === userData.phone)) {
-      return { success: false, message: "Số điện thoại này đã được đăng ký trong hệ thống!" };
+  // Đăng nhập (async — Firebase Auth xác thực thật, mật khẩu không đi qua tay app)
+  async login(phoneOrEmail, password) {
+    if (!window.firebaseAuth || !window.firebaseAuthHelpers) {
+      return { success: false, message: "Hệ thống xác thực chưa sẵn sàng, vui lòng thử lại sau ít giây." };
     }
-    if (userData.email && users.some(u => u.email === userData.email)) {
-      return { success: false, message: "Email này đã được sử dụng!" };
-    }
+    const { signInWithEmailAndPassword } = window.firebaseAuthHelpers;
 
-    const newUser = {
-      id: "usr_" + Date.now(),
-      name: userData.name,
-      phone: userData.phone,
-      email: userData.email || `${userData.phone}@nhomdinhduong.vn`,
-      password: userData.password,
-      avatar: userData.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userData.name)}`,
-      role: userData.role || "Chủ nhiệm Nhóm Dinh Dưỡng",
-      bio: userData.bio || "Thành viên tích cực lan tỏa lối sống dinh dưỡng lành mạnh.",
-      vipDays: 0,
-      referralLogs: []
-    };
-
-    // Thưởng cho người giới thiệu khi đăng ký tài khoản mới (+1 ngày VIP)
-    let rewardMsg = "";
-    if (userData.refCode) {
-      newUser.referredBy = userData.refCode;
-      const referrer = users.find(u => u.phone === userData.refCode || u.id === userData.refCode);
-      if (referrer) {
-        referrer.vipDays = (referrer.vipDays || 0) + 1;
-        if (!referrer.referralLogs) referrer.referralLogs = [];
-        referrer.referralLogs.unshift({
-          id: "ref_" + Date.now(),
-          date: new Date().toLocaleDateString('vi-VN'),
-          refereeName: userData.name,
-          refereePhone: maskPhone(userData.phone),
-          type: "registration",
-          reward: "+1 Ngày VIP Miễn Phí"
-        });
-        rewardMsg = ` (🎁 Đã thưởng +1 ngày VIP cho người giới thiệu ${referrer.name})`;
+    let email = phoneOrEmail;
+    const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(phoneOrEmail);
+    if (!looksLikeEmail) {
+      email = await this._resolveEmailByPhone(phoneOrEmail);
+      if (!email) {
+        return { success: false, message: "Số điện thoại / Email hoặc mật khẩu không chính xác." };
       }
     }
 
-    users.push(newUser);
-    this.saveUsers(users);
-    // Tự động đăng nhập
-    localStorage.setItem("nutriclub_current_user", JSON.stringify(newUser));
-    return { success: true, user: newUser, rewardMsg };
+    try {
+      const cred = await signInWithEmailAndPassword(window.firebaseAuth, email, password);
+      const profile = await this._fetchProfile(cred.user.uid);
+      return { success: true, user: profile || { uid: cred.user.uid, id: cred.user.uid, email: cred.user.email, name: cred.user.email } };
+    } catch (err) {
+      return { success: false, message: mapAuthError(err) };
+    }
+  },
+
+  // Đăng ký (async) — tạo tài khoản Auth thật + hồ sơ Firestore thật, không mock
+  async register(userData) {
+    const { name, phone, email, password, role, refCode } = userData;
+    if (!window.firebaseAuth || !window.firebaseAuthHelpers || !window.firebaseDb || !window.firestoreHelpers) {
+      return { success: false, message: "Hệ thống xác thực chưa sẵn sàng, vui lòng thử lại sau ít giây." };
+    }
+    if (!email) {
+      return { success: false, message: "Vui lòng nhập email để đăng ký (dùng cho khôi phục mật khẩu)!" };
+    }
+
+    const { collection, doc, setDoc, getDocs, query, where, updateDoc } = window.firestoreHelpers;
+    const { createUserWithEmailAndPassword } = window.firebaseAuthHelpers;
+    const db = window.firebaseDb;
+
+    try {
+      const dupSnap = await getDocs(query(collection(db, "users"), where("phone", "==", phone)));
+      if (!dupSnap.empty) {
+        return { success: false, message: "Số điện thoại này đã được đăng ký trong hệ thống!" };
+      }
+    } catch (e) {
+      console.error("Lỗi kiểm tra trùng SĐT:", e);
+    }
+
+    let cred;
+    try {
+      cred = await createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+    } catch (err) {
+      return { success: false, message: mapAuthError(err) };
+    }
+
+    const uid = cred.user.uid;
+    const newProfile = {
+      name,
+      phone,
+      email,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
+      role: role || "Chủ nhiệm Nhóm Dinh Dưỡng",
+      bio: "Thành viên tích cực lan tỏa lối sống dinh dưỡng lành mạnh.",
+      package: null,
+      packageExpiry: null,
+      vipDays: 0,
+      referralLogs: [],
+      referredBy: refCode || null,
+      isAdmin: false,
+      createdAt: Date.now()
+    };
+
+    try {
+      await setDoc(doc(db, "users", uid), newProfile);
+    } catch (err) {
+      return { success: false, message: "Tạo tài khoản thành công nhưng lưu hồ sơ thất bại: " + err.message };
+    }
+
+    // Thưởng cho người giới thiệu khi đăng ký tài khoản mới (+1 ngày VIP)
+    let rewardMsg = "";
+    if (refCode) {
+      try {
+        const refSnap = await getDocs(query(collection(db, "users"), where("phone", "==", refCode)));
+        if (!refSnap.empty) {
+          const refDocSnap = refSnap.docs[0];
+          const referrer = refDocSnap.data();
+          const newLog = {
+            id: "ref_" + Date.now(),
+            date: new Date().toLocaleDateString('vi-VN'),
+            refereeName: name,
+            refereePhone: maskPhone(phone),
+            type: "registration",
+            reward: "+1 Ngày VIP Miễn Phí"
+          };
+          await updateDoc(refDocSnap.ref, {
+            vipDays: (referrer.vipDays || 0) + 1,
+            referralLogs: [newLog, ...(referrer.referralLogs || [])]
+          });
+          rewardMsg = ` (🎁 Đã thưởng +1 ngày VIP cho người giới thiệu ${referrer.name})`;
+        }
+      } catch (e) {
+        console.error("Lỗi thưởng referral:", e);
+      }
+    }
+
+    return { success: true, user: { uid, id: uid, ...newProfile }, rewardMsg };
   },
 
   // Đăng xuất
-  logout() {
-    localStorage.removeItem("nutriclub_current_user");
+  async logout() {
+    if (!window.firebaseAuth || !window.firebaseAuthHelpers) return;
+    const { signOut } = window.firebaseAuthHelpers;
+    try {
+      await signOut(window.firebaseAuth);
+    } catch (e) {
+      console.error("Lỗi đăng xuất:", e);
+    }
+  },
+
+  // Gửi email khôi phục mật khẩu thật qua Firebase Auth
+  async forgotPassword(email) {
+    if (!window.firebaseAuth || !window.firebaseAuthHelpers) {
+      return { success: false, message: "Hệ thống xác thực chưa sẵn sàng, vui lòng thử lại sau ít giây." };
+    }
+    const { sendPasswordResetEmail } = window.firebaseAuthHelpers;
+    try {
+      await sendPasswordResetEmail(window.firebaseAuth, email);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: mapAuthError(err) };
+    }
   },
 
   // Kiểm tra người dùng có quyền VIP hay không (đã nâng cấp gói)
@@ -150,125 +267,176 @@ const AuthManager = {
     return user.isAdmin === true || user.package === "monthly" || user.package === "yearly" || user.package === "vip";
   },
 
-  // Kiểm tra người dùng có quyền Admin quản trị hệ thống hay không
+  // Kiểm tra người dùng có quyền Admin quản trị hệ thống hay không.
+  // Cờ isAdmin chỉ có thể được bật thủ công trong Firestore Console — Security
+  // Rules chặn client tự set/đổi field này (xem firestore.rules).
   isAdminUser() {
     const user = this.getCurrentUser();
-    if (!user) return false;
-    return user.isAdmin === true || user.phone === "0902030185" || user.phone === "0988888888" || (user.role && user.role.includes("Admin"));
+    return !!(user && user.isAdmin === true);
   },
 
   // Nâng cấp gói người dùng
-  upgradeUserVIP(packageType = "monthly") {
+  async upgradeUserVIP(packageType = "monthly") {
     const user = this.getCurrentUser();
     if (!user) return { success: false, message: "Vui lòng đăng nhập trước khi nâng cấp gói!" };
-    
-    user.package = packageType;
-    user.packageExpiry = Date.now() + (packageType === "yearly" ? 365 : 30) * 86400000;
 
-    const users = this.getUsers();
+    const { doc, updateDoc, collection, query, where, getDocs } = window.firestoreHelpers;
+    const db = window.firebaseDb;
+    const packageExpiry = Date.now() + (packageType === "yearly" ? 365 : 30) * 86400000;
+
+    try {
+      await updateDoc(doc(db, "users", user.uid), { package: packageType, packageExpiry });
+    } catch (err) {
+      return { success: false, message: "Nâng cấp thất bại: " + err.message };
+    }
 
     // Thưởng cho người giới thiệu khi nâng cấp Gói VIP (1 Tháng => +7 ngày | 1 Năm => +90 ngày)
     if (user.referredBy) {
-      const referrer = users.find(u => u.phone === user.referredBy || u.id === user.referredBy);
-      if (referrer) {
-        let addedDays = 0;
-        let rewardText = "";
-        let logType = "";
-
-        if (packageType === "yearly") {
-          addedDays = 90;
-          rewardText = "+90 Ngày VIP (3 Tháng)";
-          logType = "yearly_package";
-        } else if (packageType === "monthly") {
-          addedDays = 7;
-          rewardText = "+7 Ngày VIP (1 Tuần)";
-          logType = "monthly_package";
+      try {
+        const refSnap = await getDocs(query(collection(db, "users"), where("phone", "==", user.referredBy)));
+        if (!refSnap.empty) {
+          const refDocSnap = refSnap.docs[0];
+          const referrer = refDocSnap.data();
+          let addedDays = 0, rewardText = "", logType = "";
+          if (packageType === "yearly") {
+            addedDays = 90; rewardText = "+90 Ngày VIP (3 Tháng)"; logType = "yearly_package";
+          } else if (packageType === "monthly") {
+            addedDays = 7; rewardText = "+7 Ngày VIP (1 Tuần)"; logType = "monthly_package";
+          }
+          if (addedDays > 0) {
+            const newLog = {
+              id: "ref_" + Date.now(),
+              date: new Date().toLocaleDateString('vi-VN'),
+              refereeName: user.name,
+              refereePhone: maskPhone(user.phone),
+              type: logType,
+              reward: rewardText
+            };
+            await updateDoc(refDocSnap.ref, {
+              vipDays: (referrer.vipDays || 0) + addedDays,
+              referralLogs: [newLog, ...(referrer.referralLogs || [])]
+            });
+          }
         }
-
-        if (addedDays > 0) {
-          referrer.vipDays = (referrer.vipDays || 0) + addedDays;
-          if (!referrer.referralLogs) referrer.referralLogs = [];
-          referrer.referralLogs.unshift({
-            id: "ref_" + Date.now(),
-            date: new Date().toLocaleDateString('vi-VN'),
-            refereeName: user.name,
-            refereePhone: maskPhone(user.phone),
-            type: logType,
-            reward: rewardText
-          });
-        }
+      } catch (e) {
+        console.error("Lỗi thưởng referral khi nâng VIP:", e);
       }
     }
 
-    localStorage.setItem("nutriclub_current_user", JSON.stringify(user));
-
-    const idx = users.findIndex(u => u.id === user.id);
-    if (idx !== -1) {
-      users[idx] = user;
-      this.saveUsers(users);
-    }
-    return { success: true, user };
+    return { success: true, user: { ...user, package: packageType, packageExpiry } };
   },
 
-  // Tìm kiếm users trong hệ thống (phục vụ chức năng chọn Đồng vận hành)
-  searchUsers(keyword, excludeIds = []) {
-    const users = this.getUsers();
-    const cleanKey = keyword.toLowerCase().trim();
+  // Tìm kiếm users trong hệ thống theo SĐT hoặc tên (phục vụ chọn Đồng vận hành).
+  // Firestore không hỗ trợ tìm kiếm chuỗi con/không phân biệt hoa-thường như
+  // localStorage trước đây — dùng range query theo tiền tố (prefix) trên
+  // phone và name rồi gộp kết quả.
+  async searchUsers(keyword, excludeIds = []) {
+    if (!window.firebaseDb || !window.firestoreHelpers) return [];
+    const cleanKey = (keyword || "").trim();
     if (!cleanKey) return [];
-    
-    return users.filter(u => {
-      if (excludeIds.includes(u.id)) return false;
-      return (
-        u.name.toLowerCase().includes(cleanKey) ||
-        u.phone.includes(cleanKey) ||
-        (u.email && u.email.toLowerCase().includes(cleanKey))
-      );
-    });
+
+    const { collection, query, orderBy, startAt, endAt, getDocs } = window.firestoreHelpers;
+    const db = window.firebaseDb;
+    const results = new Map();
+
+    try {
+      const phoneSnap = await getDocs(query(collection(db, "users"), orderBy("phone"), startAt(cleanKey), endAt(cleanKey + "")));
+      phoneSnap.forEach(d => results.set(d.id, { uid: d.id, id: d.id, ...d.data() }));
+    } catch (e) {
+      console.error("Lỗi tìm user theo SĐT:", e);
+    }
+    try {
+      const nameSnap = await getDocs(query(collection(db, "users"), orderBy("name"), startAt(cleanKey), endAt(cleanKey + "")));
+      nameSnap.forEach(d => results.set(d.id, { uid: d.id, id: d.id, ...d.data() }));
+    } catch (e) {
+      console.error("Lỗi tìm user theo tên:", e);
+    }
+
+    return Array.from(results.values()).filter(u => !excludeIds.includes(u.id));
   },
 
-  // Cập nhật thông tin tài khoản
-  updateUserProfile(updatedData) {
+  // Cập nhật thông tin tài khoản (chỉ các field không nhạy cảm — email gắn với
+  // danh tính Firebase Auth nên không đổi qua đây)
+  async updateUserProfile(updatedData) {
     const user = this.getCurrentUser();
     if (!user) return { success: false, message: "Vui lòng đăng nhập!" };
 
-    if (updatedData.name) user.name = updatedData.name;
-    if (updatedData.avatar) user.avatar = updatedData.avatar;
-    if (updatedData.bio !== undefined) user.bio = updatedData.bio;
-    if (updatedData.email) user.email = updatedData.email;
+    const patch = {};
+    if (updatedData.name) patch.name = updatedData.name;
+    if (updatedData.avatar) patch.avatar = updatedData.avatar;
+    if (updatedData.bio !== undefined) patch.bio = updatedData.bio;
 
-    localStorage.setItem("nutriclub_current_user", JSON.stringify(user));
-
-    const users = this.getUsers();
-    const idx = users.findIndex(u => u.id === user.id);
-    if (idx !== -1) {
-      users[idx] = user;
-      this.saveUsers(users);
+    const { doc, updateDoc } = window.firestoreHelpers;
+    try {
+      await updateDoc(doc(window.firebaseDb, "users", user.uid), patch);
+      return { success: true, user: { ...user, ...patch } };
+    } catch (err) {
+      return { success: false, message: "Cập nhật hồ sơ thất bại: " + err.message };
     }
-    return { success: true, user };
   },
 
-  // Đổi mật khẩu
-  changePassword(oldPassword, newPassword) {
-    const user = this.getCurrentUser();
-    if (!user) return { success: false, message: "Vui lòng đăng nhập!" };
-    if (user.password !== oldPassword) {
-      return { success: false, message: "Mật khẩu hiện tại không chính xác!" };
-    }
+  // Đổi mật khẩu — cần xác thực lại bằng mật khẩu cũ (Firebase yêu cầu re-auth
+  // cho các thao tác nhạy cảm như đổi mật khẩu)
+  async changePassword(oldPassword, newPassword) {
+    const auth = window.firebaseAuth;
+    const fbUser = auth && auth.currentUser;
+    if (!fbUser) return { success: false, message: "Vui lòng đăng nhập!" };
 
-    user.password = newPassword;
-    localStorage.setItem("nutriclub_current_user", JSON.stringify(user));
-
-    const users = this.getUsers();
-    const idx = users.findIndex(u => u.id === user.id);
-    if (idx !== -1) {
-      users[idx] = user;
-      this.saveUsers(users);
+    const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = window.firebaseAuthHelpers;
+    try {
+      const credential = EmailAuthProvider.credential(fbUser.email, oldPassword);
+      await reauthenticateWithCredential(fbUser, credential);
+      await updatePassword(fbUser, newPassword);
+      return { success: true };
+    } catch (err) {
+      if (err && err.code === "auth/wrong-password") {
+        return { success: false, message: "Mật khẩu hiện tại không chính xác!" };
+      }
+      return { success: false, message: mapAuthError(err) };
     }
-    return { success: true };
+  },
+
+  // ===== Thao tác dành riêng cho Admin (Firestore Security Rules yêu cầu
+  // chính người gọi phải có isAdmin === true mới ghi/xoá được hồ sơ user khác) =====
+
+  // Lấy toàn bộ danh sách user — chỉ gọi khi thật sự cần (mở Admin dashboard),
+  // KHÔNG live-sync liên tục cho mọi khách như ClubManager làm với "clubs",
+  // để tránh mọi khách vãng lai tải cả danh bạ user thật về máy.
+  async getUsers() {
+    if (!window.firebaseDb || !window.firestoreHelpers) return [];
+    const { collection, getDocs } = window.firestoreHelpers;
+    try {
+      const snap = await getDocs(collection(window.firebaseDb, "users"));
+      return snap.docs.map(d => ({ uid: d.id, id: d.id, ...d.data() }));
+    } catch (err) {
+      console.error("Lỗi tải danh sách user:", err);
+      return [];
+    }
+  },
+
+  async adminUpdateUser(userId, patch) {
+    if (!window.firebaseDb || !window.firestoreHelpers) return { success: false, message: "Firestore chưa sẵn sàng." };
+    const { doc, updateDoc } = window.firestoreHelpers;
+    try {
+      await updateDoc(doc(window.firebaseDb, "users", userId), patch);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: "Cập nhật thất bại: " + err.message };
+    }
+  },
+
+  async adminDeleteUser(userId) {
+    if (!window.firebaseDb || !window.firestoreHelpers) return { success: false, message: "Firestore chưa sẵn sàng." };
+    const { doc, deleteDoc } = window.firestoreHelpers;
+    try {
+      await deleteDoc(doc(window.firebaseDb, "users", userId));
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: "Xoá thất bại: " + err.message };
+    }
   }
 };
 
 if (typeof window !== "undefined") {
   window.AuthManager = AuthManager;
 }
-

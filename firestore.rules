@@ -1,0 +1,51 @@
+rules_version = '2';
+
+// Rules cho collection "users" (hồ sơ user thật) và "clubs" (danh sách nhóm
+// dinh dưỡng — collection Firestore duy nhất khác đang thực sự được dùng,
+// events/products/courses hiện chỉ lưu localStorage, không qua Firestore).
+// Dán TOÀN BỘ nội dung file này vào Firebase Console -> project ndd1-b7e7e ->
+// Firestore Database -> tab Rules, rồi bấm Publish (ghi đè hoàn toàn rules cũ
+// — Firestore mặc định từ chối mọi thứ không có match tương ứng trong file).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /users/{userId} {
+      // Đọc: chỉ người đã đăng nhập (tránh mọi khách vãng lai tải cả danh bạ user thật)
+      allow read: if isSignedIn();
+
+      // Tạo: chỉ chính chủ tài khoản, và bắt buộc isAdmin = false lúc tạo mới
+      // (không ai tự phong Admin cho chính mình khi đăng ký)
+      allow create: if isOwner(userId) && request.resource.data.isAdmin == false;
+
+      // Sửa: chính chủ được sửa hồ sơ của mình nhưng KHÔNG được đổi isAdmin,
+      // HOẶC người gọi đã là Admin thì được sửa hồ sơ của bất kỳ ai (Admin panel)
+      allow update: if
+        (isOwner(userId) && request.resource.data.isAdmin == resource.data.isAdmin) ||
+        isAdmin();
+
+      // Xoá: chỉ Admin
+      allow delete: if isAdmin();
+    }
+
+    // Danh sách Nhóm Dinh Dưỡng — hiển thị công khai cho mọi khách vãng lai
+    // (đây là tính năng chính của site), chỉ người đã đăng nhập mới được ghi.
+    match /clubs/{clubId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+  }
+}

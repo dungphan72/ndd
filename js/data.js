@@ -3710,93 +3710,9 @@ const SEED_ADMINISTRATIVE_MAPPINGS = [
   }
 ];
 
-// Danh sách người dùng mẫu có sẵn trong hệ thống
-const SEED_USERS = [
-  {
-    id: "usr_000",
-    name: "Phan Tiến Dũng",
-    phone: "0902030185",
-    email: "admin@nhomdinhduong.vn",
-    password: "123",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    role: "Quản trị viên Hệ thống (Admin 1)",
-    bio: "Quản trị viên hệ thống Nhomdinhduong.vn toàn quốc.",
-    package: "yearly",
-    isAdmin: true
-  },
-  {
-    id: "usr_001",
-    name: "Nguyễn Hoàng Nam",
-    phone: "0988888888",
-    email: "superadmin@nhomdinhduong.vn",
-    password: "123456",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-    role: "Quản trị viên Cao cấp (Admin 2)",
-    bio: "Super Admin điều hành nền tảng Nhomdinhduong.vn toàn quốc.",
-    package: "yearly",
-    isAdmin: true
-  },
-  {
-    id: "usr_101",
-    name: "Nguyễn Văn Hùng",
-    phone: "0912345678",
-    email: "hung.nguyen@nhomdinhduong.vn",
-    password: "123",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    role: "Chuyên gia Dinh dưỡng & Master Coach",
-    bio: "Hơn 8 năm kinh nghiệm vận hành nhóm dinh dưỡng chuyên sâu, giúp hơn 500+ hội viên giảm mỡ và phục hồi thể trạng."
-  },
-  {
-    id: "usr_102",
-    name: "Trần Thị Mai Anh",
-    phone: "0987654321",
-    email: "maianh.tran@nhomdinhduong.vn",
-    password: "123",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
-    role: "HLV Thể hình & Dinh dưỡng Vận động",
-    bio: "Đam mê lối sống năng động, kết hợp dinh dưỡng cân bằng và các bài tập Cardio, Tabata vui nhộn mỗi sáng."
-  },
-  {
-    id: "usr_103",
-    name: "Lê Hoàng Nam",
-    phone: "0903112233",
-    email: "nam.le@nhomdinhduong.vn",
-    password: "123",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-    role: "Chủ nhiệm CLB Sức Khỏe Vàng",
-    bio: "Đồng hành cùng cộng đồng kiểm soát đường huyết và huyết áp thông qua thói quen ăn uống lành mạnh."
-  },
-  {
-    id: "usr_104",
-    name: "Phạm Thu Hà",
-    phone: "0934556677",
-    email: "thuha.pham@nhomdinhduong.vn",
-    password: "123",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80",
-    role: "Coach Dinh dưỡng Gia đình",
-    bio: "Chuyên gia tư vấn dinh dưỡng cho phụ nữ sau sinh, mẹ bầu và trẻ nhỏ."
-  },
-  {
-    id: "usr_105",
-    name: "Vũ Đức Trọng",
-    phone: "0977889900",
-    email: "trong.vu@nhomdinhduong.vn",
-    password: "123",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-    role: "HLV Chạy bộ & Vận động viên Marathon",
-    bio: "Đồng vận hành các trạm dinh dưỡng thể thao tiếp năng lượng cho runner & cyclist."
-  },
-  {
-    id: "usr_106",
-    name: "Đặng Hoàng Yến",
-    phone: "0918223344",
-    email: "yen.dang@nhomdinhduong.vn",
-    password: "123",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
-    role: "Cố vấn Dinh dưỡng Tế bào",
-    bio: "Chia sẻ lối sống xanh, ăn sạch uống lành và cân bằng năng lượng cơ thể."
-  }
-];
+// SEED_USERS đã bị loại bỏ — user thật giờ sống trong Firebase Authentication
+// + Firestore collection "users" (xem js/auth.js), không còn seed cứng trong
+// mã nguồn (tránh lộ mật khẩu demo và tài khoản Admin thật trong repo public).
 
 // Danh sách Nhóm Dinh Dưỡng khởi tạo ban đầu
 const SEED_CLUBS = [
@@ -4088,37 +4004,11 @@ var SEED_CMS_CONFIG = {
   zaloBotNotificationMessage: "bạn có giao dịch mới trên bot zalo"
 };
 
-// Helper khởi tạo dữ liệu vào LocalStorage nếu chưa có
+// Helper khởi tạo dữ liệu vào LocalStorage nếu chưa có.
+// Tài khoản người dùng (AuthManager) không còn dùng localStorage/SEED_USERS —
+// đã chuyển hẳn sang Firebase Authentication + Firestore collection "users".
 function initializeLocalStorageData() {
   if (typeof localStorage === "undefined") return;
-  if (!localStorage.getItem("nutriclub_users")) {
-    localStorage.setItem("nutriclub_users", JSON.stringify(SEED_USERS));
-  } else {
-    // Đảm bảo SĐT 0902030185 & 0988888888 luôn có quyền Admin
-    let users = JSON.parse(localStorage.getItem("nutriclub_users") || "[]");
-    
-    // Admin 1
-    let admin1 = users.find(u => u.phone === "0902030185");
-    if (!admin1) {
-      users.unshift(SEED_USERS[0]);
-    } else {
-      admin1.isAdmin = true;
-      admin1.package = "yearly";
-      admin1.role = "Quản trị viên Hệ thống (Admin 1)";
-    }
-
-    // Admin 2
-    let admin2 = users.find(u => u.phone === "0988888888");
-    if (!admin2) {
-      users.unshift(SEED_USERS[1]);
-    } else {
-      admin2.isAdmin = true;
-      admin2.package = "yearly";
-      admin2.role = "Quản trị viên Cao cấp (Admin 2)";
-    }
-
-    localStorage.setItem("nutriclub_users", JSON.stringify(users));
-  }
 
   if (!localStorage.getItem("nutriclub_clubs")) {
     localStorage.setItem("nutriclub_clubs", JSON.stringify(SEED_CLUBS));
@@ -4168,7 +4058,6 @@ if (typeof window !== "undefined") {
   window.VIETNAM_LOCATIONS = typeof VIETNAM_LOCATIONS !== "undefined" ? VIETNAM_LOCATIONS : [];
   window.SEED_ADMINISTRATIVE_MAPPINGS = typeof SEED_ADMINISTRATIVE_MAPPINGS !== "undefined" ? SEED_ADMINISTRATIVE_MAPPINGS : [];
   window.SEED_CLUBS = typeof SEED_CLUBS !== "undefined" ? SEED_CLUBS : [];
-  window.SEED_USERS = typeof SEED_USERS !== "undefined" ? SEED_USERS : [];
   window.SEED_EVENTS = typeof SEED_EVENTS !== "undefined" ? SEED_EVENTS : [];
   window.SEED_PRODUCTS = typeof SEED_PRODUCTS !== "undefined" ? SEED_PRODUCTS : [];
   window.SEED_COURSES = typeof SEED_COURSES !== "undefined" ? SEED_COURSES : [];
@@ -4180,7 +4069,6 @@ if (typeof module !== "undefined" && module.exports) {
     VIETNAM_LOCATIONS,
     SEED_ADMINISTRATIVE_MAPPINGS,
     SEED_CLUBS,
-    SEED_USERS,
     SEED_EVENTS,
     SEED_PRODUCTS,
     SEED_CMS_CONFIG
