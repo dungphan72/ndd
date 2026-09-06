@@ -3237,7 +3237,8 @@ const App = {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      this.showToast("Dung lượng ảnh vượt quá 5MB. Vui lòng chọn ảnh nhỏ hơn!", "error");
+      this.showToast("⚠️ Dung lượng ảnh vượt quá 5MB. Vui lòng chọn ảnh nhỏ hơn!", "warning");
+      fileInput.value = "";
       return;
     }
 
@@ -3248,19 +3249,34 @@ const App = {
       const inputUrl = document.getElementById("changeAvatarUrlInput");
       if (previewImg) previewImg.src = base64Url;
       if (inputUrl) inputUrl.value = base64Url;
-      this.showToast("📸 Đã tải ảnh lên! Nhấp 'Cập Nhật Ảnh Đại Diện' để lưu.");
+      this.showToast("📸 Đã nạp hình ảnh! Nhấp 'Cập Nhật Ảnh Đại Diện' để hoàn tất.", "success");
     };
     reader.readAsDataURL(file);
   },
 
-  selectPresetAvatar(url, element) {
-    const previewImg = document.getElementById("avatarPreviewImg");
-    const inputUrl = document.getElementById("changeAvatarUrlInput");
-    if (previewImg) previewImg.src = url;
-    if (inputUrl) inputUrl.value = url;
+  // Helper xử lý upload 1 hình ảnh (chuyển sang Base64 và gán vào URL input tương ứng)
+  handleSingleImageFileUpload(fileInput, targetUrlInputId) {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
 
-    document.querySelectorAll(".preset-avatar-item").forEach(item => item.classList.remove("active"));
-    if (element) element.classList.add("active");
+    if (file.size > 5 * 1024 * 1024) {
+      this.showToast("⚠️ Dung lượng ảnh vượt quá 5MB!", "warning");
+      fileInput.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64Url = e.target.result;
+      const targetEl = document.getElementById(targetUrlInputId) || document.querySelector(`[name="${targetUrlInputId}"]`);
+      if (targetEl) {
+        targetEl.value = base64Url;
+        targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+        targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      this.showToast("📸 Đã nạp file hình ảnh thành công!", "success");
+    };
+    reader.readAsDataURL(file);
   },
 
   previewAvatarUrl(url) {
@@ -3270,7 +3286,7 @@ const App = {
   },
 
   async submitChangeAvatar(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     const user = AuthManager.getCurrentUser();
     if (!user) return;
 
@@ -3280,8 +3296,15 @@ const App = {
     const res = await AuthManager.updateUserProfile({ avatar: newAvatar });
     if (res.success) {
       this.setupAuthUI();
+      const editThumb = document.getElementById("editProfileAvatarThumb");
+      if (editThumb) editThumb.src = newAvatar;
+      const updAvatarInput = document.getElementById("updAvatarInput");
+      if (updAvatarInput) updAvatarInput.value = newAvatar;
+
+      if (this.currentTab === 'userTab' || this.currentTab === 'profileTab') {
+        this.openUserProfilePage(false);
+      }
       this.closeAllModals();
-      this.openUserProfilePage(false);
       this.showToast("📷 Đã cập nhật ảnh đại diện thành công!");
     } else {
       this.showToast(res.message, "error");
