@@ -2697,6 +2697,14 @@ const App = {
     const allProducts = ShopManager.getProducts();
     const myProducts = allProducts.filter(p => p.sellerPhone === currentUser.phone || p.sellerName === currentUser.name);
 
+    const allOrders = ShopManager.getOrders();
+    const isAdm = AuthManager.isAdminUser();
+    const myOrders = isAdm
+      ? allOrders
+      : allOrders.filter(o => o.sellerPhone === currentUser.phone || o.sellerName === currentUser.name || o.buyerPhone === currentUser.phone);
+    const completedRevenue = myOrders.filter(o => o.status === 'completed').reduce((sum, o) => sum + (o.totalAmount || (o.price * (o.quantity || 1))), 0);
+    const pendingOrdersCount = myOrders.filter(o => o.status === 'pending').length;
+
     const isVIP = AuthManager.isVIPUser();
     const pkgName = currentUser.package === "yearly" ? "Gói VIP Năm (999k)" : (currentUser.package === "monthly" ? "Gói VIP Tháng (99k)" : "Gói VIP Dùng Thử (1 Tháng Miễn Phí)");
     const pkgBadgeClass = isVIP ? "user-vip-badge" : "vip-lock-badge";
@@ -2744,6 +2752,12 @@ const App = {
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myProductsSec')">
                 <span><i class="fa-solid fa-store" style="color: var(--accent-sport); width: 22px;"></i> Shop Công Cụ</span>
                 <span class="badge-pill">${myProducts.length}</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myOrdersSec')">
+                <span><i class="fa-solid fa-boxes-packing" style="color: #059669; width: 22px;"></i> Quản Lý Bán Hàng</span>
+                <span class="badge-pill" style="background: #059669;">${myOrders.length}</span>
               </button>
             </li>
             <li>
@@ -2918,6 +2932,54 @@ const App = {
             `).join('')}
           </div>
         `}
+      </div>
+
+      <!-- TAB 4: QUẢN LÝ BÁN HÀNG & ĐƠN HÀNG DÀNH CHO CHỦ NHÓM -->
+      <div id="myOrdersSec" class="profile-tab-sec" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <h4 style="font-size: 1.05rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-packing" style="color: #059669; margin-right: 6px;"></i> Quản Lý Đơn Hàng & Doanh Thu Bán Hàng</h4>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-primary" onclick="App.openManualOrderModal()" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700; background: #059669; border-color: #059669;">
+              <i class="fa-solid fa-plus"></i> Tạo Đơn Thủ Công
+            </button>
+            <button type="button" class="btn btn-outline" onclick="App.exportOrdersCSV()" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700; color: #059669; border-color: #059669;">
+              <i class="fa-solid fa-file-csv"></i> Xuất Báo Cáo
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Doanh Thu & Đơn Hàng -->
+        <div class="profile-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          <div class="profile-stat-card" style="border-left: 3px solid #059669; background: var(--bg-card); padding: 12px;">
+            <div class="stat-num" style="color: #059669; font-weight: 800; font-size: 1.25rem;">${ShopManager.formatCurrency(completedRevenue)}</div>
+            <div class="stat-label" style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-money-bill-trend-up" style="color: #059669; margin-right: 4px;"></i> Doanh Thu Hoàn Thành</div>
+          </div>
+          <div class="profile-stat-card" style="border-left: 3px solid #3b82f6; background: var(--bg-card); padding: 12px;">
+            <div class="stat-num" style="color: #3b82f6; font-weight: 800; font-size: 1.25rem;">${myOrders.length} Đơn</div>
+            <div class="stat-label" style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-boxes-stacked" style="color: #3b82f6; margin-right: 4px;"></i> Tổng Đơn Hàng</div>
+          </div>
+          <div class="profile-stat-card" style="border-left: 3px solid #f59e0b; background: var(--bg-card); padding: 12px;">
+            <div class="stat-num" style="color: #f59e0b; font-weight: 800; font-size: 1.25rem;">${pendingOrdersCount} Đơn</div>
+            <div class="stat-label" style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-clock" style="color: #f59e0b; margin-right: 4px;"></i> Đơn Chờ Xử Lý</div>
+          </div>
+        </div>
+
+        <!-- Bộ Lọc Đơn Hàng -->
+        <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+          <input type="text" id="myOrdersSearchInput" class="form-control" placeholder="🔍 Tìm theo Họ tên khách, SĐT hoặc Tên sản phẩm..." oninput="App.filterMyOrdersList()" style="flex-grow: 1;">
+          <select id="myOrdersStatusFilter" class="filter-select" onchange="App.filterMyOrdersList()" style="width: auto;">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="pending">⏳ Chờ xử lý</option>
+            <option value="confirmed">⚡ Đã xác nhận</option>
+            <option value="shipping">🚚 Đang giao hàng</option>
+            <option value="completed">✅ Đã hoàn thành</option>
+            <option value="cancelled">❌ Đã hủy</option>
+          </select>
+        </div>
+
+        <div id="myOrdersTableWrap" class="admin-table-wrap">
+          <!-- Orders Table rendered dynamically -->
+        </div>
       </div>
 
       <!-- TAB 4: CHƯƠNG TRÌNH AFFILIATES -->
@@ -5160,6 +5222,389 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
     } else {
       this.showToast(res.message || "Thêm thất bại", "error");
     }
+  },
+
+  // ===== CÔNG CỤ QUẢN LÝ BÁN HÀNG DÀNH CHO CHỦ NHÓM =====
+  openCreateOrderModal(productId) {
+    const p = ShopManager.getProductById(productId);
+    if (!p) {
+      this.showToast("Không tìm thấy sản phẩm!", "error");
+      return;
+    }
+
+    const currentUser = AuthManager.getCurrentUser();
+    document.getElementById("orderProductId").value = productId;
+    document.getElementById("orderBuyerName").value = currentUser ? (currentUser.name || "") : "";
+    document.getElementById("orderBuyerPhone").value = currentUser ? (currentUser.phone || "") : "";
+    document.getElementById("orderAddress").value = "";
+    document.getElementById("orderQuantity").value = "1";
+    document.getElementById("orderNote").value = "";
+
+    const summaryBox = document.getElementById("orderProductSummaryBox");
+    if (summaryBox) {
+      summaryBox.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="${sanitizeUrl(p.image, 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80')}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
+          <div>
+            <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${escapeHtml(p.title)}</div>
+            <div style="font-size: 0.85rem; color: var(--primary); font-weight: 800; margin-top: 2px;">
+              Đơn giá: <span id="orderUnitPrice" data-price="${p.price}">${ShopManager.formatCurrency(p.price)}</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">Người bán: ${escapeHtml(p.sellerName || 'Chủ nhóm')}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    this.calculateOrderTotal();
+    this.openModal("createOrderModal");
+  },
+
+  calculateOrderTotal() {
+    const priceEl = document.getElementById("orderUnitPrice");
+    const qtyInput = document.getElementById("orderQuantity");
+    const totalDisplay = document.getElementById("orderTotalDisplay");
+    if (!priceEl || !qtyInput || !totalDisplay) return;
+
+    const unitPrice = parseFloat(priceEl.dataset.price) || 0;
+    const qty = parseInt(qtyInput.value) || 1;
+    const total = unitPrice * qty;
+    totalDisplay.innerText = ShopManager.formatCurrency(total);
+  },
+
+  submitCreateOrder(e) {
+    e.preventDefault();
+    const productId = document.getElementById("orderProductId").value;
+    const p = ShopManager.getProductById(productId);
+    const buyerName = document.getElementById("orderBuyerName").value.trim();
+    const buyerPhone = document.getElementById("orderBuyerPhone").value.trim();
+    const address = document.getElementById("orderAddress").value.trim();
+    const quantity = document.getElementById("orderQuantity").value;
+    const paymentMethod = document.getElementById("orderPaymentMethod").value;
+    const note = document.getElementById("orderNote").value.trim();
+
+    if (!buyerName || !buyerPhone || !address) {
+      this.showToast("Vui lòng nhập đầy đủ thông tin nhận hàng!", "error");
+      return;
+    }
+
+    const res = ShopManager.createOrder({
+      productId,
+      productTitle: p ? p.title : "Công cụ dinh dưỡng",
+      price: p ? p.price : 0,
+      quantity,
+      buyerName,
+      buyerPhone,
+      address,
+      paymentMethod,
+      note,
+      sellerName: p ? p.sellerName : "Chủ nhóm",
+      sellerPhone: p ? p.sellerPhone : ""
+    });
+
+    if (res.success) {
+      this.closeAllModals();
+      this.showToast(`🎉 Đặt hàng thành công! Mã đơn #${res.order.id}. Người bán sẽ liên hệ giao hàng cho bạn.`);
+      this.renderProducts();
+    } else {
+      this.showToast(res.message || "Đặt hàng thất bại", "error");
+    }
+  },
+
+  filterMyOrdersList() {
+    const currentUser = AuthManager.getCurrentUser();
+    if (!currentUser) return;
+
+    const allOrders = ShopManager.getOrders();
+    const isAdm = AuthManager.isAdminUser();
+    const myOrders = isAdm
+      ? allOrders
+      : allOrders.filter(o => o.sellerPhone === currentUser.phone || o.sellerName === currentUser.name || o.buyerPhone === currentUser.phone);
+
+    const searchKey = (document.getElementById("myOrdersSearchInput")?.value || "").toLowerCase().trim();
+    const statusVal = document.getElementById("myOrdersStatusFilter")?.value || "all";
+
+    const filtered = myOrders.filter(o => {
+      const matchKey = !searchKey || (o.buyerName || "").toLowerCase().includes(searchKey) || (o.buyerPhone || "").includes(searchKey) || (o.productTitle || "").toLowerCase().includes(searchKey) || (o.id || "").toLowerCase().includes(searchKey);
+      const matchStatus = statusVal === "all" || o.status === statusVal;
+      return matchKey && matchStatus;
+    });
+
+    const wrap = document.getElementById("myOrdersTableWrap");
+    if (!wrap) return;
+
+    if (filtered.length === 0) {
+      wrap.innerHTML = `
+        <div style="text-align: center; padding: 30px; color: var(--text-muted); background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+          <i class="fa-solid fa-box-open" style="font-size: 2.2rem; margin-bottom: 8px;"></i>
+          <div>Chưa có đơn hàng nào phù hợp.</div>
+        </div>
+      `;
+      return;
+    }
+
+    wrap.innerHTML = `
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Mã Đơn / Ngày</th>
+            <th>Khách Hàng</th>
+            <th>Sản Phẩm & Số Lượng</th>
+            <th>Tổng Tiền</th>
+            <th>Trạng Thái</th>
+            <th style="text-align: center;">Thao Tác Quản Lý</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(o => {
+            const safeId = escapeHtml(o.id);
+            const safeDate = escapeHtml(o.orderDate || '');
+            const safeBuyerName = escapeHtml(o.buyerName || 'Khách hàng');
+            const safeBuyerPhone = escapeHtml(o.buyerPhone || '');
+            const safeAddress = escapeHtml(o.address || '');
+            const safeTitle = escapeHtml(o.productTitle || '');
+            const qty = parseInt(o.quantity) || 1;
+            const totalStr = ShopManager.formatCurrency(o.totalAmount || (o.price * qty));
+            const status = o.status || "pending";
+
+            return `
+              <tr>
+                <td>
+                  <div style="font-weight: 800; color: var(--primary); font-size: 0.85rem;">#${safeId}</div>
+                  <div style="font-size: 0.76rem; color: var(--text-muted);">${safeDate}</div>
+                </td>
+                <td>
+                  <div style="font-weight: 700; font-size: 0.9rem;">${safeBuyerName}</div>
+                  <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">SĐT: ${safeBuyerPhone}</div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted); max-width: 180px;">📍 ${safeAddress}</div>
+                </td>
+                <td>
+                  <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main);">${safeTitle}</div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">Số lượng: <strong>x${qty}</strong> (${ShopManager.formatCurrency(o.price)}/sp)</div>
+                </td>
+                <td>
+                  <div style="font-weight: 900; color: #059669; font-size: 0.95rem;">${totalStr}</div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(o.paymentMethod || '')}</div>
+                </td>
+                <td>
+                  <select onchange="App.changeOrderStatus('${escapeJsAttr(o.id)}', this.value)" class="filter-select" style="padding: 4px 8px; font-size: 0.78rem; font-weight: 700; border-radius: 8px;">
+                    <option value="pending" ${status === 'pending' ? 'selected' : ''}>⏳ Chờ xử lý</option>
+                    <option value="confirmed" ${status === 'confirmed' ? 'selected' : ''}>⚡ Đã xác nhận</option>
+                    <option value="shipping" ${status === 'shipping' ? 'selected' : ''}>🚚 Đang giao hàng</option>
+                    <option value="completed" ${status === 'completed' ? 'selected' : ''}>✅ Đã hoàn thành</option>
+                    <option value="cancelled" ${status === 'cancelled' ? 'selected' : ''}>❌ Đã hủy</option>
+                  </select>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://zalo.me/${encodeURIComponent(safeBuyerPhone)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 4px 8px; font-size: 0.75rem; background: #0068ff; border: none;" title="Chat Zalo khách">
+                      <i class="fa-solid fa-comment-dots"></i> Zalo
+                    </a>
+                    <a href="tel:${encodeURIComponent(safeBuyerPhone)}" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" title="Gọi điện">
+                      <i class="fa-solid fa-phone"></i> Gọi
+                    </a>
+                    <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: var(--primary); border-color: var(--primary);" onclick="App.viewOrderInvoice('${escapeJsAttr(o.id)}')" title="Xem hóa đơn">
+                      <i class="fa-solid fa-file-invoice"></i> Hóa Đơn
+                    </button>
+                    <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: #fca5a5;" onclick="App.deleteOrder('${escapeJsAttr(o.id)}')" title="Xóa đơn">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  },
+
+  changeOrderStatus(orderId, newStatus) {
+    const res = ShopManager.updateOrderStatus(orderId, newStatus);
+    if (res.success) {
+      this.showToast("Cập nhật trạng thái đơn hàng thành công!");
+      this.filterMyOrdersList();
+    }
+  },
+
+  deleteOrder(orderId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa đơn hàng này?")) return;
+    const res = ShopManager.deleteOrder(orderId);
+    if (res.success) {
+      this.showToast("Đã xóa đơn hàng.");
+      this.filterMyOrdersList();
+    }
+  },
+
+  openManualOrderModal() {
+    document.getElementById("manualOrderProductTitle").value = "";
+    document.getElementById("manualOrderPrice").value = "";
+    document.getElementById("manualOrderQty").value = "1";
+    document.getElementById("manualOrderBuyerName").value = "";
+    document.getElementById("manualOrderBuyerPhone").value = "";
+    document.getElementById("manualOrderAddress").value = "";
+    document.getElementById("manualOrderStatus").value = "completed";
+    this.openModal("manualOrderModal");
+  },
+
+  submitManualOrder(e) {
+    e.preventDefault();
+    const currentUser = AuthManager.getCurrentUser();
+    const productTitle = document.getElementById("manualOrderProductTitle").value.trim();
+    const price = document.getElementById("manualOrderPrice").value;
+    const quantity = document.getElementById("manualOrderQty").value;
+    const buyerName = document.getElementById("manualOrderBuyerName").value.trim();
+    const buyerPhone = document.getElementById("manualOrderBuyerPhone").value.trim();
+    const address = document.getElementById("manualOrderAddress").value.trim() || "Bán trực tiếp tại Nhóm Dinh Dưỡng";
+    const status = document.getElementById("manualOrderStatus").value;
+
+    if (!productTitle || !price || !buyerName || !buyerPhone) {
+      this.showToast("Vui lòng điền đầy đủ thông tin đơn hàng!", "error");
+      return;
+    }
+
+    const res = ShopManager.createOrder({
+      productTitle,
+      price,
+      quantity,
+      buyerName,
+      buyerPhone,
+      address,
+      paymentMethod: "Thanh toán trực tiếp",
+      status,
+      sellerName: currentUser ? currentUser.name : "Chủ nhóm",
+      sellerPhone: currentUser ? currentUser.phone : ""
+    });
+
+    if (res.success) {
+      this.closeModal("manualOrderModal");
+      this.showToast(`🎉 Đã thêm đơn hàng #${res.order.id} thành công!`);
+      this.filterMyOrdersList();
+    }
+  },
+
+  exportOrdersCSV() {
+    const currentUser = AuthManager.getCurrentUser();
+    if (!currentUser) return;
+
+    const allOrders = ShopManager.getOrders();
+    const isAdm = AuthManager.isAdminUser();
+    const myOrders = isAdm
+      ? allOrders
+      : allOrders.filter(o => o.sellerPhone === currentUser.phone || o.sellerName === currentUser.name);
+
+    if (myOrders.length === 0) {
+      this.showToast("Chưa có đơn hàng nào để xuất báo cáo!", "error");
+      return;
+    }
+
+    let csvContent = "\uFEFF"; // UTF-8 BOM cho Excel tiếng Việt
+    csvContent += `Báo Cáo Doanh Thu Bán Hàng - Nhomdinhduong.vn\n`;
+    csvContent += `Người xuất: ${currentUser.name} (${currentUser.phone})\n`;
+    csvContent += `Thời gian xuất: ${new Date().toLocaleString("vi-VN")}\n\n`;
+    csvContent += "Mã Đơn,Ngày Đặt,Tên Sản Phẩm,Số Lượng,Đơn Giá,Tổng Tiền,Họ Tên Khách,SĐT Khách,Địa Chỉ,Thanh Toán,Trạng Thái\n";
+
+    myOrders.forEach(o => {
+      csvContent += `"${o.id}","${o.orderDate || ""}","${(o.productTitle || "").replace(/"/g, '""')}",${o.quantity || 1},${o.price || 0},${o.totalAmount || 0},"${(o.buyerName || "").replace(/"/g, '""')}","${o.buyerPhone || ""}","${(o.address || "").replace(/"/g, '""')}","${o.paymentMethod || ""}",${o.status || ""}\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Bao_Cao_Ban_Hang_${currentUser.phone || 'Admin'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    this.showToast("📊 Đã xuất file CSV Báo cáo bán hàng thành công!");
+  },
+
+  viewOrderInvoice(orderId) {
+    const orders = ShopManager.getOrders();
+    const o = orders.find(item => item.id === orderId);
+    if (!o) {
+      this.showToast("Không tìm thấy đơn hàng!", "error");
+      return;
+    }
+
+    const printArea = document.getElementById("invoicePrintArea");
+    if (printArea) {
+      printArea.innerHTML = `
+        <div style="font-family: inherit; color: #0f172a; padding: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--primary); padding-bottom: 14px; margin-bottom: 16px;">
+            <div>
+              <h2 style="font-size: 1.3rem; font-weight: 900; color: var(--primary); margin: 0;">NHÓM DINH DƯỠNG .VN</h2>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">Nền Tảng Dinh Dưỡng & Vận Động Cộng Đồng</div>
+            </div>
+            <div style="text-align: right;">
+              <h3 style="font-size: 1.1rem; font-weight: 800; color: #059669; margin: 0;">HÓA ĐƠN BÁN HÀNG</h3>
+              <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary);">#${escapeHtml(o.id)}</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(o.orderDate || '')}</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; font-size: 0.88rem;">
+            <div style="background: var(--bg-main); padding: 12px; border-radius: 8px;">
+              <div style="font-weight: 800; color: var(--primary); margin-bottom: 4px;">🏪 Đơn Vị Bán Hàng:</div>
+              <div><strong>${escapeHtml(o.sellerName || 'Chủ nhóm')}</strong></div>
+              <div>Hotline / Zalo: ${escapeHtml(o.sellerPhone || '')}</div>
+            </div>
+            <div style="background: var(--bg-main); padding: 12px; border-radius: 8px;">
+              <div style="font-weight: 800; color: var(--secondary); margin-bottom: 4px;">👤 Khách Hàng Nhận Hàng:</div>
+              <div><strong>${escapeHtml(o.buyerName)}</strong></div>
+              <div>SĐT: ${escapeHtml(o.buyerPhone)}</div>
+              <div>📍 ${escapeHtml(o.address)}</div>
+            </div>
+          </div>
+
+          <table class="admin-table" style="margin-bottom: 20px;">
+            <thead>
+              <tr>
+                <th>Tên Công Cụ / Sản Phẩm</th>
+                <th style="text-align: center;">Số Lượng</th>
+                <th style="text-align: right;">Đơn Giá</th>
+                <th style="text-align: right;">Thành Tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 700;">${escapeHtml(o.productTitle)}</td>
+                <td style="text-align: center;">x${o.quantity || 1}</td>
+                <td style="text-align: right;">${ShopManager.formatCurrency(o.price)}</td>
+                <td style="text-align: right; font-weight: 800; color: #059669;">${ShopManager.formatCurrency(o.totalAmount || (o.price * (o.quantity || 1)))}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(5, 150, 105, 0.1); padding: 14px; border-radius: 8px;">
+            <div>Hình thức thanh toán: <strong>${escapeHtml(o.paymentMethod || '')}</strong></div>
+            <div style="font-size: 1.2rem; font-weight: 900; color: #059669;">Tổng Tiền: ${ShopManager.formatCurrency(o.totalAmount || (o.price * (o.quantity || 1)))}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    this.openModal("viewInvoiceModal");
+  },
+
+  printInvoice() {
+    const area = document.getElementById("invoicePrintArea");
+    if (!area) return;
+    const printWin = window.open('', '', 'width=700,height=800');
+    printWin.document.write(`
+      <html>
+        <head>
+          <title>In Hóa Đơn</title>
+          <link rel="stylesheet" href="css/style.css">
+          <style>body { padding: 20px; font-family: sans-serif; }</style>
+        </head>
+        <body>
+          ${area.innerHTML}
+          <script>window.onload = function() { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWin.document.close();
   }
 };
 

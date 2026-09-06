@@ -2302,6 +2302,149 @@
     </div>
   </div>
 
+  <!-- MODAL ĐẶT MUA SẢN PHẨM / CÔNG CỤ -->
+  <div id="createOrderModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="createOrderModalTitle"><i class="fa-solid fa-cart-arrow-down" style="color: var(--primary);"></i> Đặt Mua Công Cụ / Sản Phẩm</h3>
+        <button type="button" class="close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitCreateOrder(event)">
+        <input type="hidden" id="orderProductId">
+        <div class="modal-body" style="padding: 20px;">
+          <div id="orderProductSummaryBox" style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px;">
+            <!-- Product info inserted dynamically -->
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" style="font-weight: 700;">Họ và tên người nhận *</label>
+              <input type="text" id="orderBuyerName" class="form-control" placeholder="Nguyễn Văn A" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" style="font-weight: 700;">Số điện thoại *</label>
+              <input type="tel" id="orderBuyerPhone" class="form-control" placeholder="0912345678" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Số lượng đặt mua *</label>
+            <input type="number" id="orderQuantity" class="form-control" value="1" min="1" max="100" onchange="App.calculateOrderTotal()" oninput="App.calculateOrderTotal()" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Địa chỉ nhận hàng chi tiết *</label>
+            <input type="text" id="orderAddress" class="form-control" placeholder="Số nhà, Tên đường, Xã/Phường, Tỉnh/TP..." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Hình thức thanh toán</label>
+            <select id="orderPaymentMethod" class="form-control">
+              <option value="COD (Thanh toán khi nhận hàng)">💵 Thanh toán khi nhận hàng (COD)</option>
+              <option value="Chuyển khoản ngân hàng">🏦 Chuyển khoản ngân hàng (QR Code)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Ghi chú đơn hàng (Nếu có)</label>
+            <textarea id="orderNote" class="form-control" rows="2" placeholder="Ghi chú thêm về thời gian giao, mẫu mã..."></textarea>
+          </div>
+
+          <div style="margin-top: 16px; padding: 12px; background: rgba(5, 150, 105, 0.1); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 700; color: var(--text-main);">Tổng thanh toán:</span>
+            <span id="orderTotalDisplay" style="font-size: 1.25rem; font-weight: 900; color: var(--primary);">0 đ</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 800; padding: 10px 20px;">
+            <i class="fa-solid fa-check"></i> Xác Nhận Đặt Hàng
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL TẠO ĐƠN HÀNG THỦ CÔNG CHO CHỦ NHÓM -->
+  <div id="manualOrderModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-plus-circle" style="color: var(--primary);"></i> Tạo Đơn Hàng Mới (Thủ Công)</h3>
+        <button type="button" class="close-btn" onclick="App.closeModal('manualOrderModal')">&times;</button>
+      </div>
+      <form onsubmit="App.submitManualOrder(event)">
+        <div class="modal-body" style="padding: 20px;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">Tên công cụ / Sản phẩm bán *</label>
+            <input type="text" id="manualOrderProductTitle" class="form-control" required placeholder="Ví dụ: Máy quét InBody H20B, Trà thảo mộc...">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" style="font-weight: 700;">Đơn giá (VNĐ) *</label>
+              <input type="number" id="manualOrderPrice" class="form-control" required placeholder="0" min="0" step="1000">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" style="font-weight: 700;">Số lượng *</label>
+              <input type="number" id="manualOrderQty" class="form-control" value="1" min="1" required>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" style="font-weight: 700;">Họ tên khách hàng *</label>
+              <input type="text" id="manualOrderBuyerName" class="form-control" required placeholder="Tên khách mua">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" style="font-weight: 700;">Số điện thoại khách *</label>
+              <input type="tel" id="manualOrderBuyerPhone" class="form-control" required placeholder="09xxxxxxx">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Địa chỉ giao hàng</label>
+            <input type="text" id="manualOrderAddress" class="form-control" placeholder="Địa chỉ giao hoặc Bán trực tiếp tại Nhóm">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Trạng thái đơn hàng ban đầu</label>
+            <select id="manualOrderStatus" class="form-control">
+              <option value="completed">✅ Đã hoàn thành (Đã thu tiền & giao hàng)</option>
+              <option value="pending">⏳ Chờ xử lý</option>
+              <option value="confirmed">⚡ Đã xác nhận</option>
+              <option value="shipping">🚚 Đang giao hàng</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeModal('manualOrderModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Lưu Đơn Hàng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL XEM & IN HÓA ĐƠN ĐƠN HÀNG -->
+  <div id="viewInvoiceModal" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary);"></i> Hóa Đơn Bán Hàng Chi Tiết</h3>
+        <button type="button" class="close-btn" onclick="App.closeModal('viewInvoiceModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div id="invoicePrintArea">
+          <!-- Invoice details rendered dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="App.closeModal('viewInvoiceModal')">Đóng</button>
+        <button type="button" class="btn btn-primary" onclick="App.printInvoice()" style="font-weight: 700;">
+          <i class="fa-solid fa-print"></i> In Hóa Đơn
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts (Local core scripts loaded first for maximum reliability & zero CDN blocking) -->
   <script src="js/data.js?v=5.0"></script>
   <script src="js/location.js?v=5.0"></script>
