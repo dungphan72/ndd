@@ -224,17 +224,7 @@ const App = {
 
   // Thiết lập trạng thái Auth trên Navbar
   setupAuthUI() {
-    let currentUser = AuthManager.getCurrentUser();
-
-    // Tự động sử dụng tài khoản dùng thử mặc định nếu chưa đăng nhập
-    // NHƯNG KHÔNG tự động đăng nhập lại nếu người dùng vừa chủ động đăng xuất
-    if (!currentUser && !this._loggedOut) {
-      const users = AuthManager.getUsers();
-      currentUser = (users && users.length > 0) ? users[0] : (typeof SEED_USERS !== 'undefined' ? SEED_USERS[0] : null);
-      if (currentUser) {
-        try { localStorage.setItem("nutriclub_current_user", JSON.stringify(currentUser)); } catch(e) {}
-      }
-    }
+    const currentUser = AuthManager.getCurrentUser();
 
     const guestNav = document.getElementById("guestNavActions");
     const userNav = document.getElementById("userNavActions");
@@ -1938,11 +1928,11 @@ const App = {
   submitCreateClub(e) {
     if (e) e.preventDefault();
 
-    let currentUser = AuthManager.getCurrentUser();
+    const currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
-      const users = AuthManager.getUsers();
-      currentUser = (users && users.length > 0) ? users[0] : { id: "user_default", name: "Nguyễn Văn Hùng", phone: "0902030185" };
-      try { localStorage.setItem("nutriclub_current_user", JSON.stringify(currentUser)); } catch(err) {}
+      this.showToast("⚠️ Vui lòng đăng nhập để đăng nhóm dinh dưỡng!", "warning");
+      this.openModal("loginModal");
+      return;
     }
 
     const form = (e && e.target && e.target.tagName === 'FORM') ? e.target : document.querySelector('#createClubModal form');
@@ -2134,29 +2124,6 @@ const App = {
     }
   },
 
-  // Đăng nhập nhanh tài khoản Admin (1-Click Login)
-  fillAdminAccount(phone, pass) {
-    const accInput = document.getElementById("loginAccountInput");
-    const passInput = document.getElementById("loginPasswordInput");
-    if (accInput) accInput.value = phone;
-    if (passInput) passInput.value = pass;
-
-    const res = AuthManager.login(phone, pass);
-    if (res.success) {
-      this._loggedOut = false;
-      this.setupAuthUI();
-      this.closeAllModals();
-      this.showToast(`👑 Đã đăng nhập thành công Quản trị viên ${res.user.name}!`);
-      setTimeout(() => this.openAdminDashboardModal(), 200);
-    } else {
-      const adminUser = AuthManager.forceLoginAdmin();
-      this.setupAuthUI();
-      this.closeAllModals();
-      this.showToast(`👑 Kích hoạt phiên Quản trị viên ${adminUser.name}!`);
-      setTimeout(() => this.openAdminDashboardModal(), 200);
-    }
-  },
-
   // Submit Đăng nhập
   submitLogin(e) {
     e.preventDefault();
@@ -2165,7 +2132,6 @@ const App = {
 
     const res = AuthManager.login(phoneOrEmail, password);
     if (res.success) {
-      this._loggedOut = false;
       this.setupAuthUI();
       this.closeAllModals();
       this.showToast(`👋 Chào mừng ${res.user.name} đã đăng nhập!`);
@@ -2182,6 +2148,7 @@ const App = {
     const phone = form.regPhone.value.trim();
     const email = form.regEmail.value.trim();
     const password = form.regPassword.value.trim();
+    const passwordConfirm = form.regPasswordConfirm ? form.regPasswordConfirm.value.trim() : password;
     const role = form.regRole ? form.regRole.value : "Thành viên Nhomdinhduong.vn";
     const refCode = (form.regRefCode ? form.regRefCode.value.trim() : "") || sessionStorage.getItem("nutriclub_ref_code") || "";
 
@@ -2189,10 +2156,32 @@ const App = {
       this.showToast("Vui lòng điền họ tên, số điện thoại và mật khẩu!", "error");
       return;
     }
+    if (!/^0\d{9,10}$/.test(phone)) {
+      this.showToast("Số điện thoại không hợp lệ (phải bắt đầu bằng 0, 10-11 số)!", "error");
+      return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.showToast("Email không đúng định dạng!", "error");
+      return;
+    }
+    if (password.length < 6) {
+      this.showToast("Mật khẩu phải có ít nhất 6 ký tự!", "error");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      this.showToast("Mật khẩu xác nhận không khớp!", "error");
+      return;
+    }
+
+    const submitBtn = form.querySelector("button[type=submit]");
+    if (submitBtn) {
+      if (submitBtn.disabled) return;
+      submitBtn.disabled = true;
+    }
 
     const res = AuthManager.register({ name, phone, email, password, role, refCode });
+    if (submitBtn) submitBtn.disabled = false;
     if (res.success) {
-      this._loggedOut = false;
       this.setupAuthUI();
       this.closeAllModals();
       form.reset();
@@ -2213,7 +2202,6 @@ const App = {
 
   // Đăng xuất
   logout() {
-    this._loggedOut = true; // Đánh dấu đã chủ động đăng xuất để setupAuthUI không tự đăng nhập lại
     AuthManager.logout();
     this.closeAllModals();
     this.setupAuthUI();
@@ -2372,16 +2360,7 @@ const App = {
     const dropdown = document.getElementById("userDropdownMenu");
     if (dropdown) dropdown.classList.remove("show");
 
-    let currentUser = AuthManager.getCurrentUser();
-    if (!currentUser) {
-      const users = AuthManager.getUsers();
-      currentUser = (users && users.length > 0) ? users[0] : (typeof SEED_USERS !== 'undefined' ? SEED_USERS[0] : null);
-      if (currentUser) {
-        localStorage.setItem("nutriclub_current_user", JSON.stringify(currentUser));
-        this.setupAuthUI();
-      }
-    }
-
+    const currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
       this.showToast("⚠️ Vui lòng đăng nhập để xem hồ sơ cá nhân!", "warning");
       this.openModal("loginModal");
@@ -3126,11 +3105,11 @@ const App = {
 
   // Open & Render Admin Dashboard Page Tab (no popup modal)
   openAdminDashboardModal(doSwitchTab = true) {
-    let currentUser = AuthManager.getCurrentUser();
+    const currentUser = AuthManager.getCurrentUser();
     if (!currentUser || !AuthManager.isAdminUser()) {
-      currentUser = AuthManager.forceLoginAdmin();
-      this.setupAuthUI();
-      this.showToast("👑 Kích hoạt phiên làm việc Quản Trị Viên Admin (0902030185)!");
+      this.showToast("Bạn không có quyền truy cập trang Quản trị!", "error");
+      this.openModal("loginModal");
+      return;
     }
 
     const tabContainer = document.getElementById("adminTabContentContainer");
@@ -4346,18 +4325,6 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       const closeBtn = e.target.closest(".modal-close-btn, .close-btn, [data-dismiss='modal']");
       if (closeBtn) {
         this.closeAllModals();
-      }
-    });
-
-    // 2. Delegated Submit Listener cho Form Đăng Nhập & Đăng Ký
-    document.addEventListener("submit", (e) => {
-      const form = e.target;
-      if (form.getAttribute("onsubmit")?.includes("submitLogin") || form.loginAccount) {
-        e.preventDefault();
-        this.submitLogin(e);
-      } else if (form.getAttribute("onsubmit")?.includes("submitRegister") || form.regName) {
-        e.preventDefault();
-        this.submitRegister(e);
       }
     });
   }

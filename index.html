@@ -835,18 +835,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Mật khẩu</label>
-            <input type="password" name="loginPassword" class="form-control" placeholder="Mật khẩu của bạn" value="123" required>
-          </div>
-
-          <!-- Gợi ý tài khoản mẫu để test nhanh -->
-          <div style="background: var(--bg-main); padding: 12px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-top: 10px;">
-            <div style="font-weight: 700; margin-bottom: 6px; color: var(--primary);"><i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-right: 4px;"></i> Nhấp vào tài khoản mẫu để đăng nhập nhanh (Pass: 123):</div>
-            <div style="cursor: pointer; padding: 4px 8px; border-radius: 4px; background: var(--bg-card); margin-bottom: 4px; border: 1px solid var(--border-color);" onclick="document.querySelector('input[name=loginAccount]').value='0912345678'; document.querySelector('input[name=loginPassword]').value='123';">
-              <i class="fa-solid fa-user-check" style="color: var(--primary); margin-right: 4px;"></i> SĐT: <strong>0912345678</strong> (HLV Nguyễn Văn Hùng)
-            </div>
-            <div style="cursor: pointer; padding: 4px 8px; border-radius: 4px; background: var(--bg-card); border: 1px solid var(--border-color);" onclick="document.querySelector('input[name=loginAccount]').value='0987654321'; document.querySelector('input[name=loginPassword]').value='123';">
-              <i class="fa-solid fa-user-check" style="color: var(--primary); margin-right: 4px;"></i> SĐT: <strong>0987654321</strong> (HLV Trần Thị Mai Anh)
-            </div>
+            <input type="password" name="loginPassword" class="form-control" placeholder="Mật khẩu của bạn" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -882,7 +871,11 @@
           </div>
           <div class="form-group">
             <label class="form-label">Mật khẩu *</label>
-            <input type="password" name="regPassword" class="form-control" placeholder="Tạo mật khẩu an toàn" required>
+            <input type="password" name="regPassword" class="form-control" placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Xác nhận mật khẩu *</label>
+            <input type="password" name="regPasswordConfirm" class="form-control" placeholder="Nhập lại mật khẩu" minlength="6" required>
           </div>
           <div class="form-group">
             <label class="form-label">🎁 Mã / SĐT Người Giới Thiệu (Nếu Có)</label>

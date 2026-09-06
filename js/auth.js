@@ -150,37 +150,6 @@ const AuthManager = {
     return user.isAdmin === true || user.package === "monthly" || user.package === "yearly" || user.package === "vip";
   },
 
-  // Ép đăng nhập quyền Admin Quản Trị Viên 0902030185
-  forceLoginAdmin() {
-    let users = this.getUsers();
-    let adminUser = users.find(u => u.phone === "0902030185");
-    if (!adminUser) {
-      adminUser = {
-        id: "usr_000",
-        name: "Phan Tiến Dũng",
-        phone: "0902030185",
-        email: "admin@nhomdinhduong.vn",
-        password: "123",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        role: "Quản trị viên Hệ thống (Admin)",
-        bio: "Quản trị viên hệ thống Nhomdinhduong.vn toàn quốc.",
-        package: "yearly",
-        isAdmin: true
-      };
-      users.unshift(adminUser);
-      this.saveUsers(users);
-    } else {
-      adminUser.isAdmin = true;
-      adminUser.package = "yearly";
-      adminUser.role = "Quản trị viên Hệ thống (Admin)";
-      const idx = users.findIndex(u => u.id === adminUser.id);
-      if (idx !== -1) users[idx] = adminUser;
-      this.saveUsers(users);
-    }
-    localStorage.setItem("nutriclub_current_user", JSON.stringify(adminUser));
-    return adminUser;
-  },
-
   // Kiểm tra người dùng có quyền Admin quản trị hệ thống hay không
   isAdminUser() {
     const user = this.getCurrentUser();

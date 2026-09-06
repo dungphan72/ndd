@@ -429,10 +429,9 @@ const ClubManager = {
 
   // Tạo nhóm dinh dưỡng mới
   createClub(clubData) {
-    let currentUser = AuthManager.getCurrentUser();
+    const currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
-      const users = typeof AuthManager !== "undefined" ? AuthManager.getUsers() : [];
-      currentUser = (users && users.length > 0) ? users[0] : { id: "user_default", name: clubData.ownerName || "Hội Viên Nutri", phone: clubData.ownerPhone || "0902030185" };
+      return { success: false, message: "Vui lòng đăng nhập để đăng nhóm dinh dưỡng!" };
     }
 
     const clubs = this.getClubs();

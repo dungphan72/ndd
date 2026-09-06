@@ -4120,10 +4120,6 @@ function initializeLocalStorageData() {
     localStorage.setItem("nutriclub_users", JSON.stringify(users));
   }
 
-  if (!localStorage.getItem("nutriclub_current_user")) {
-    localStorage.setItem("nutriclub_current_user", JSON.stringify(SEED_USERS[0]));
-  }
-
   if (!localStorage.getItem("nutriclub_clubs")) {
     localStorage.setItem("nutriclub_clubs", JSON.stringify(SEED_CLUBS));
   }
