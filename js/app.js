@@ -241,14 +241,13 @@ const App = {
     const adminDropdownItem = document.getElementById("adminDropdownItem");
     const navCreateClubBtn = document.getElementById("navCreateClubBtn");
 
-    const isVIP = AuthManager.isVIPUser();
     const isAdmin = AuthManager.isAdminUser();
 
     if (currentUser) {
       if (guestNav) guestNav.style.display = "none";
       if (userNav) userNav.style.display = "flex";
       if (userNameLabel) {
-        userNameLabel.innerHTML = `${escapeHtml(currentUser.name)} ${isVIP ? '<span class="user-vip-badge">⭐ VIP</span>' : '<span class="user-trial-badge">Dùng thử</span>'}`;
+        userNameLabel.innerText = currentUser.name;
       }
       if (userAvatarImg) userAvatarImg.src = sanitizeUrl(currentUser.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User');
 
@@ -3274,10 +3273,12 @@ const App = {
 
       <!-- Admin Tab 1: Users Table -->
       <div id="adminUsersSec" class="profile-tab-sec" style="display: block;">
+        ${this.renderBulkActionBar('users')}
         <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
               <tr>
+                <th style="width: 36px;"><input type="checkbox" onchange="App.toggleBulkAll('users', this.checked)"></th>
                 <th>Thành Viên</th>
                 <th>SĐT / Email</th>
                 <th>Gói Hiện Tại</th>
@@ -3289,6 +3290,7 @@ const App = {
                 const isVIPUser = u.package === "monthly" || u.package === "yearly" || u.package === "vip";
                 return `
                   <tr>
+                    <td><input type="checkbox" data-bulk-table="users" data-bulk-id="${escapeJsAttr(u.id)}" onchange="App.toggleBulkRow('users', '${escapeJsAttr(u.id)}', this.checked)"></td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 10px;">
                         <img src="${sanitizeUrl(u.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User')}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;">
@@ -3323,10 +3325,12 @@ const App = {
 
       <!-- Admin Tab 2: Clubs Table -->
       <div id="adminClubsSec" class="profile-tab-sec" style="display: none;">
+        ${this.renderBulkActionBar('clubs')}
         <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
               <tr>
+                <th style="width: 36px;"><input type="checkbox" onchange="App.toggleBulkAll('clubs', this.checked)"></th>
                 <th>Tên Nhóm Dinh Dưỡng</th>
                 <th>Loại Hình</th>
                 <th>Tỉnh / Thành</th>
@@ -3337,6 +3341,7 @@ const App = {
             <tbody>
               ${clubs.map(c => `
                 <tr>
+                  <td><input type="checkbox" data-bulk-table="clubs" data-bulk-id="${escapeJsAttr(c.id)}" onchange="App.toggleBulkRow('clubs', '${escapeJsAttr(c.id)}', this.checked)"></td>
                   <td style="font-weight: 700;">${escapeHtml(c.name)}</td>
                   <td><span class="product-cat-badge" style="position: static; display: inline-block;">${escapeHtml(c.type)}</span></td>
                   <td>${escapeHtml(c.province)}</td>
@@ -3356,10 +3361,12 @@ const App = {
 
       <!-- Admin Tab 3: Events Table -->
       <div id="adminEventsSec" class="profile-tab-sec" style="display: none;">
+        ${this.renderBulkActionBar('events')}
         <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
               <tr>
+                <th style="width: 36px;"><input type="checkbox" onchange="App.toggleBulkAll('events', this.checked)"></th>
                 <th>Tên Sự Kiện</th>
                 <th>Thời Gian</th>
                 <th>Địa Điểm</th>
@@ -3370,6 +3377,7 @@ const App = {
             <tbody>
               ${events.map(e => `
                 <tr>
+                  <td><input type="checkbox" data-bulk-table="events" data-bulk-id="${escapeJsAttr(e.id)}" onchange="App.toggleBulkRow('events', '${escapeJsAttr(e.id)}', this.checked)"></td>
                   <td style="font-weight: 700;">${escapeHtml(e.title)}</td>
                   <td>${escapeHtml(e.date)} (${escapeHtml(e.time)})</td>
                   <td>${escapeHtml(e.address)}</td>
@@ -3389,10 +3397,12 @@ const App = {
 
       <!-- Admin Tab 4: Products Table -->
       <div id="adminProductsSec" class="profile-tab-sec" style="display: none;">
+        ${this.renderBulkActionBar('products')}
         <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
               <tr>
+                <th style="width: 36px;"><input type="checkbox" onchange="App.toggleBulkAll('products', this.checked)"></th>
                 <th>Tên Công Cụ</th>
                 <th>Danh Mục</th>
                 <th>Giá Bán</th>
@@ -3403,6 +3413,7 @@ const App = {
             <tbody>
               ${products.map(p => `
                 <tr>
+                  <td><input type="checkbox" data-bulk-table="products" data-bulk-id="${escapeJsAttr(p.id)}" onchange="App.toggleBulkRow('products', '${escapeJsAttr(p.id)}', this.checked)"></td>
                   <td style="font-weight: 700;">${escapeHtml(p.title)}</td>
                   <td>${escapeHtml(p.category)}</td>
                   <td style="color: var(--primary); font-weight: 800;">${ShopManager.formatCurrency(p.price)}</td>
@@ -3481,10 +3492,12 @@ const App = {
           </button>
         </div>
 
+        ${this.renderBulkActionBar('courses')}
         <div style="overflow-x: auto; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
           <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
             <thead>
               <tr style="background: var(--bg-main); text-align: left; border-bottom: 1px solid var(--border-color);">
+                <th style="padding: 12px 16px; width: 36px;"><input type="checkbox" onchange="App.toggleBulkAll('courses', this.checked)"></th>
                 <th style="padding: 12px 16px;">Khóa Học & Video</th>
                 <th style="padding: 12px 16px;">Chủ Đề</th>
                 <th style="padding: 12px 16px;">Giảng Viên / HLV</th>
@@ -3495,6 +3508,7 @@ const App = {
             <tbody>
               ${courses.map(c => `
                 <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 12px 16px;"><input type="checkbox" data-bulk-table="courses" data-bulk-id="${escapeJsAttr(c.id)}" onchange="App.toggleBulkRow('courses', '${escapeJsAttr(c.id)}', this.checked)"></td>
                   <td style="padding: 12px 16px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                       <img src="${sanitizeUrl(c.thumbnail, 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=800&auto=format&fit=crop&q=80')}" alt="${escapeHtml(c.title)}" style="width: 60px; height: 40px; border-radius: 6px; object-fit: cover;">
@@ -3743,6 +3757,78 @@ const App = {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
+  // ===== Chọn nhiều & Xóa hàng loạt (dùng chung cho mọi bảng Admin) =====
+  _bulkSelection: {},
+
+  renderBulkActionBar(tableKey) {
+    return `
+      <div id="bulkBar_${tableKey}" class="bulk-action-bar" style="display: none;">
+        <span><strong class="bulk-count-label">0</strong> mục đã chọn</span>
+        <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; font-size: 0.82rem; padding: 5px 12px;" onclick="App.bulkDeleteTable('${tableKey}')">
+          🗑️ Xóa Đã Chọn
+        </button>
+      </div>
+    `;
+  },
+
+  toggleBulkRow(tableKey, id, checked) {
+    if (!this._bulkSelection[tableKey]) this._bulkSelection[tableKey] = new Set();
+    if (checked) this._bulkSelection[tableKey].add(id);
+    else this._bulkSelection[tableKey].delete(id);
+    this.updateBulkBar(tableKey);
+  },
+
+  toggleBulkAll(tableKey, checked) {
+    const checkboxes = document.querySelectorAll(`input[data-bulk-table="${tableKey}"]`);
+    this._bulkSelection[tableKey] = new Set();
+    checkboxes.forEach(cb => {
+      cb.checked = checked;
+      if (checked) this._bulkSelection[tableKey].add(cb.dataset.bulkId);
+    });
+    this.updateBulkBar(tableKey);
+  },
+
+  updateBulkBar(tableKey) {
+    const count = (this._bulkSelection[tableKey] || new Set()).size;
+    const bar = document.getElementById(`bulkBar_${tableKey}`);
+    if (bar) {
+      bar.style.display = count > 0 ? "flex" : "none";
+      const countLabel = bar.querySelector(".bulk-count-label");
+      if (countLabel) countLabel.innerText = count;
+    }
+  },
+
+  async bulkDeleteTable(tableKey) {
+    const ids = Array.from(this._bulkSelection[tableKey] || []);
+    if (ids.length === 0) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${ids.length} mục đã chọn? Hành động này không thể hoàn tác.`)) return;
+
+    const deleteFns = {
+      users: (id) => this.adminDeleteUser(id, true),
+      clubs: (id) => this.adminDeleteClub(id, true),
+      events: (id) => this.adminDeleteEvent(id, true),
+      products: (id) => this.adminDeleteProduct(id, true),
+      courses: (id) => this.adminDeleteCourse(id, true)
+    };
+    const deleteFn = deleteFns[tableKey];
+    if (!deleteFn) return;
+
+    let successCount = 0;
+    for (const id of ids) {
+      const ok = await deleteFn(id);
+      if (ok) successCount++;
+    }
+
+    this._bulkSelection[tableKey] = new Set();
+    this.showToast(`Đã xóa ${successCount}/${ids.length} mục đã chọn.`);
+
+    if (tableKey === "clubs") this.renderClubs();
+    if (tableKey === "events") this.renderEvents();
+    if (tableKey === "products") this.renderProducts();
+    if (tableKey === "courses") this.renderCourses();
+    this.openAdminDashboardModal(false);
+  },
+
   // Thao tác Admin Duyệt VIP
   async adminApproveVIP(userId, packageType) {
     const res = await AuthManager.adminUpdateUser(userId, { package: packageType });
@@ -3765,28 +3851,57 @@ const App = {
     }
   },
 
-  async adminDeleteUser(userId) {
+  async adminDeleteUser(userId, bulk = false) {
     const currentUser = AuthManager.getCurrentUser();
     if (currentUser && currentUser.id === userId) {
-      this.showToast("⚠️ Bạn không thể xóa chính tài khoản Admin đang sử dụng!", "error");
-      return;
+      if (!bulk) this.showToast("⚠️ Bạn không thể xóa chính tài khoản Admin đang sử dụng!", "error");
+      return false;
     }
-    if (!confirm("Bạn có chắc chắn muốn xóa thành viên này khỏi hệ thống?")) return;
+    if (!bulk && !confirm("Bạn có chắc chắn muốn xóa thành viên này khỏi hệ thống?")) return false;
     const res = await AuthManager.adminDeleteUser(userId);
     if (res.success) {
-      this.showToast("Đã xóa thành viên thành công.");
-      this.openAdminDashboardModal();
+      if (!bulk) {
+        this.showToast("Đã xóa thành viên thành công.");
+        this.openAdminDashboardModal();
+      }
+      return true;
     } else {
-      this.showToast(res.message, "error");
+      if (!bulk) this.showToast(res.message, "error");
+      return false;
     }
   },
 
-  adminDeleteClub(clubId) {
-    if (!confirm("Bạn có chắc chắn muốn xóa nhóm dinh dưỡng này?")) return;
+  adminDeleteClub(clubId, bulk = false) {
+    if (!bulk && !confirm("Bạn có chắc chắn muốn xóa nhóm dinh dưỡng này?")) return false;
     ClubManager.deleteClub(clubId);
-    this.renderClubs();
-    this.showToast("Đã xóa nhóm dinh dưỡng.");
-    this.openAdminDashboardModal();
+    if (!bulk) {
+      this.renderClubs();
+      this.showToast("Đã xóa nhóm dinh dưỡng.");
+      this.openAdminDashboardModal();
+    }
+    return true;
+  },
+
+  adminDeleteEvent(eventId, bulk = false) {
+    if (!bulk && !confirm("Bạn có chắc chắn muốn xóa sự kiện này?")) return false;
+    EventManager.deleteEvent(eventId);
+    if (!bulk) {
+      this.renderEvents();
+      this.showToast("Đã xóa sự kiện.");
+      this.openAdminDashboardModal();
+    }
+    return true;
+  },
+
+  adminDeleteProduct(productId, bulk = false) {
+    if (!bulk && !confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return false;
+    ShopManager.deleteProduct(productId);
+    if (!bulk) {
+      this.renderProducts();
+      this.showToast("Đã xóa sản phẩm.");
+      this.openAdminDashboardModal();
+    }
+    return true;
   },
 
   // Dark / Light Mode Toggle
@@ -4134,17 +4249,21 @@ const App = {
     }
   },
 
-  adminDeleteCourse(courseId) {
+  adminDeleteCourse(courseId, bulk = false) {
     const courses = CourseManager.getCourses();
     const course = courses.find(c => c.id === courseId);
-    if (!course) return;
+    if (!course) return false;
 
-    if (confirm(`Bạn có chắc chắn muốn xóa bài giảng khóa học "${course.title}"?`)) {
+    if (bulk || confirm(`Bạn có chắc chắn muốn xóa bài giảng khóa học "${course.title}"?`)) {
       CourseManager.deleteCourse(courseId);
-      this.renderCourses();
-      this.openAdminDashboardModal(false);
-      this.showToast(`🗑️ Đã xóa thành công bài giảng khóa học "${course.title}"!`);
+      if (!bulk) {
+        this.renderCourses();
+        this.openAdminDashboardModal(false);
+        this.showToast(`🗑️ Đã xóa thành công bài giảng khóa học "${course.title}"!`);
+      }
+      return true;
     }
+    return false;
   },
 
   // Admin Quản Lý Chủ Đề Khóa Học
