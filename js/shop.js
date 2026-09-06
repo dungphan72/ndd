@@ -26,74 +26,6 @@ const ShopManager = {
     }
   },
 
-  // Lấy danh sách Đơn hàng từ LocalStorage
-  getOrders() {
-    try {
-      const orders = localStorage.getItem("nutriclub_orders");
-      if (orders) {
-        const parsed = JSON.parse(orders);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch (e) {
-      console.error("Error loading orders:", e);
-    }
-    return [];
-  },
-
-  // Lưu danh sách Đơn hàng
-  saveOrders(orders) {
-    try {
-      localStorage.setItem("nutriclub_orders", JSON.stringify(orders));
-    } catch (e) {
-      console.error("Error saving orders:", e);
-    }
-  },
-
-  // Tạo Đơn hàng mới
-  createOrder(orderData) {
-    const orders = this.getOrders();
-    const newOrder = {
-      id: "ord_" + Date.now(),
-      productId: orderData.productId || null,
-      productTitle: orderData.productTitle || "Công cụ dinh dưỡng",
-      price: parseFloat(orderData.price) || 0,
-      quantity: parseInt(orderData.quantity) || 1,
-      totalAmount: (parseFloat(orderData.price) || 0) * (parseInt(orderData.quantity) || 1),
-      buyerName: (orderData.buyerName || "").trim(),
-      buyerPhone: (orderData.buyerPhone || "").trim(),
-      address: (orderData.address || "").trim(),
-      paymentMethod: orderData.paymentMethod || "COD (Thanh toán khi nhận hàng)",
-      note: (orderData.note || "").trim(),
-      sellerName: orderData.sellerName || "Chủ nhóm",
-      sellerPhone: orderData.sellerPhone || "",
-      orderDate: new Date().toLocaleDateString("vi-VN") + " " + new Date().toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' }),
-      status: orderData.status || "pending"
-    };
-
-    orders.unshift(newOrder);
-    this.saveOrders(orders);
-    return { success: true, order: newOrder };
-  },
-
-  // Cập nhật trạng thái Đơn hàng
-  updateOrderStatus(orderId, newStatus) {
-    const orders = this.getOrders();
-    const orderIndex = orders.findIndex(o => o.id === orderId);
-    if (orderIndex !== -1) {
-      orders[orderIndex].status = newStatus;
-      this.saveOrders(orders);
-      return { success: true, order: orders[orderIndex] };
-    }
-    return { success: false };
-  },
-
-  // Xóa Đơn hàng
-  deleteOrder(orderId) {
-    const orders = this.getOrders().filter(o => o.id !== orderId);
-    this.saveOrders(orders);
-    return { success: true };
-  },
-
   // Lấy sản phẩm theo ID
   getProductById(id) {
     const products = this.getProducts();
@@ -214,16 +146,13 @@ const ShopManager = {
           </div>
 
           <div class="product-cta-group">
-            <button class="btn btn-primary product-btn" style="font-weight: 700; flex-grow: 1;" onclick="event.stopPropagation(); App.openCreateOrderModal('${escapeJsAttr(p.id)}')">
-              <i class="fa-solid fa-cart-shopping"></i> Đặt Mua Ngay
-            </button>
             ${safeShopeeLink ? `
               <button class="btn product-shopee-btn" onclick="event.stopPropagation(); window.open('${escapeJsAttr(safeShopeeLink)}', '_blank', 'noopener')">
-                <i class="fa-solid fa-store"></i> Shopee
+                <i class="fa-solid fa-cart-shopping"></i> Mua Trên Shopee
               </button>
             ` : ''}
             <button class="btn btn-outline product-btn" onclick="event.stopPropagation(); ShopManager.showProductDetailModal('${escapeJsAttr(p.id)}')">
-              <i class="fa-solid fa-eye"></i> Chi Tiết
+              <i class="fa-solid fa-eye"></i> Xem Chi Tiết & Liên Hệ
             </button>
           </div>
         </div>
@@ -293,12 +222,9 @@ const ShopManager = {
                 <div style="font-size: 0.85rem; color: var(--text-muted);">Hotline / Zalo: <strong>${safeContactPhone}</strong> ${!isVIP ? '<span style="color:#ef4444; font-weight:700;">(🔒 Đã che)</span>' : ''}</div>
               </div>
 
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-primary" style="font-weight: 800; padding: 8px 16px; font-size: 0.92rem;" onclick="App.openCreateOrderModal('${escapeJsAttr(product.id)}')">
-                  🛒 Đặt Mua Trực Tiếp
-                </button>
-                <a href="https://zalo.me/0902030185" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="background: rgba(0, 104, 255, 0.1); color: #0068ff; border-color: #0068ff;">
-                  💬 Chat Zalo
+              <div style="display: flex; gap: 8px;">
+                <a href="https://zalo.me/0902030185" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background: #0068ff; border-color: #0068ff;">
+                  💬 Chat Zalo Mua Hàng
                 </a>
                 <a href="tel:${safeTelHref}" class="btn btn-outline">
                   📞 Gọi Điện
