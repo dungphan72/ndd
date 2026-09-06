@@ -23,6 +23,16 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
+    // Ánh xạ công khai SĐT -> email, chỉ để tra cứu lúc đăng nhập/đăng ký
+    // bằng SĐT (thời điểm đó CHƯA xác thực nên không thể đọc "users").
+    // Chỉ chứa 2 trường: id document = SĐT, field "email" — không có dữ liệu
+    // nhạy cảm nào khác.
+    match /phoneIndex/{phone} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.email == request.auth.token.email;
+      allow update, delete: if false;
+    }
+
     match /users/{userId} {
       // Đọc: chỉ người đã đăng nhập (tránh mọi khách vãng lai tải cả danh bạ user thật)
       allow read: if isSignedIn();

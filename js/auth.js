@@ -107,13 +107,16 @@ const AuthManager = {
     return this._currentUser || null;
   },
 
+  // Tra cứu email theo SĐT qua collection "phoneIndex" (đọc công khai, chỉ
+  // chứa SĐT->email — KHÔNG dùng collection "users" vì lúc đăng nhập bằng SĐT
+  // người dùng CHƯA xác thực, mà "users" yêu cầu phải đăng nhập mới đọc được).
   async _resolveEmailByPhone(phone) {
     if (!window.firebaseDb || !window.firestoreHelpers) return null;
-    const { collection, query, where, getDocs } = window.firestoreHelpers;
+    const { doc, getDoc } = window.firestoreHelpers;
     try {
-      const snap = await getDocs(query(collection(window.firebaseDb, "users"), where("phone", "==", phone)));
-      if (snap.empty) return null;
-      return snap.docs[0].data().email || null;
+      const snap = await getDoc(doc(window.firebaseDb, "phoneIndex", phone));
+      if (!snap.exists()) return null;
+      return snap.data().email || null;
     } catch (e) {
       console.error("Lỗi tra cứu email theo SĐT:", e);
       return null;
@@ -162,13 +165,15 @@ const AuthManager = {
       return { success: false, message: "Vui lòng nhập email để đăng ký (dùng cho khôi phục mật khẩu)!" };
     }
 
-    const { collection, doc, setDoc, getDocs, query, where, updateDoc } = window.firestoreHelpers;
+    const { collection, doc, setDoc, getDoc, query, where, getDocs, updateDoc } = window.firestoreHelpers;
     const { createUserWithEmailAndPassword } = window.firebaseAuthHelpers;
     const db = window.firebaseDb;
 
+    // Kiểm tra trùng SĐT qua "phoneIndex" (đọc công khai) — chưa thể đọc
+    // "users" ở bước này vì người đăng ký chưa xác thực.
     try {
-      const dupSnap = await getDocs(query(collection(db, "users"), where("phone", "==", phone)));
-      if (!dupSnap.empty) {
+      const dupSnap = await getDoc(doc(db, "phoneIndex", phone));
+      if (dupSnap.exists()) {
         return { success: false, message: "Số điện thoại này đã được đăng ký trong hệ thống!" };
       }
     } catch (e) {
@@ -201,6 +206,7 @@ const AuthManager = {
 
     try {
       await setDoc(doc(db, "users", uid), newProfile);
+      await setDoc(doc(db, "phoneIndex", phone), { email });
     } catch (err) {
       return { success: false, message: "Tạo tài khoản thành công nhưng lưu hồ sơ thất bại: " + err.message };
     }
