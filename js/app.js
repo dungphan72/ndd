@@ -1048,8 +1048,7 @@ const App = {
   // Render danh sách nhóm
   renderClubs() {
     const clubsContainer = document.getElementById("clubsGridContainer");
-    const countBadge = document.getElementById("totalClubsCount");
-    
+
     let filteredClubs = ClubManager.filterClubs({
       type: this.selectedType,
       province: this.selectedProvince,
@@ -1066,7 +1065,6 @@ const App = {
       filteredClubs = ClubManager.getClubs();
     }
 
-    if (countBadge) countBadge.innerText = `(${filteredClubs.length} Nhóm Dinh Dưỡng)`;
     if (clubsContainer) {
       clubsContainer.innerHTML = ClubManager.renderClubCards(filteredClubs);
     }
@@ -1812,7 +1810,6 @@ const App = {
     });
 
     const isVIP = AuthManager.isVIPUser();
-    const isLoggedIn = !!AuthManager.getCurrentUser();
 
     const sidebarList = document.getElementById("mapSidebarList");
     if (sidebarList) {
@@ -1862,7 +1859,7 @@ const App = {
             <h4 style="font-size: 0.95rem; margin-bottom: 4px; color: #0f172a;">${escapeHtml(c.name)}</h4>
             <div style="font-size: 0.78rem; color: ${markerColor}; font-weight: 700; margin-bottom: 4px;">${escapeHtml(c.type)}</div>
             <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 8px;">📍 ${popupAddr}</div>
-            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 10px;">Chủ nhóm: ${isLoggedIn ? escapeHtml(c.ownerName) : '🔒 ***'} (${popupPhone})</div>
+            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 10px;">Chủ nhóm: ${escapeHtml(c.ownerName)} (${popupPhone})</div>
             <button onclick="ClubManager.showClubDetailModal('${escapeJsAttr(c.id)}')" style="width: 100%; padding: 6px; background: #10b981; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.82rem;">Xem Chi Tiết</button>
           </div>
         `;
