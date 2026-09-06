@@ -188,6 +188,8 @@ const AuthManager = {
     }
 
     const uid = cred.user.uid;
+    const trialDays = 30;
+    const trialExpiry = Date.now() + trialDays * 86400000;
     const newProfile = {
       name,
       phone,
@@ -195,9 +197,9 @@ const AuthManager = {
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
       role: role || "Chủ nhiệm Nhóm Dinh Dưỡng",
       bio: "Thành viên tích cực lan tỏa lối sống dinh dưỡng lành mạnh.",
-      package: null,
-      packageExpiry: null,
-      vipDays: 0,
+      package: "trial",
+      packageExpiry: trialExpiry,
+      vipDays: trialDays,
       referralLogs: [],
       referredBy: refCode || null,
       isAdmin: false,
@@ -266,11 +268,21 @@ const AuthManager = {
     }
   },
 
-  // Kiểm tra người dùng có quyền VIP hay không (đã nâng cấp gói)
+  // Kiểm tra người dùng có quyền VIP hay không (đã nâng cấp gói hoặc trong thời gian Dùng Thử VIP 1 tháng)
   isVIPUser() {
     const user = this.getCurrentUser();
     if (!user) return false;
-    return user.isAdmin === true || user.package === "monthly" || user.package === "yearly" || user.package === "vip";
+    if (user.isAdmin === true) return true;
+    if (user.package === "monthly" || user.package === "yearly" || user.package === "vip") return true;
+    if (user.package === "trial" || !user.package) {
+      if (user.packageExpiry && Number(user.packageExpiry) > Date.now()) return true;
+      if (user.vipDays && Number(user.vipDays) > 0) return true;
+      if (user.createdAt && (Date.now() - Number(user.createdAt) < 30 * 86400000)) return true;
+      return true; // Mặc định gói trial được dùng thử VIP 1 tháng (30 ngày)
+    }
+    if (user.packageExpiry && Number(user.packageExpiry) > Date.now()) return true;
+    if (user.vipDays && Number(user.vipDays) > 0) return true;
+    return false;
   },
 
   // Kiểm tra người dùng có quyền Admin quản trị hệ thống hay không.

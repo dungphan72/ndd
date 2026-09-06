@@ -2635,7 +2635,7 @@ const App = {
     const myProducts = allProducts.filter(p => p.sellerPhone === currentUser.phone || p.sellerName === currentUser.name);
 
     const isVIP = AuthManager.isVIPUser();
-    const pkgName = currentUser.package === "yearly" ? "Gói VIP Năm (999k)" : (currentUser.package === "monthly" ? "Gói VIP Tháng (99k)" : "Tài Khoản Dùng Thử (Miễn phí)");
+    const pkgName = currentUser.package === "yearly" ? "Gói VIP Năm (999k)" : (currentUser.package === "monthly" ? "Gói VIP Tháng (99k)" : "Gói VIP Dùng Thử (1 Tháng Miễn Phí)");
     const pkgBadgeClass = isVIP ? "user-vip-badge" : "vip-lock-badge";
     const metricsHTML = this.getMetricsSecHTML(currentUser.phone);
     const contentHTML = `
@@ -3594,7 +3594,8 @@ const App = {
             </thead>
             <tbody>
               ${users.map(u => {
-                const isVIPUser = u.package === "monthly" || u.package === "yearly" || u.package === "vip";
+                const isVIPUser = u.isAdmin === true || u.package === "monthly" || u.package === "yearly" || u.package === "vip" || u.package === "trial" || (u.packageExpiry && Number(u.packageExpiry) > Date.now()) || (u.vipDays && Number(u.vipDays) > 0);
+                const isPaidVIP = u.isAdmin === true || u.package === "monthly" || u.package === "yearly" || u.package === "vip";
                 return `
                   <tr>
                     <td><input type="checkbox" data-bulk-table="users" data-bulk-id="${escapeJsAttr(u.id)}" onchange="App.toggleBulkRow('users', '${escapeJsAttr(u.id)}', this.checked)"></td>
@@ -3612,7 +3613,7 @@ const App = {
                       <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(u.email)}</div>
                     </td>
                     <td>
-                      <span class="${isVIPUser ? 'user-vip-badge' : 'vip-lock-badge'}">${isVIPUser ? '⭐ VIP ' + (u.package === 'yearly' ? '1 Năm' : '1 Tháng') : '🔒 Dùng Thử'}</span>
+                      <span class="${isVIPUser ? 'user-vip-badge' : 'vip-lock-badge'}">${isPaidVIP ? '⭐ VIP ' + (u.package === 'yearly' ? '1 Năm' : '1 Tháng') : (isVIPUser ? '🎁 VIP Dùng Thử (1 Tháng)' : '🔒 Hết Hạn Dùng Thử')}</span>
                     </td>
                     <td>
                       <div style="display: flex; gap: 6px; flex-wrap: wrap;">
@@ -4138,7 +4139,8 @@ const App = {
 
   // Thao tác Admin Duyệt VIP
   async adminApproveVIP(userId, packageType) {
-    const res = await AuthManager.adminUpdateUser(userId, { package: packageType });
+    const expiry = Date.now() + (packageType === "yearly" ? 365 : 30) * 86400000;
+    const res = await AuthManager.adminUpdateUser(userId, { package: packageType, packageExpiry: expiry });
     if (res.success) {
       this.showToast(`🎉 Đã duyệt gói VIP ${packageType === 'yearly' ? '1 Năm' : '1 Tháng'} cho thành viên!`);
       this.openAdminDashboardModal();
@@ -4147,11 +4149,12 @@ const App = {
     }
   },
 
-  // Thao tác Admin Hạ Gói VIP về Dùng Thử
+  // Thao tác Admin Hạ Gói VIP về Dùng Thử (Cấp lại 30 ngày dùng thử VIP)
   async adminRevokeVIP(userId) {
-    const res = await AuthManager.adminUpdateUser(userId, { package: "trial" });
+    const trialExpiry = Date.now() + 30 * 86400000;
+    const res = await AuthManager.adminUpdateUser(userId, { package: "trial", packageExpiry: trialExpiry, vipDays: 30 });
     if (res.success) {
-      this.showToast("🔒 Đã chuyển gói thành viên về Dùng Thử.", "info");
+      this.showToast("🎁 Đã chuyển gói thành viên về VIP Dùng Thử (1 Tháng).", "info");
       this.openAdminDashboardModal();
     } else {
       this.showToast(res.message, "error");
