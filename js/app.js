@@ -1876,7 +1876,7 @@ const App = {
 
     if (mode === "map") {
       if (gridContainer) gridContainer.style.display = "none";
-      if (mapContainer) mapContainer.style.display = "flex";
+      if (mapContainer) mapContainer.style.display = "grid";
       if (gridBtn) gridBtn.classList.remove("active");
       if (mapBtn) mapBtn.classList.add("active");
       setTimeout(() => this.initLeafletMap(), 100);
@@ -1888,8 +1888,7 @@ const App = {
     }
   },
 
-  // Khởi tạo bản đồ Leaflet Map
-  // Khởi tạo bản đồ Leaflet Map
+  // Khởi tạo bản đồ tương tác (Google Maps Tiles Layer)
   initLeafletMap() {
     const mapElement = document.getElementById("leafletMap");
     if (!mapElement) return;
@@ -1901,22 +1900,54 @@ const App = {
     }
 
     if (!this.leafletMap) {
-      // Tọa độ trung tâm Việt Nam
-      this.leafletMap = L.map('leafletMap').setView([16.0544, 108.2022], 6);
+      // Tọa độ trung tâm Việt Nam (Đà Nẵng / Quảng Nam)
+      this.leafletMap = L.map('leafletMap', {
+        center: [16.0544, 108.2022],
+        zoom: 6,
+        zoomControl: true
+      });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
-      }).addTo(this.leafletMap);
+      // Lớp bản đồ Google Maps chuẩn (Roadmap)
+      const googleRoadmap = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+
+      // Lớp bản đồ Google Maps Vệ Tinh (Satellite + Labels)
+      const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+
+      // Lớp bản đồ OpenStreetMap dự phòng
+      const osmMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      });
+
+      // Mặc định hiển thị Google Maps
+      googleRoadmap.addTo(this.leafletMap);
+
+      // Thêm widget chuyển đổi chế độ xem bản đồ góc trên bên phải
+      L.control.layers({
+        "🗺️ Google Maps": googleRoadmap,
+        "🛰️ Google Vệ Tinh": googleSatellite,
+        "🍃 OpenStreetMap": osmMap
+      }, null, { position: 'topright' }).addTo(this.leafletMap);
 
       this.markersLayer = L.layerGroup().addTo(this.leafletMap);
     }
 
-    setTimeout(() => {
-      if (this.leafletMap) {
-        this.leafletMap.invalidateSize();
-      }
-    }, 200);
+    // Đảm bảo tính toán lại kích thước khung bản đồ khi hiển thị
+    [50, 200, 500, 1000].forEach(delay => {
+      setTimeout(() => {
+        if (this.leafletMap) {
+          this.leafletMap.invalidateSize();
+        }
+      }, delay);
+    });
 
     this.syncMapWithFilters();
   },
