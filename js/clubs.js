@@ -556,12 +556,13 @@ const ClubManager = {
               <div class="owner-profile" onclick="event.stopPropagation(); App.openUserProfilePage();" style="cursor: pointer;" title="Bấm để xem hồ sơ Chủ nhóm">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(club.ownerName || 'Host')}" class="owner-avatar" alt="${safeOwnerName}">
                 <div class="owner-info">
-                  <span class="owner-title-role">Chủ nhóm</span>
                   <span class="owner-name">${safeOwnerName}</span>
+                  ${isVIP
+                    ? `<span class="owner-phone-text">${escapeHtml(club.ownerPhone || '')}</span>`
+                    : this.renderLockedInfoPill("Số điện thoại", maskPhone(club.ownerPhone || '0902030185'), lockAction)}
                 </div>
               </div>
 
-              ${!isVIP ? `<span class="vip-lock-badge" onclick="event.stopPropagation(); ${lockAction};"><i class="fa-solid fa-lock"></i> Nâng cấp tài khoản để xem thông tin</span>` : ''}
               ${coOpCount > 0 && isVIP ? `<span class="co-op-count-tag">+${coOpCount} Đồng vận hành</span>` : ''}
             </div>
           </div>
