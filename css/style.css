@@ -2292,7 +2292,7 @@ body.dark-mode .hotline-number {
 .vip-lock-badge {
   font-size: 0.78rem;
   padding: 4px 10px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-lg);
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   color: #b45309;
   border: 1px solid #f59e0b;
@@ -2305,6 +2305,49 @@ body.dark-mode .hotline-number {
   background: #f59e0b;
   color: #ffffff;
   transform: translateY(-1px);
+}
+
+/* Hàng hiển thị thông tin bị khóa (SĐT, địa chỉ chi tiết...) — bo góc đồng
+   bộ 20px (--radius-lg) với toàn bộ giao diện khóa thông tin VIP */
+.locked-info-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: var(--radius-lg);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.locked-info-pill:hover {
+  background: #ffedd5;
+  border-color: #f59e0b;
+}
+
+.locked-info-pill .locked-info-label {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.locked-info-pill .locked-info-value {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.locked-info-pill .locked-info-lock {
+  margin-left: auto;
+  padding-left: 6px;
+  color: #f59e0b;
+  flex-shrink: 0;
 }
 
 .user-vip-badge {

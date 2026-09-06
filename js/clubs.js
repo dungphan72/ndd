@@ -3,6 +3,18 @@
  */
 
 const ClubManager = {
+  // Hàng hiển thị 1 thông tin bị khóa (SĐT, địa chỉ chi tiết...) dạng
+  // "Nhãn: giá trị đã che (icon khóa)", bấm vào để mở Đăng nhập/Nâng cấp VIP
+  renderLockedInfoPill(label, maskedValue, lockAction) {
+    return `
+      <div class="locked-info-pill" onclick="event.stopPropagation(); ${lockAction}">
+        <span class="locked-info-label">${escapeHtml(label)}:</span>
+        <span class="locked-info-value">${escapeHtml(maskedValue)}</span>
+        <i class="fa-solid fa-lock locked-info-lock"></i>
+      </div>
+    `;
+  },
+
   // Lấy danh sách nhóm từ LocalStorage hoặc SEED_CLUBS
   getClubs() {
     try {
@@ -516,7 +528,8 @@ const ClubManager = {
       // Xử lý bảo mật thông tin cho tài khoản Dùng Thử
       const displayAddress = isVIP
         ? `${escapeHtml(club.addressDetail || '')}, ${escapeHtml(club.ward || '')}, ${escapeHtml(club.province || '')}`
-        : `${escapeHtml(club.ward || '')}, ${escapeHtml(club.province || '')} (<i class="fa-solid fa-lock"></i> Số nhà & Tên đường bị khóa)`;
+        : `${escapeHtml(club.ward || '')}, ${escapeHtml(club.province || '')}`;
+      const lockedAddressPill = !isVIP ? this.renderLockedInfoPill("Số nhà & Tên đường", "***", lockAction) : '';
 
       return `
         <div class="club-card" onclick="ClubManager.showClubDetailModal('${escapeJsAttr(club.id)}')">
@@ -532,6 +545,7 @@ const ClubManager = {
               <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i>
               <span>${displayAddress}</span>
             </div>
+            ${lockedAddressPill ? `<div style="margin-bottom: 12px;">${lockedAddressPill}</div>` : ''}
 
             <div class="club-hours">
               <i class="fa-solid fa-clock" style="color: var(--text-muted);"></i>
@@ -584,33 +598,33 @@ const ClubManager = {
     // Định dạng Địa chỉ và Số điện thoại bảo mật
     const displayAddress = isVIP
       ? `${escapeHtml(club.addressDetail || '')}, ${escapeHtml(club.ward || '')}, ${escapeHtml(club.province || '')}`
-      : `${escapeHtml(club.ward || '')}, ${escapeHtml(club.province || '')} <span style="color:#ef4444; font-weight:700; font-size:0.85rem;">(<i class="fa-solid fa-lock"></i> Số nhà & Tên đường bị ẩn)</span>`;
+      : `${escapeHtml(club.ward || '')}, ${escapeHtml(club.province || '')}`;
+    const lockedAddressPill = !isVIP ? this.renderLockedInfoPill("Số nhà & Tên đường", "***", lockAction) : '';
 
     const rawPhone = escapeHtml(club.ownerPhone || '0902030185');
-    const displayPhone = isVIP
-      ? rawPhone
-      : `${escapeHtml(maskPhone(club.ownerPhone))} <span style="color:#ef4444; font-weight:700; font-size:0.82rem;">(<i class="fa-solid fa-lock"></i> Nâng cấp VIP để xem đầy đủ)</span>`;
+    const displayPhone = isVIP ? rawPhone : '';
+    const lockedPhonePill = !isVIP ? this.renderLockedInfoPill("Số điện thoại", maskPhone(club.ownerPhone || '0902030185'), lockAction) : '';
 
     const phoneActionBtn = isVIP
-      ? `<a href="tel:${encodeURIComponent(club.ownerPhone || '0902030185')}" class="btn btn-primary">
+      ? `<a href="tel:${encodeURIComponent(club.ownerPhone || '0902030185')}" class="btn btn-primary" style="border-radius: var(--radius-lg);">
           <i class="fa-solid fa-phone"></i>
           Gọi: ${rawPhone}
          </a>`
-      : `<button class="btn btn-primary" onclick="${lockAction}">
+      : `<button class="btn btn-primary" style="border-radius: var(--radius-lg);" onclick="${lockAction}">
           <i class="fa-solid fa-lock"></i> Gọi: ${escapeHtml(maskPhone(club.ownerPhone))}
          </button>`;
 
     const mapActionBtn = isVIP
-      ? `<button class="btn btn-outline" onclick="App.showOnMap(${Number(club.lat) || 21.0285}, ${Number(club.lng) || 105.8542}, '${escapeJsAttr(club.name || '')}')">
+      ? `<button class="btn btn-outline" style="border-radius: var(--radius-lg);" onclick="App.showOnMap(${Number(club.lat) || 21.0285}, ${Number(club.lng) || 105.8542}, '${escapeJsAttr(club.name || '')}')">
           <i class="fa-solid fa-map-location-dot"></i>
           Xem Bản Đồ
          </button>`
-      : `<button class="btn btn-outline" onclick="${lockAction}">
+      : `<button class="btn btn-outline" style="border-radius: var(--radius-lg);" onclick="${lockAction}">
           <i class="fa-solid fa-lock"></i> Mở Khóa Bản Đồ
          </button>`;
 
     const vipLockBanner = !isVIP ? `
-      <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1.5px solid #f59e0b; border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px;">
+      <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1.5px solid #f59e0b; border-radius: var(--radius-lg); padding: 16px; margin-bottom: 18px;">
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
           <div>
             <div style="font-size: 1.05rem; font-weight: 800; color: #92400e; margin-bottom: 4px;">
@@ -698,6 +712,7 @@ const ClubManager = {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
               <strong>Địa chỉ:</strong> ${displayAddress}
             </div>
+            ${lockedAddressPill ? `<div style="margin-bottom: 10px;">${lockedAddressPill}</div>` : ''}
             <div style="display: flex; align-items: center; gap: 8px; color: var(--secondary-hover); font-size: 0.95rem;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               <strong>Giờ mở cửa:</strong> ${safeOpeningHours}
@@ -711,14 +726,15 @@ const ClubManager = {
         </div>
 
         <!-- Chủ nhóm & Câu chuyện -->
-        <div style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 14px;">
+        <div style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-top: 14px;">
           <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(club.ownerName || 'Host')}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary);" alt="${safeOwnerName}">
             <div>
               <div style="font-weight: 800; font-size: 1.05rem;">Chủ Nhóm: ${safeOwnerName}</div>
-              <div style="font-size: 0.85rem; color: var(--text-muted);">Hotline / Zalo: ${displayPhone}</div>
+              ${isVIP ? `<div style="font-size: 0.85rem; color: var(--text-muted);">Hotline / Zalo: ${displayPhone}</div>` : ''}
             </div>
           </div>
+          ${lockedPhonePill ? `<div style="margin-bottom: 12px;">${lockedPhonePill}</div>` : ''}
 
           <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px;">📖 Câu Chuyện Chủ Nhóm:</h4>
           <div class="club-detail-story-box">
