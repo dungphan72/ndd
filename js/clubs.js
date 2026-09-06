@@ -499,6 +499,8 @@ const ClubManager = {
     }
 
     const isVIP = AuthManager.isVIPUser();
+    const isLoggedIn = !!AuthManager.getCurrentUser();
+    const lockAction = isLoggedIn ? "App.openVIPUpgradeModal()" : "App.openModal('loginModal')";
 
     return clubs.map(club => {
       const isDeep = (club.type || '').includes("chuyên sâu");
@@ -545,7 +547,7 @@ const ClubManager = {
                 </div>
               </div>
 
-              ${!isVIP ? `<span class="vip-lock-badge" onclick="event.stopPropagation(); App.openVIPUpgradeModal();"><i class="fa-solid fa-lock"></i> Nâng Cấp VIP</span>` : ''}
+              ${!isVIP ? `<span class="vip-lock-badge" onclick="event.stopPropagation(); ${lockAction};"><i class="fa-solid fa-lock"></i> Nâng cấp tài khoản để xem thông tin</span>` : ''}
               ${coOpCount > 0 && isVIP ? `<span class="co-op-count-tag">+${coOpCount} Đồng vận hành</span>` : ''}
             </div>
           </div>
@@ -569,6 +571,8 @@ const ClubManager = {
 
     // Kiểm tra quyền VIP của người dùng hiện tại
     const isVIP = AuthManager.isVIPUser();
+    const isLoggedIn = !!AuthManager.getCurrentUser();
+    const lockAction = isLoggedIn ? "App.openVIPUpgradeModal()" : "App.openModal('loginModal')";
 
     const safeName = escapeHtml(club.name || 'Nhóm dinh dưỡng');
     const safeType = escapeHtml(club.type || 'Nhóm dinh dưỡng');
@@ -592,7 +596,7 @@ const ClubManager = {
           <i class="fa-solid fa-phone"></i>
           Gọi: ${rawPhone}
          </a>`
-      : `<button class="btn btn-primary" onclick="App.openVIPUpgradeModal()">
+      : `<button class="btn btn-primary" onclick="${lockAction}">
           <i class="fa-solid fa-lock"></i> Gọi: ${escapeHtml(maskPhone(club.ownerPhone))}
          </button>`;
 
@@ -601,7 +605,7 @@ const ClubManager = {
           <i class="fa-solid fa-map-location-dot"></i>
           Xem Bản Đồ
          </button>`
-      : `<button class="btn btn-outline" onclick="App.openVIPUpgradeModal()">
+      : `<button class="btn btn-outline" onclick="${lockAction}">
           <i class="fa-solid fa-lock"></i> Mở Khóa Bản Đồ
          </button>`;
 
@@ -610,14 +614,16 @@ const ClubManager = {
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
           <div>
             <div style="font-size: 1.05rem; font-weight: 800; color: #92400e; margin-bottom: 4px;">
-              🔒 Bạn chưa đăng nhập hoặc đang dùng Tài Khoản Dùng Thử
+              🔒 ${isLoggedIn ? 'Bạn đang dùng Tài Khoản Dùng Thử' : 'Bạn chưa đăng nhập'}
             </div>
             <div style="font-size: 0.88rem; color: #78350f;">
-              Nâng cấp gói thành viên <strong>(99k/tháng - 999k/năm)</strong> để mở khóa Số điện thoại đầy đủ, Số nhà/Tên đường và Bản đồ chỉ đường!
+              ${isLoggedIn
+                ? 'Nâng cấp gói thành viên <strong>(99k/tháng - 999k/năm)</strong> để mở khóa Số điện thoại đầy đủ, Số nhà/Tên đường và Bản đồ chỉ đường!'
+                : 'Đăng nhập hoặc tạo tài khoản để mở khóa Số điện thoại đầy đủ, Số nhà/Tên đường và Bản đồ chỉ đường!'}
             </div>
           </div>
-          <button class="btn btn-primary" onclick="App.openVIPUpgradeModal()">
-            🚀 Nâng Cấp VIP Ngay (99k)
+          <button class="btn btn-primary" onclick="${lockAction}">
+            ${isLoggedIn ? '🚀 Nâng Cấp VIP Ngay (99k)' : '👤 Đăng Nhập / Đăng Ký'}
           </button>
         </div>
       </div>
