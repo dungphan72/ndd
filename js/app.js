@@ -2068,9 +2068,15 @@ const App = {
     const addressDetail = getVal("clubAddressDetail");
     const openingHours = getVal("clubOpeningHours");
     const story = getVal("clubStory");
+    const ownerName = getVal("clubOwnerName") || currentUser.name || "Chủ nhóm";
+    const ownerPhone = getVal("clubOwnerPhone") || currentUser.phone || "0902030185";
 
     if (!name) {
       this.showToast("⚠️ Vui lòng nhập Tên nhóm dinh dưỡng!", "warning");
+      return;
+    }
+    if (!ownerName || !ownerPhone) {
+      this.showToast("⚠️ Vui lòng nhập Họ tên và Số điện thoại chủ nhóm!", "warning");
       return;
     }
     if (!province || !district || !addressDetail) {
@@ -2089,8 +2095,8 @@ const App = {
       openingHours,
       story,
       ownerId: currentUser.id,
-      ownerName: currentUser.name || "Chủ nhóm",
-      ownerPhone: currentUser.phone || "0902030185",
+      ownerName: ownerName,
+      ownerPhone: ownerPhone,
       coOperators: this.selectedCoOperators || []
     };
 

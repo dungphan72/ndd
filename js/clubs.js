@@ -456,8 +456,8 @@ const ClubManager = {
       type: clubData.type || "Nhóm dinh dưỡng chuyên sâu",
       image: clubData.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
       ownerId: currentUser.id,
-      ownerName: currentUser.name, // Lấy mặc định tên user
-      ownerPhone: currentUser.phone, // Lấy mặc định SĐT đăng ký
+      ownerName: clubData.ownerName || currentUser.name || "Chủ nhóm",
+      ownerPhone: clubData.ownerPhone || currentUser.phone || "0902030185",
       coOperators: clubData.coOperators || [], // Danh sách đồng vận hành đã chọn
       province: clubData.province,
       district: clubData.district,
