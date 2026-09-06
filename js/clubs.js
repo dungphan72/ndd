@@ -554,9 +554,11 @@ const ClubManager = {
 
             <div class="club-owner-row">
               <div class="owner-profile" onclick="event.stopPropagation(); App.openUserProfilePage();" style="cursor: pointer;" title="Bấm để xem hồ sơ Chủ nhóm">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(club.ownerName || 'Host')}" class="owner-avatar" alt="${safeOwnerName}">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(isLoggedIn ? (club.ownerName || 'Host') : club.id)}" class="owner-avatar" alt="${isLoggedIn ? safeOwnerName : 'Chủ nhóm'}">
                 <div class="owner-info">
-                  <span class="owner-name">${safeOwnerName}</span>
+                  ${isLoggedIn
+                    ? `<span class="owner-name">${safeOwnerName}</span>`
+                    : this.renderLockedInfoPill("Chủ nhóm", "***", lockAction)}
                   ${isVIP
                     ? `<span class="owner-phone-text">${escapeHtml(club.ownerPhone || '')}</span>`
                     : this.renderLockedInfoPill("Số điện thoại", maskPhone(club.ownerPhone || '0902030185'), lockAction)}
@@ -729,12 +731,13 @@ const ClubManager = {
         <!-- Chủ nhóm & Câu chuyện -->
         <div style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-top: 14px;">
           <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px;">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(club.ownerName || 'Host')}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary);" alt="${safeOwnerName}">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(isLoggedIn ? (club.ownerName || 'Host') : club.id)}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary);" alt="${isLoggedIn ? safeOwnerName : 'Chủ nhóm'}">
             <div>
-              <div style="font-weight: 800; font-size: 1.05rem;">Chủ Nhóm: ${safeOwnerName}</div>
+              ${isLoggedIn ? `<div style="font-weight: 800; font-size: 1.05rem;">Chủ Nhóm: ${safeOwnerName}</div>` : ''}
               ${isVIP ? `<div style="font-size: 0.85rem; color: var(--text-muted);">Hotline / Zalo: ${displayPhone}</div>` : ''}
             </div>
           </div>
+          ${!isLoggedIn ? `<div style="margin-bottom: 12px;">${this.renderLockedInfoPill("Chủ nhóm", "***", lockAction)}</div>` : ''}
           ${lockedPhonePill ? `<div style="margin-bottom: 12px;">${lockedPhonePill}</div>` : ''}
 
           <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 6px;">📖 Câu Chuyện Chủ Nhóm:</h4>
