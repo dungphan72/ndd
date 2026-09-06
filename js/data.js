@@ -3720,7 +3720,7 @@ const SEED_CLUBS = [
     id: "club_01",
     name: "Nhóm Dinh Dưỡng Green Life - Cầu Giấy",
     type: "Nhóm dinh dưỡng chuyên sâu",
-    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
+    image: "images/default-club.jpg",
     ownerId: "usr_101",
     ownerName: "Nguyễn Văn Hùng",
     ownerPhone: "0912345678",

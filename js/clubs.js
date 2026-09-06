@@ -357,7 +357,7 @@ const ClubManager = {
           title: c.name || 'Nhóm Dinh Dưỡng',
           sub: `${c.addressDetail || ''}, ${c.ward || ''}, ${c.province || ''}`,
           type: c.type || 'Nhóm dinh dưỡng',
-          image: c.image || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80'
+          image: c.image || 'images/default-club.jpg'
         });
       }
     });
@@ -454,8 +454,8 @@ const ClubManager = {
       id: "club_" + Date.now(),
       name: clubData.name,
       type: clubData.type || "Nhóm dinh dưỡng chuyên sâu",
-      image: clubData.image || (clubData.images && clubData.images[0]) || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
-      images: clubData.images && clubData.images.length > 0 ? clubData.images : [(clubData.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80")],
+      image: clubData.image || (clubData.images && clubData.images[0]) || "images/default-club.jpg",
+      images: clubData.images && clubData.images.length > 0 ? clubData.images : [(clubData.image || "images/default-club.jpg")],
       ownerId: currentUser.id,
       ownerName: clubData.ownerName || currentUser.name || "Chủ nhóm",
       ownerPhone: clubData.ownerPhone || currentUser.phone || "0902030185",
@@ -512,7 +512,7 @@ const ClubManager = {
       const safeType = escapeHtml(club.type || 'Nhóm dinh dưỡng');
       const safeOwnerName = escapeHtml(club.ownerName || 'Chủ nhiệm CLB');
       const safeOpeningHours = escapeHtml(club.openingHours || 'Giờ mở cửa: 05:30 - 09:30');
-      const safeImage = sanitizeUrl(club.image, 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80');
+      const safeImage = sanitizeUrl(club.image, 'images/default-club.jpg');
 
       // Xử lý bảo mật thông tin cho tài khoản Dùng Thử
       const addressText = isVIP
@@ -524,7 +524,7 @@ const ClubManager = {
       return `
         <div class="club-card" onclick="ClubManager.showClubDetailModal('${escapeJsAttr(club.id)}')">
           <div class="club-image-wrap">
-            <img src="${safeImage}" alt="${safeName}" class="club-img" onerror="this.src='https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80'">
+            <img src="${safeImage}" alt="${safeName}" class="club-img" onerror="this.src='images/default-club.jpg'">
             <span class="club-type-badge ${badgeClass}">${safeType}</span>
             <span class="club-rating-badge"><i class="fa-solid fa-star" style="color:#f59e0b;"></i> ${escapeHtml(club.rating || '5.0')}</span>
           </div>
@@ -582,7 +582,7 @@ const ClubManager = {
     const safeOwnerName = escapeHtml(club.ownerName || 'Huấn luyện viên');
     const safeOpeningHours = escapeHtml(club.openingHours || 'Sáng: 05:30 - 09:30');
     const safeStory = escapeHtml(club.story || 'Chào mừng bạn đến với nhóm dinh dưỡng!');
-    const safeImage = sanitizeUrl(club.image, 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80');
+    const safeImage = sanitizeUrl(club.image, 'images/default-club.jpg');
 
     // Định dạng Địa chỉ và Số điện thoại bảo mật
     const addressText = isVIP

@@ -629,7 +629,7 @@ const App = {
         html += `<div class="suggestion-group-title"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> Nhóm Dinh Dưỡng</div>`;
         html += suggestions.clubs.slice(0, 4).map(c => `
           <div class="suggestion-item" onclick="ClubManager.showClubDetailModal('${escapeJsAttr(c.id)}')">
-            <img src="${sanitizeUrl(c.image, 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80')}" class="suggestion-thumb" alt="${escapeHtml(c.title)}" onerror="this.src='https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80'">
+            <img src="${sanitizeUrl(c.image, 'images/default-club.jpg')}" class="suggestion-thumb" alt="${escapeHtml(c.title)}" onerror="this.src='images/default-club.jpg'">
             <div class="suggestion-info">
               <div class="suggestion-title">${escapeHtml(c.title)}</div>
               <div class="suggestion-sub"><i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${escapeHtml(c.sub)}</div>
@@ -1970,7 +1970,7 @@ const App = {
 
         const popupContent = `
           <div style="min-width: 220px; font-family: inherit;">
-            <img src="${sanitizeUrl(c.image, 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80')}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;">
+            <img src="${sanitizeUrl(c.image, 'images/default-club.jpg')}" style="width: 100%; height: 110px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;">
             <h4 style="font-size: 0.95rem; margin-bottom: 4px; color: #0f172a;">${escapeHtml(c.name)}</h4>
             <div style="font-size: 0.78rem; color: ${markerColor}; font-weight: 700; margin-bottom: 4px;">${escapeHtml(c.type)}</div>
             <div style="font-size: 0.78rem; color: #64748b; margin-bottom: 8px;">📍 ${popupAddr}</div>
@@ -2134,7 +2134,7 @@ const App = {
 
     container.innerHTML = targetArr.map((imgSrc, idx) => `
       <div class="club-image-preview-item" title="Ảnh ${idx + 1}">
-        <img src="${escapeHtml(imgSrc)}" alt="Preview ${idx + 1}" onerror="this.src='https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80'">
+        <img src="${escapeHtml(imgSrc)}" alt="Preview ${idx + 1}" onerror="this.src='images/default-club.jpg'">
         <button type="button" class="remove-img-btn" onclick="App.removeClubImagePreview(${idx}, ${isEdit})">&times;</button>
         ${idx === 0 ? '<span class="main-badge">Ảnh chính</span>' : ''}
       </div>
@@ -2200,7 +2200,7 @@ const App = {
       images.unshift(inputUrl);
     }
     images = images.slice(0, 5);
-    const defaultImg = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+    const defaultImg = "images/default-club.jpg";
     const image = images.length > 0 ? images[0] : defaultImg;
     if (images.length === 0) images = [defaultImg];
 
@@ -2755,7 +2755,7 @@ const App = {
           <div style="display: flex; flex-direction: column; gap: 12px;">
             ${myClubs.map(c => `
               <div class="profile-item-row" style="display: flex; align-items: center; gap: 14px; background: var(--bg-main); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <img src="${sanitizeUrl(c.image, 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80')}" class="profile-item-thumb" alt="${escapeHtml(c.name)}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
+                <img src="${sanitizeUrl(c.image, 'images/default-club.jpg')}" class="profile-item-thumb" alt="${escapeHtml(c.name)}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
                 <div style="flex-grow: 1;">
                   <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${escapeHtml(c.name)}</div>
                   <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">
@@ -4300,7 +4300,7 @@ const App = {
         images.unshift(inputUrl);
       }
       images = images.slice(0, 5);
-      const defaultImg = "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+      const defaultImg = "images/default-club.jpg";
       c.images = images;
       c.image = images.length > 0 ? images[0] : (inputUrl || c.image || defaultImg);
 
