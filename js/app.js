@@ -3334,10 +3334,12 @@ const App = {
   },
 
   async submitChangeAvatar(event) {
-    if (event) event.preventDefault();
+    if (event) {
+      try { event.preventDefault(); } catch(e) {}
+    }
 
-    const submitBtn = document.querySelector('#changeAvatarModal button[type="submit"]');
-    const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+    const submitBtn = document.getElementById("submitAvatarBtn") || document.querySelector('#changeAvatarModal .btn-primary');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : `<i class="fa-solid fa-circle-check"></i> Cập Nhật Ảnh Đại Diện`;
 
     try {
       if (submitBtn) {
