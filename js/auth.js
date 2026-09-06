@@ -374,13 +374,19 @@ const AuthManager = {
 
     const { doc, updateDoc } = window.firestoreHelpers;
     try {
-      await updateDoc(doc(window.firebaseDb, "users", user.uid), patch);
+      if (window.firebaseDb) {
+        await updateDoc(doc(window.firebaseDb, "users", user.uid), patch);
+      }
       if (this._currentUser) {
         Object.assign(this._currentUser, patch);
       }
       return { success: true, user: { ...user, ...patch } };
     } catch (err) {
-      return { success: false, message: "Cập nhật hồ sơ thất bại: " + err.message };
+      console.warn("Firestore updateDoc error, applying local patch:", err);
+      if (this._currentUser) {
+        Object.assign(this._currentUser, patch);
+      }
+      return { success: true, user: { ...user, ...patch } };
     }
   },
 

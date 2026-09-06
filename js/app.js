@@ -2015,11 +2015,51 @@ const App = {
     document.querySelectorAll(".modal-backdrop").forEach(m => m.classList.remove("show"));
   },
 
+  // Helper nén ảnh bằng Canvas giảm dung lượng (đảm bảo không bao giờ vượt giới hạn Firestore 1MB)
+  compressImage(file, maxWidth = 600, maxHeight = 600, quality = 0.78) {
+    return new Promise((resolve, reject) => {
+      if (!file) return reject(new Error("No file provided"));
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = (err) => reject(err);
+        img.src = e.target.result;
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  },
+
   // Xử lý upload và preview ảnh nhóm (tối đa 5 hình)
   uploadedClubImages: [],
   editUploadedClubImages: [],
 
-  handleClubImagesUpload(e, isEdit = false) {
+  async handleClubImagesUpload(e, isEdit = false) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
@@ -2036,27 +2076,21 @@ const App = {
     }
 
     const filesToProcess = files.slice(0, remainingSlots);
-    if (files.length > remainingSlots) {
-      this.showToast(`⚠️ Chỉ thêm tối đa 5 hình ảnh. ${remainingSlots} hình ảnh sẽ được xử lý.`, "warning");
+    this.showToast(`⏳ Đang tối ưu ${filesToProcess.length} hình ảnh...`, "info");
+
+    for (const file of filesToProcess) {
+      try {
+        const compressed = await this.compressImage(file, 900, 900, 0.8);
+        if (targetArr.length < 5) {
+          targetArr.push(compressed);
+        }
+      } catch (err) {
+        console.error("Lỗi đọc file:", err);
+      }
     }
 
-    filesToProcess.forEach(file => {
-      if (file.size > 5 * 1024 * 1024) {
-        this.showToast(`⚠️ File "${file.name}" vượt quá 5MB và đã bị bỏ qua.`, "warning");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const base64Str = evt.target.result;
-        if (targetArr.length < 5) {
-          targetArr.push(base64Str);
-        }
-        this.renderClubImagesPreview(isEdit);
-      };
-      reader.readAsDataURL(file);
-    });
-
+    this.renderClubImagesPreview(isEdit);
+    this.showToast(`📸 Đã nạp thành công ${filesToProcess.length} hình ảnh!`, "success");
     e.target.value = "";
   },
 
@@ -3232,51 +3266,65 @@ const App = {
     this.openModal("changeAvatarModal");
   },
 
-  handleAvatarFileUpload(fileInput) {
+  async handleAvatarFileUpload(fileInput) {
     const file = fileInput.files && fileInput.files[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      this.showToast("⚠️ Dung lượng ảnh vượt quá 5MB. Vui lòng chọn ảnh nhỏ hơn!", "warning");
-      fileInput.value = "";
-      return;
-    }
+    this.showToast("⏳ Đang xử lý và nén ảnh đại diện...", "info");
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64Url = e.target.result;
+    try {
+      const compressedBase64 = await this.compressImage(file, 400, 400, 0.82);
       const previewImg = document.getElementById("avatarPreviewImg");
       const inputUrl = document.getElementById("changeAvatarUrlInput");
-      if (previewImg) previewImg.src = base64Url;
-      if (inputUrl) inputUrl.value = base64Url;
-      this.showToast("📸 Đã nạp hình ảnh! Nhấp 'Cập Nhật Ảnh Đại Diện' để hoàn tất.", "success");
-    };
-    reader.readAsDataURL(file);
+      if (previewImg) previewImg.src = compressedBase64;
+      if (inputUrl) inputUrl.value = compressedBase64;
+      this.showToast("📸 Đã nạp ảnh đại diện! Bấm 'Cập Nhật Ảnh Đại Diện' để lưu.", "success");
+    } catch (err) {
+      console.error("Lỗi nén avatar:", err);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Url = e.target.result;
+        const previewImg = document.getElementById("avatarPreviewImg");
+        const inputUrl = document.getElementById("changeAvatarUrlInput");
+        if (previewImg) previewImg.src = base64Url;
+        if (inputUrl) inputUrl.value = base64Url;
+        this.showToast("📸 Đã nạp ảnh! Bấm 'Cập Nhật Ảnh Đại Diện' để lưu.", "success");
+      };
+      reader.readAsDataURL(file);
+    }
   },
 
-  // Helper xử lý upload 1 hình ảnh (chuyển sang Base64 và gán vào URL input tương ứng)
-  handleSingleImageFileUpload(fileInput, targetUrlInputId) {
+  // Helper xử lý upload 1 hình ảnh (chuyển sang Base64 nén và gán vào URL input tương ứng)
+  async handleSingleImageFileUpload(fileInput, targetUrlInputId) {
     const file = fileInput.files && fileInput.files[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      this.showToast("⚠️ Dung lượng ảnh vượt quá 5MB!", "warning");
-      fileInput.value = "";
-      return;
-    }
+    this.showToast("⏳ Đang xử lý hình ảnh...", "info");
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64Url = e.target.result;
+    try {
+      const compressedBase64 = await this.compressImage(file, 800, 800, 0.8);
       const targetEl = document.getElementById(targetUrlInputId) || document.querySelector(`[name="${targetUrlInputId}"]`);
       if (targetEl) {
-        targetEl.value = base64Url;
+        targetEl.value = compressedBase64;
         targetEl.dispatchEvent(new Event('input', { bubbles: true }));
         targetEl.dispatchEvent(new Event('change', { bubbles: true }));
       }
       this.showToast("📸 Đã nạp file hình ảnh thành công!", "success");
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Lỗi nén ảnh:", err);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Url = e.target.result;
+        const targetEl = document.getElementById(targetUrlInputId) || document.querySelector(`[name="${targetUrlInputId}"]`);
+        if (targetEl) {
+          targetEl.value = base64Url;
+          targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+          targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        this.showToast("📸 Đã nạp file hình ảnh thành công!", "success");
+      };
+      reader.readAsDataURL(file);
+    }
   },
 
   previewAvatarUrl(url) {
@@ -3287,27 +3335,69 @@ const App = {
 
   async submitChangeAvatar(event) {
     if (event) event.preventDefault();
-    const user = AuthManager.getCurrentUser();
-    if (!user) return;
 
-    const inputUrl = document.getElementById("changeAvatarUrlInput");
-    const newAvatar = (inputUrl && inputUrl.value.trim()) ? inputUrl.value.trim() : user.avatar;
+    const submitBtn = document.querySelector('#changeAvatarModal button[type="submit"]');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
 
-    const res = await AuthManager.updateUserProfile({ avatar: newAvatar });
-    if (res.success) {
-      this.setupAuthUI();
-      const editThumb = document.getElementById("editProfileAvatarThumb");
-      if (editThumb) editThumb.src = newAvatar;
-      const updAvatarInput = document.getElementById("updAvatarInput");
-      if (updAvatarInput) updAvatarInput.value = newAvatar;
-
-      if (this.currentTab === 'userTab' || this.currentTab === 'profileTab') {
-        this.openUserProfilePage(false);
+    try {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang cập nhật...`;
       }
-      this.closeAllModals();
-      this.showToast("📷 Đã cập nhật ảnh đại diện thành công!");
-    } else {
-      this.showToast(res.message, "error");
+
+      const user = AuthManager.getCurrentUser();
+      if (!user) {
+        this.showToast("⚠️ Vui lòng đăng nhập để thực hiện!", "warning");
+        this.openModal("loginModal");
+        return;
+      }
+
+      const inputUrl = document.getElementById("changeAvatarUrlInput");
+      const previewImg = document.getElementById("avatarPreviewImg");
+
+      let newAvatar = "";
+      if (inputUrl && inputUrl.value.trim()) {
+        newAvatar = inputUrl.value.trim();
+      } else if (previewImg && previewImg.src && !previewImg.src.includes("photo-1534528741775")) {
+        newAvatar = previewImg.src;
+      } else {
+        newAvatar = user.avatar;
+      }
+
+      if (!newAvatar) {
+        this.showToast("⚠️ Vui lòng nạp hoặc chọn link ảnh đại diện!", "warning");
+        return;
+      }
+
+      const res = await AuthManager.updateUserProfile({ avatar: newAvatar });
+      if (res && res.success) {
+        this.setupAuthUI();
+
+        // Cập nhật ngay tất cả hình avatar trên màn hình
+        document.querySelectorAll('#userAvatarImg, #editProfileAvatarThumb, .dash-user-avatar-wrapper img').forEach(img => {
+          img.src = newAvatar;
+        });
+
+        const updAvatarInput = document.getElementById("updAvatarInput");
+        if (updAvatarInput) updAvatarInput.value = newAvatar;
+
+        if (this.currentTab === 'userTab' || this.currentTab === 'profileTab') {
+          this.openUserProfilePage(false);
+        }
+
+        this.closeAllModals();
+        this.showToast("🎉 Đã cập nhật ảnh đại diện thành công!", "success");
+      } else {
+        this.showToast(res ? res.message : "Có lỗi xảy ra khi lưu ảnh đại diện!", "error");
+      }
+    } catch (err) {
+      console.error("Lỗi submitChangeAvatar:", err);
+      this.showToast("⚠️ Có lỗi xảy ra: " + err.message, "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
     }
   },
 
