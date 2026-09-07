@@ -2137,6 +2137,9 @@ const App = {
     const dropdown = document.getElementById("userDropdownMenu");
     if (dropdown) dropdown.classList.remove("show");
     document.querySelectorAll(".modal-backdrop").forEach(m => m.classList.remove("show"));
+    this.hideRegisterError();
+    const loginErr = document.getElementById("loginErrorAlert");
+    if (loginErr) loginErr.style.display = "none";
   },
 
   // Helper nén ảnh bằng Canvas giảm dung lượng (đảm bảo không bao giờ vượt giới hạn Firestore 1MB)
@@ -2552,9 +2555,27 @@ const App = {
     }
   },
 
+  showRegisterError(msg) {
+    const errAlert = document.getElementById("registerErrorAlert");
+    if (errAlert) {
+      errAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="margin-right: 6px;"></i> ${escapeHtml(msg)}`;
+      errAlert.style.display = "block";
+    }
+    this.showToast(msg, "error");
+  },
+
+  hideRegisterError() {
+    const errAlert = document.getElementById("registerErrorAlert");
+    if (errAlert) {
+      errAlert.style.display = "none";
+    }
+  },
+
   // Submit Đăng ký
   async submitRegister(e) {
     e.preventDefault();
+    this.hideRegisterError();
+
     const form = e.target;
     const name = form.regName.value.trim();
     const phone = form.regPhone.value.trim();
@@ -2565,23 +2586,23 @@ const App = {
     const refCode = (form.regRefCode ? form.regRefCode.value.trim() : "") || sessionStorage.getItem("nutriclub_ref_code") || "";
 
     if (!name || !phone || !email || !password) {
-      this.showToast("Vui lòng điền đầy đủ họ tên, số điện thoại, email và mật khẩu!", "error");
+      this.showRegisterError("Vui lòng điền đầy đủ họ tên, số điện thoại, email và mật khẩu!");
       return;
     }
     if (!/^0\d{9,10}$/.test(phone)) {
-      this.showToast("Số điện thoại không hợp lệ (phải bắt đầu bằng 0, 10-11 số)!", "error");
+      this.showRegisterError("Số điện thoại không hợp lệ (phải bắt đầu bằng 0, bao gồm 10-11 chữ số)!");
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      this.showToast("Email không đúng định dạng!", "error");
+      this.showRegisterError("Email không đúng định dạng!");
       return;
     }
     if (password.length < 6) {
-      this.showToast("Mật khẩu phải có ít nhất 6 ký tự!", "error");
+      this.showRegisterError("Mật khẩu phải có ít nhất 6 ký tự!");
       return;
     }
     if (password !== passwordConfirm) {
-      this.showToast("Mật khẩu xác nhận không khớp!", "error");
+      this.showRegisterError("Mật khẩu xác nhận không trùng khớp!");
       return;
     }
 
@@ -2594,12 +2615,13 @@ const App = {
     const res = await AuthManager.register({ name, phone, email, password, role, refCode });
     if (submitBtn) submitBtn.disabled = false;
     if (res.success) {
+      this.hideRegisterError();
       this.setupAuthUI();
       this.closeAllModals();
       form.reset();
       this.showToast(`🎉 Chúc mừng ${res.user.name} đã đăng ký tài khoản thành công!${res.rewardMsg || ''}`);
     } else {
-      this.showToast(res.message, "error");
+      this.showRegisterError(res.message);
     }
   },
 

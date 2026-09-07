@@ -920,31 +920,34 @@
       </div>
       <form onsubmit="App.submitRegister(event)">
         <div class="modal-body">
+          <!-- Alert Báo Lỗi Trực Tiếp Trong Khung Đăng Ký -->
+          <div id="registerErrorAlert" class="alert alert-danger" style="display: none; background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; padding: 10px 14px; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 700; margin-bottom: 14px;"></div>
+
           <div class="form-group">
             <label class="form-label">Họ và tên *</label>
-            <input type="text" name="regName" class="form-control" placeholder="Nguyễn Văn A" required>
+            <input type="text" name="regName" class="form-control" placeholder="Nguyễn Văn A" required oninput="App.hideRegisterError()">
           </div>
           <div class="form-group-row">
             <div class="form-group">
               <label class="form-label">Số điện thoại *</label>
-              <input type="tel" name="regPhone" class="form-control" placeholder="09xxxxxxx" required>
+              <input type="tel" name="regPhone" class="form-control" placeholder="09xxxxxxx" required oninput="App.hideRegisterError()">
             </div>
             <div class="form-group">
               <label class="form-label">Email *</label>
-              <input type="email" name="regEmail" class="form-control" placeholder="name@email.com" required>
+              <input type="email" name="regEmail" class="form-control" placeholder="name@email.com" required oninput="App.hideRegisterError()">
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Mật khẩu *</label>
-            <input type="password" name="regPassword" class="form-control" placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+            <input type="password" name="regPassword" class="form-control" placeholder="Tối thiểu 6 ký tự" minlength="6" required oninput="App.hideRegisterError()">
           </div>
           <div class="form-group">
             <label class="form-label">Xác nhận mật khẩu *</label>
-            <input type="password" name="regPasswordConfirm" class="form-control" placeholder="Nhập lại mật khẩu" minlength="6" required>
+            <input type="password" name="regPasswordConfirm" class="form-control" placeholder="Nhập lại mật khẩu" minlength="6" required oninput="App.hideRegisterError()">
           </div>
           <div class="form-group">
             <label class="form-label">🎁 Mã / SĐT Người Giới Thiệu (Nếu Có)</label>
-            <input type="text" id="regRefCodeInput" name="regRefCode" class="form-control" placeholder="Ví dụ: 0902030185">
+            <input type="text" id="regRefCodeInput" name="regRefCode" class="form-control" placeholder="Ví dụ: 0902030185" oninput="App.hideRegisterError()">
           </div>
         </div>
         <div class="modal-footer">
