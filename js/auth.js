@@ -65,6 +65,11 @@ function mapAuthError(err) {
 const AuthManager = {
   _currentUser: null,
   _profileUnsub: null,
+  _initialized: false,
+
+  isInitialized() {
+    return this._initialized;
+  },
 
   // Gọi 1 lần từ App.init() (sau khi firebase-config.js module đã chạy xong).
   // Lắng nghe trạng thái đăng nhập thật + đồng bộ realtime hồ sơ Firestore,
@@ -72,6 +77,8 @@ const AuthManager = {
   initAuth(onChange) {
     if (!window.firebaseAuth || !window.firebaseAuthHelpers || !window.firebaseDb || !window.firestoreHelpers) {
       console.warn("Firebase Auth chưa sẵn sàng, bỏ qua initAuth.");
+      this._initialized = true;
+      if (typeof onChange === "function") onChange(null);
       return;
     }
     const { onAuthStateChanged } = window.firebaseAuthHelpers;
@@ -84,6 +91,7 @@ const AuthManager = {
       }
       if (!fbUser) {
         this._currentUser = null;
+        this._initialized = true;
         if (typeof onChange === "function") onChange(null);
         return;
       }
@@ -106,6 +114,7 @@ const AuthManager = {
               vipDays: 30
             };
           }
+          this._initialized = true;
           if (typeof onChange === "function") onChange(this._currentUser);
         },
         (err) => {
@@ -119,8 +128,11 @@ const AuthManager = {
               isAdmin: true,
               package: "trial"
             };
-            if (typeof onChange === "function") onChange(this._currentUser);
+          } else {
+            this._currentUser = null;
           }
+          this._initialized = true;
+          if (typeof onChange === "function") onChange(this._currentUser);
         }
       );
     });

@@ -142,8 +142,27 @@ const App = {
 
     // Khởi tạo Lắng nghe trạng thái đăng nhập thật từ Firebase Authentication
     if (typeof AuthManager !== "undefined" && typeof AuthManager.initAuth === "function") {
-      AuthManager.initAuth(() => {
+      AuthManager.initAuth((currentUser) => {
         this.setupAuthUI();
+
+        // Nếu Firebase vừa restore session đăng nhập thành công sau khi F5:
+        if (currentUser) {
+          // Tự động đóng loginModal nếu modal lỡ nạp do F5 ban đầu
+          const loginModal = document.getElementById("loginModal");
+          if (loginModal && loginModal.classList.contains("active")) {
+            this.closeModal("loginModal");
+          }
+
+          // Render lại nội dung cho tab hiện tại nếu đang ở Hồ sơ, Admin hoặc Tracker
+          if (this.activeTab === 'profileTab') {
+            this.openUserProfilePage(false);
+          } else if (this.activeTab === 'adminTab') {
+            this.openAdminDashboardModal(false);
+          } else if (this.activeTab === 'trackerTab') {
+            this.renderTrackerDashboard();
+          }
+        }
+
         if (typeof ClubManager !== "undefined" && typeof ClubManager.renderClubs === "function") {
           ClubManager.renderClubs();
         }
@@ -2819,6 +2838,14 @@ const App = {
 
     const currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
+      // Nếu Firebase Auth chưa khởi tạo xong trạng thái phiên khi vừa F5, hiển thị loading tạm thời
+      if (typeof AuthManager !== "undefined" && typeof AuthManager.isInitialized === "function" && !AuthManager.isInitialized()) {
+        const container = document.getElementById("profileContainer");
+        if (container) {
+          container.innerHTML = `<div style="text-align: center; padding: 50px 20px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 12px; color: var(--primary);"></i><div style="font-weight: 600;">Đang kiểm tra trạng thái đăng nhập...</div></div>`;
+        }
+        return;
+      }
       this.showToast("⚠️ Vui lòng đăng nhập để xem hồ sơ cá nhân!", "warning");
       this.openModal("loginModal");
       return;
@@ -3670,6 +3697,14 @@ const App = {
   async openAdminDashboardModal(doSwitchTab = true) {
     const currentUser = AuthManager.getCurrentUser();
     if (!currentUser || !AuthManager.isAdminUser()) {
+      // Nếu Firebase Auth chưa khởi tạo xong trạng thái phiên khi vừa F5, hiển thị loading tạm thời
+      if (typeof AuthManager !== "undefined" && typeof AuthManager.isInitialized === "function" && !AuthManager.isInitialized()) {
+        const tabContainer = document.getElementById("adminTabContentContainer");
+        if (tabContainer) {
+          tabContainer.innerHTML = `<div style="text-align: center; padding: 50px 20px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 12px; color: var(--primary);"></i><div style="font-weight: 600;">Đang kiểm tra quyền Quản trị...</div></div>`;
+        }
+        return;
+      }
       this.showToast("Bạn không có quyền truy cập trang Quản trị!", "error");
       this.openModal("loginModal");
       return;
