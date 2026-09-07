@@ -5036,13 +5036,12 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
     const summaryBox = document.getElementById("eventJoinSummaryBox");
     if (summaryBox) {
       summaryBox.innerHTML = `
-        <div style="font-weight: 800; font-size: 1rem; color: var(--text-main); margin-bottom: 4px;">${escapeHtml(evt.title)}</div>
-        <div style="font-size: 0.83rem; color: var(--text-muted);">
-          <i class="fa-solid fa-house" style="color: var(--primary);"></i> ${escapeHtml(evt.clubName || '')} • 
-          <i class="fa-solid fa-calendar-day" style="color: #f59e0b;"></i> ${escapeHtml(evt.date)} (${escapeHtml(evt.time)})
+        <div style="font-weight: 800; font-size: 1.02rem; color: var(--text-main); margin-bottom: 6px; line-height: 1.4;">${escapeHtml(evt.title)}</div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          ${escapeHtml(evt.clubName || '')} &bull; ${escapeHtml(evt.date)} (${escapeHtml(evt.time)})
         </div>
-        <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
-          📍 ${escapeHtml(evt.locationType || '')}: ${escapeHtml(evt.address || '')}
+        <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 4px;">
+          ${escapeHtml(evt.locationType || 'Trực tiếp tại nhóm')}: ${escapeHtml(evt.address || '')}
         </div>
       `;
     }

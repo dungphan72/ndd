@@ -2159,13 +2159,13 @@
   <div id="eventJoinModal" class="modal-backdrop">
     <div class="modal-content" style="max-width: 500px;">
       <div class="modal-header">
-        <h3 id="eventJoinModalTitle"><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Đăng Ký Tham Gia Sự Kiện</h3>
+        <h3 id="eventJoinModalTitle">Đăng Ký Tham Gia Sự Kiện</h3>
         <button type="button" class="close-btn" onclick="App.closeAllModals()">&times;</button>
       </div>
       <form onsubmit="App.submitEventJoinForm(event)">
         <input type="hidden" id="eventJoinId">
         <div class="modal-body" style="padding: 20px;">
-          <div id="eventJoinSummaryBox" style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px;">
+          <div id="eventJoinSummaryBox" style="background: var(--bg-main); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px;">
             <!-- Summary filled dynamically -->
           </div>
 
@@ -2180,7 +2180,7 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Số lượng người tham gia đi cùng</label>
+            <label class="form-label" style="font-weight: 700;">Số lượng người tham gia đi cùng</label>
             <select id="eventJoinAttendees" class="form-control">
               <option value="1">1 người (Đi một mình)</option>
               <option value="2">2 người (Đi cùng bạn/người thân)</option>
@@ -2190,14 +2190,14 @@
           </div>
 
           <div class="form-group" style="margin-bottom: 0;">
-            <label class="form-label">Nhu cầu / Ghi chú cho Chủ nhóm</label>
+            <label class="form-label" style="font-weight: 700;">Nhu cầu / Ghi chú cho Chủ nhóm</label>
             <textarea id="eventJoinNote" class="form-control" rows="2" placeholder="Ví dụ: Muốn kiểm tra chỉ số InBody, Muốn tư vấn thực đơn giảm cân..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
           <button type="submit" class="btn btn-primary" style="font-weight: 800;">
-            <i class="fa-solid fa-paper-plane"></i> Xác Nhận Đăng Ký
+            Xác Nhận Đăng Ký
           </button>
         </div>
       </form>
@@ -2210,7 +2210,7 @@
       <div class="modal-header" style="border-bottom: 1px solid var(--border-color); padding: 16px 20px;">
         <div>
           <h3 id="eventRegModalTitle" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">
-            <i class="fa-solid fa-users-gear" style="color: var(--primary);"></i> Quản Lý Người Đăng Ký Sự Kiện
+            Quản Lý Người Đăng Ký Sự Kiện
           </h3>
           <div id="eventRegModalSub" style="font-size: 0.85rem; color: var(--text-muted);"></div>
         </div>
@@ -2226,17 +2226,17 @@
 
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary" onclick="App.openAddManualRegistrationModal()" style="font-size: 0.83rem; padding: 6px 12px; font-weight: 700;">
-              <i class="fa-solid fa-user-plus"></i> Thêm Khách Đăng Ký
+              Thêm Khách Đăng Ký
             </button>
             <button type="button" class="btn btn-outline" onclick="App.exportEventRegistrationsCSV()" style="font-size: 0.83rem; padding: 6px 12px; font-weight: 700; color: #059669; border-color: #059669;">
-              <i class="fa-solid fa-file-csv"></i> Xuất Danh Sách CSV
+              Xuất Danh Sách CSV
             </button>
           </div>
         </div>
 
         <!-- Bộ lọc & Tìm kiếm khách đăng ký -->
         <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
-          <input type="text" id="eventRegSearchInput" class="form-control" placeholder="🔍 Tìm theo Họ tên hoặc SĐT khách..." oninput="App.filterEventRegistrationsList()" style="flex-grow: 1;">
+          <input type="text" id="eventRegSearchInput" class="form-control" placeholder="Tìm theo Họ tên hoặc SĐT khách..." oninput="App.filterEventRegistrationsList()" style="flex-grow: 1;">
           <select id="eventRegStatusFilter" class="filter-select" onchange="App.filterEventRegistrationsList()" style="width: auto;">
             <option value="all">Tất cả trạng thái</option>
             <option value="confirmed">Đã đăng ký</option>
@@ -2261,7 +2261,7 @@
   <div id="addManualRegistrationModal" class="modal-backdrop">
     <div class="modal-content" style="max-width: 480px;">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> Thêm Khách Tham Gia Sự Kiện</h3>
+        <h3>Thêm Khách Tham Gia Sự Kiện</h3>
         <button type="button" class="close-btn" onclick="App.closeModal('addManualRegistrationModal')">&times;</button>
       </div>
       <form onsubmit="App.submitManualRegistration(event)">
@@ -2276,17 +2276,17 @@
             <input type="tel" id="manualRegPhone" class="form-control" required placeholder="09xxxxxxx">
           </div>
           <div class="form-group">
-            <label class="form-label">Số người đi cùng</label>
+            <label class="form-label" style="font-weight: 700;">Số người đi cùng</label>
             <input type="number" id="manualRegAttendees" class="form-control" value="1" min="1" max="10">
           </div>
           <div class="form-group">
-            <label class="form-label">Nhu cầu / Ghi chú</label>
+            <label class="form-label" style="font-weight: 700;">Nhu cầu / Ghi chú</label>
             <textarea id="manualRegNote" class="form-control" rows="2" placeholder="Ghi chú thêm về khách..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" onclick="App.closeModal('addManualRegistrationModal')">Hủy</button>
-          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Lưu Đăng Ký</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">Lưu Đăng Ký</button>
         </div>
       </form>
     </div>
