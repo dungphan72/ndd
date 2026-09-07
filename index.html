@@ -32,6 +32,15 @@
 </head>
 <body>
 
+  <!-- Fullpage Loading Overlay Spinner -->
+  <div id="globalPageLoader" class="global-page-loader">
+    <div class="loader-spinner-content">
+      <div class="spinner-ring"></div>
+      <div class="loader-brand"><i class="fa-solid fa-leaf"></i> Nhomdinhduong<span style="color: var(--primary);">.vn</span></div>
+      <div class="loader-text" id="globalLoaderText">Đang tải dữ liệu...</div>
+    </div>
+  </div>
+
   <!-- Top Navigation Bar -->
   <header class="navbar">
     <div class="container nav-container">
@@ -853,21 +862,25 @@
       </div>
       <form onsubmit="App.submitLogin(event)">
         <div class="modal-body">
+          <!-- Báo lỗi ngay khung đăng nhập nếu có lỗi -->
+          <div id="loginErrorAlert" class="alert alert-danger" style="display: none;"></div>
+
           <div class="form-group">
             <label class="form-label">Số điện thoại hoặc Email</label>
-            <input type="text" name="loginAccount" class="form-control" placeholder="Ví dụ: 0912345678" required>
+            <input type="text" name="loginAccount" class="form-control" placeholder="Ví dụ: 0912345678" required oninput="const el=document.getElementById('loginErrorAlert'); if(el) el.style.display='none';">
           </div>
           <div class="form-group">
             <label class="form-label">Mật khẩu</label>
-            <input type="password" name="loginPassword" class="form-control" placeholder="Mật khẩu của bạn" required>
+            <input type="password" name="loginPassword" class="form-control" placeholder="Mật khẩu của bạn" required oninput="const el=document.getElementById('loginErrorAlert'); if(el) el.style.display='none';">
           </div>
-          <div style="text-align: right; margin-top: -6px;">
-            <a href="#" onclick="event.preventDefault(); App.closeAllModals(); App.openModal('forgotPasswordModal');" style="font-size: 0.85rem; color: var(--primary);">Quên mật khẩu?</a>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: -4px;">
+            <a href="#" onclick="event.preventDefault(); App.closeAllModals(); App.openModal('registerModal');" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">Đăng ký tài khoản mới</a>
+            <a href="#" onclick="event.preventDefault(); App.closeAllModals(); App.openModal('forgotPasswordModal');" style="font-size: 0.85rem; color: var(--text-muted);">Quên mật khẩu?</a>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
-          <button type="submit" class="btn btn-primary">Đăng Nhập Ngay</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Ngay</button>
         </div>
       </form>
     </div>

@@ -93,6 +93,8 @@ const App = {
   },
 
   init() {
+    this.showLoader("Đang tải dữ liệu...");
+
     // Khởi tạo các sự kiện giao diện
     this.setupAuthUI();
     this.setupLocationDropdowns();
@@ -151,6 +153,9 @@ const App = {
       const refInput = document.getElementById("regRefCodeInput");
       if (refInput) refInput.value = refParam;
     }
+
+    // Tự động ẩn vòng xoay loading khi đã tải xong dữ liệu ban đầu
+    setTimeout(() => this.hideLoader(), 400);
   },
 
   // Chuyển đổi giữa các Trang / Tab (Nhóm Dinh Dưỡng | Sự Kiện | Shop Công Cụ | Khóa Học | Tính BMI | Quản Trị Admin)
@@ -2065,11 +2070,56 @@ const App = {
     }
   },
 
+  // Hiển thị / Ẩn Vòng Xoay Loading Spinner Overlay Toàn Trang
+  showLoader(text = "Đang tải dữ liệu...") {
+    let loader = document.getElementById("globalPageLoader");
+    if (!loader) {
+      loader = document.createElement("div");
+      loader.id = "globalPageLoader";
+      loader.className = "global-page-loader";
+      loader.innerHTML = `
+        <div class="loader-spinner-content">
+          <div class="spinner-ring"></div>
+          <div class="loader-brand"><i class="fa-solid fa-leaf"></i> Nhomdinhduong<span style="color: var(--primary);">.vn</span></div>
+          <div class="loader-text" id="globalLoaderText">${escapeHtml(text)}</div>
+        </div>
+      `;
+      document.body.appendChild(loader);
+    } else {
+      const loaderText = document.getElementById("globalLoaderText");
+      if (loaderText) loaderText.textContent = text;
+      loader.classList.remove("hidden");
+      loader.style.display = "flex";
+    }
+  },
+
+  hideLoader() {
+    const loader = document.getElementById("globalPageLoader");
+    if (loader) {
+      loader.classList.add("hidden");
+      setTimeout(() => {
+        if (loader.classList.contains("hidden")) {
+          loader.style.display = "none";
+        }
+      }, 300);
+    }
+  },
+
   // Modal Control
   openModal(modalId) {
     this.closeAllModals();
     const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add("show");
+    if (modal) {
+      modal.classList.add("show");
+      // Xóa thông báo lỗi cũ nếu là modal đăng nhập
+      if (modalId === "loginModal") {
+        const errAlert = document.getElementById("loginErrorAlert");
+        if (errAlert) {
+          errAlert.style.display = "none";
+          errAlert.innerHTML = "";
+        }
+      }
+    }
   },
 
   closeAllModals() {
@@ -2416,21 +2466,78 @@ const App = {
     e.preventDefault();
     const phoneOrEmail = e.target.loginAccount.value.trim();
     const password = e.target.loginPassword.value.trim();
+    const errAlert = document.getElementById("loginErrorAlert");
+
+    // Ẩn thông báo lỗi cũ nếu có
+    if (errAlert) {
+      errAlert.style.display = "none";
+      errAlert.innerHTML = "";
+    }
+
+    if (!phoneOrEmail || !password) {
+      const errMsg = "Vui lòng điền đầy đủ Số điện thoại / Email và Mật khẩu!";
+      if (errAlert) {
+        errAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${errMsg}`;
+        errAlert.style.display = "flex";
+      }
+      this.showToast(errMsg, "error");
+      return;
+    }
 
     const submitBtn = e.target.querySelector("button[type=submit]");
+    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : "";
     if (submitBtn) {
       if (submitBtn.disabled) return;
       submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang đăng nhập...`;
     }
 
-    const res = await AuthManager.login(phoneOrEmail, password);
-    if (submitBtn) submitBtn.disabled = false;
-    if (res.success) {
-      this.setupAuthUI();
-      this.closeAllModals();
-      this.showToast(`👋 Chào mừng ${res.user.name} đã đăng nhập!`);
-    } else {
-      this.showToast(res.message, "error");
+    // 3. Nếu website đang load thì hiển thị vòng xoay loading
+    this.showLoader("Đang kiểm tra tài khoản & đăng nhập...");
+
+    try {
+      const res = await AuthManager.login(phoneOrEmail, password);
+
+      if (res.success) {
+        // Reset form & khung lỗi
+        e.target.reset();
+        if (errAlert) {
+          errAlert.style.display = "none";
+          errAlert.innerHTML = "";
+        }
+
+        // Cập nhật trạng thái auth UI & đóng Modal
+        this.setupAuthUI();
+        this.closeAllModals();
+
+        // 2. Sau khi đăng nhập xong chuyển về trang chủ (clubsTab)
+        this.switchTab("clubsTab");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        this.showToast(`👋 Chào mừng ${res.user.name || "bạn"} đã đăng nhập thành công!`);
+      } else {
+        // 1. Phải có báo lỗi ngay khung đăng nhập nếu có lỗi
+        const errMsg = res.message || "Số điện thoại / Email hoặc mật khẩu không chính xác.";
+        if (errAlert) {
+          errAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${escapeHtml(errMsg)}`;
+          errAlert.style.display = "flex";
+        }
+        this.showToast(errMsg, "error");
+      }
+    } catch (err) {
+      console.error("Lỗi submitLogin:", err);
+      const errMsg = "Có lỗi kết nối xảy ra, vui lòng thử lại!";
+      if (errAlert) {
+        errAlert.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${errMsg}`;
+        errAlert.style.display = "flex";
+      }
+      this.showToast(errMsg, "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+      }
+      this.hideLoader();
     }
   },
 
