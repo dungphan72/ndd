@@ -382,6 +382,59 @@ const ERPManager = {
   // Format tiền tệ Việt Nam
   formatVND(amount) {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount || 0);
+  },
+
+  // 8. XUẤT BÁO CÁO EXCEL/CSV (UTF-8 BOM hỗ trợ mở bằng Microsoft Excel Tiếng Việt)
+  exportMembersCSV() {
+    const members = this.getMembers();
+    if (members.length === 0) return false;
+
+    let csvContent = "\uFEFFMã Hội Viên,Họ và Tên,Số Điện Thoại,Giới Tính,Gói Dinh Dưỡng,Tổng Buổi,Đã Dùng,Còn Lại,Trạng Thái,Ghi Chú\n";
+    members.forEach(m => {
+      csvContent += `"${m.id}","${m.name}","${m.phone}","${m.gender}","${m.packageName}",${m.totalVisits},${m.usedVisits},${m.remainingVisits},"${m.status}","${(m.notes || '').replace(/"/g, '""')}"\n`;
+    });
+
+    this._downloadCSV(csvContent, `ERP_BaoCaoHoiVien_${new Date().toISOString().split("T")[0]}.csv`);
+    return true;
+  },
+
+  exportTransactionsCSV() {
+    const txs = this.getTransactions();
+    if (txs.length === 0) return false;
+
+    let csvContent = "\uFEFFMã Giao Dịch,Loại,Danh Mục,Số Tiền,Nội Dung,Ngày,Hội Viên / Khách\n";
+    txs.forEach(t => {
+      const typeStr = t.type === "income" ? "THU" : "CHI";
+      csvContent += `"${t.id}","${typeStr}","${t.category}",${t.amount},"${(t.description || '').replace(/"/g, '""')}","${t.date}","${t.memberName || ''}"\n`;
+    });
+
+    this._downloadCSV(csvContent, `ERP_SoQuyThuChi_${new Date().toISOString().split("T")[0]}.csv`);
+    return true;
+  },
+
+  exportInventoryCSV() {
+    const inv = this.getInventory();
+    if (inv.length === 0) return false;
+
+    let csvContent = "\uFEFFMã SKU,Tên Sản Phẩm / Vật Tư,Danh Mục,Đơn Vị,Tồn Kho,Tồn Tối Thiểu,Cảnh Báo Tồn,Đơn Giá\n";
+    inv.forEach(i => {
+      const isLow = i.stock <= i.minStock ? "CẢNH BÁO TỒN THẤP" : "Bình thường";
+      csvContent += `"${i.code}","${i.name}","${i.category}","${i.unit}",${i.stock},${i.minStock},"${isLow}",${i.unitPrice}\n`;
+    });
+
+    this._downloadCSV(csvContent, `ERP_BaoCaoKiemKeKho_${new Date().toISOString().split("T")[0]}.csv`);
+    return true;
+  },
+
+  _downloadCSV(content, filename) {
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 };
 

@@ -5313,9 +5313,14 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-users" style="color: var(--primary);"></i> Danh Sách Hội Viên & Điểm Danh 1-Touch</h5>
             <div style="font-size: 0.83rem; color: var(--text-muted);">Bấm "Điểm Danh" để ghi nhận hội viên dùng trà & shake hôm nay</div>
           </div>
-          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpMemberModal')" style="font-weight: 700; font-size: 0.88rem;">
-            <i class="fa-solid fa-user-plus"></i> ➕ Đăng Ký Hội Viên Mới
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('members')" style="font-weight: 700; font-size: 0.85rem;">
+              <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
+            </button>
+            <button type="button" class="btn btn-primary" onclick="App.openModal('addErpMemberModal')" style="font-weight: 700; font-size: 0.88rem;">
+              <i class="fa-solid fa-user-plus"></i> ➕ Đăng Ký Hội Viên Mới
+            </button>
+          </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -5344,17 +5349,23 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                   ${isCheckedToday ? `
-                    <button type="button" class="btn btn-outline" disabled style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; font-weight: 800; font-size: 0.85rem;">
-                      <i class="fa-solid fa-circle-check"></i> Đã Có Mặt Hôm Nay
+                    <button type="button" class="btn btn-outline" disabled style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; font-weight: 800; font-size: 0.82rem;">
+                      <i class="fa-solid fa-circle-check"></i> Đã Có Mặt
                     </button>
                   ` : `
-                    <button type="button" class="btn btn-primary" onclick="App.checkInErpMember('${escapeJsAttr(m.id)}')" style="font-weight: 800; font-size: 0.85rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
-                      <i class="fa-solid fa-mug-hot"></i> 1-Touch Điểm Danh
+                    <button type="button" class="btn btn-primary" onclick="App.checkInErpMember('${escapeJsAttr(m.id)}')" style="font-weight: 800; font-size: 0.82rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                      <i class="fa-solid fa-mug-hot"></i> Điểm Danh
                     </button>
                   `}
-                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 10px; font-size: 0.8rem;" onclick="App.deleteErpMember('${escapeJsAttr(m.id)}')">
+                  <button type="button" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.8rem; font-weight: 700; color: var(--primary);" onclick="App.viewErpMemberCard('${escapeJsAttr(m.id)}')">
+                    <i class="fa-solid fa-id-card"></i> Thẻ QR
+                  </button>
+                  <a href="https://zalo.me/${encodeURIComponent(m.phone)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 6px 10px; font-size: 0.8rem; background: #0068ff; border: none;" title="Nhắn Zalo">
+                    <i class="fa-solid fa-comment-dots"></i> Zalo
+                  </a>
+                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 8px; font-size: 0.8rem;" onclick="App.deleteErpMember('${escapeJsAttr(m.id)}')">
                     <i class="fa-solid fa-trash-can"></i>
                   </button>
                 </div>
@@ -5370,9 +5381,14 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-stacked" style="color: var(--secondary);"></i> Quản Lý Tồn Kho & Vật Tư Nhóm</h5>
             <div style="font-size: 0.83rem; color: var(--text-muted);">Tự động cảnh báo đỏ khi sản phẩm tồn thấp hơn mức tối thiểu</div>
           </div>
-          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpInventoryModal')" style="font-weight: 700; font-size: 0.88rem; background: var(--secondary); border-color: var(--secondary);">
-            <i class="fa-solid fa-box-archive"></i> ➕ Nhập Sản Phẩm Kho
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('inventory')" style="font-weight: 700; font-size: 0.85rem;">
+              <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
+            </button>
+            <button type="button" class="btn btn-primary" onclick="App.openModal('addErpInventoryModal')" style="font-weight: 700; font-size: 0.88rem; background: var(--secondary); border-color: var(--secondary);">
+              <i class="fa-solid fa-box-archive"></i> ➕ Nhập Sản Phẩm Kho
+            </button>
+          </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -5420,9 +5436,14 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-file-invoice-dollar" style="color: #10b981;"></i> Sổ Quỹ Thu - Chi P&L Thực Tế</h5>
             <div style="font-size: 0.83rem; color: var(--text-muted);">Ghi nhận doanh thu bán gói NDD, bán lẻ & chi phí vận hành mặt bằng, điện nước</div>
           </div>
-          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpTransactionModal')" style="font-weight: 700; font-size: 0.88rem; background: #059669; border-color: #059669;">
-            <i class="fa-solid fa-plus-minus"></i> ➕ Ghi Nhận Thu / Chi
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('transactions')" style="font-weight: 700; font-size: 0.85rem;">
+              <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
+            </button>
+            <button type="button" class="btn btn-primary" onclick="App.openModal('addErpTransactionModal')" style="font-weight: 700; font-size: 0.88rem; background: #059669; border-color: #059669;">
+              <i class="fa-solid fa-plus-minus"></i> ➕ Ghi Nhận Thu / Chi
+            </button>
+          </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -5648,6 +5669,75 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
   updateErpStock(itemId, deltaQty) {
     ERPManager.updateStock(itemId, deltaQty);
     this.renderErpSection();
+  },
+
+  viewErpMemberCard(memberId) {
+    const members = ERPManager.getMembers();
+    const m = members.find(item => item.id === memberId);
+    if (!m) {
+      this.showToast("Không tìm thấy thông tin thẻ hội viên!", "error");
+      return;
+    }
+
+    const modalBody = document.getElementById("viewErpCardModalBody");
+    if (modalBody) {
+      const qrData = encodeURIComponent(`NDD_MEMBER:${m.id}:${m.phone}`);
+      modalBody.innerHTML = `
+        <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(5, 150, 105, 0.3); text-align: left; position: relative; overflow: hidden; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85;">THẺ HỘI VIÊN CHÍNH THỨC</div>
+              <div style="font-size: 1.25rem; font-weight: 900; margin-top: 2px;"><i class="fa-solid fa-leaf"></i> Nhomdinhduong.vn</div>
+            </div>
+            <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800;">
+              ${escapeHtml(m.status === 'active' ? 'HOẠT ĐỘNG' : 'HẾT HẠN')}
+            </span>
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <div style="font-size: 1.3rem; font-weight: 900;">${escapeHtml(m.name)}</div>
+            <div style="font-size: 0.88rem; opacity: 0.9;"><i class="fa-solid fa-phone"></i> ${escapeHtml(m.phone)}</div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.15); padding: 10px 14px; border-radius: 10px; font-size: 0.85rem;">
+            <div style="font-weight: 700;">${escapeHtml(m.packageName)}</div>
+            <div style="margin-top: 4px; display: flex; justify-content: space-between;">
+              <span>Đã dùng: <strong>${m.usedVisits}/${m.totalVisits}</strong> buổi</span>
+              <span>Còn lại: <strong>${m.remainingVisits}</strong> buổi</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 16px; border-radius: 14px; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${qrData}" alt="QR Code Điểm Danh" style="width: 140px; height: 140px; border-radius: 8px; border: 2px solid var(--primary);">
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Mã QR Điểm Danh Tự Động Tại Nhóm</div>
+        </div>
+      `;
+    }
+
+    this.openModal("viewErpCardModal");
+  },
+
+  exportErpCSV(type) {
+    if (type === "members") {
+      if (ERPManager.exportMembersCSV()) {
+        this.showToast("📊 Đã xuất file báo cáo Hội Viên ERP (Excel/CSV)!");
+      } else {
+        this.showToast("Chưa có dữ liệu hội viên để xuất!", "error");
+      }
+    } else if (type === "transactions") {
+      if (ERPManager.exportTransactionsCSV()) {
+        this.showToast("📊 Đã xuất Sổ Quỹ Thu - Chi P&L (Excel/CSV)!");
+      } else {
+        this.showToast("Chưa có giao dịch để xuất!", "error");
+      }
+    } else if (type === "inventory") {
+      if (ERPManager.exportInventoryCSV()) {
+        this.showToast("📊 Đã xuất Báo Cáo Tồn Kho (Excel/CSV)!");
+      } else {
+        this.showToast("Chưa có dữ liệu kho để xuất!", "error");
+      }
+    }
   }
 };
 
