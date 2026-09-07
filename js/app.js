@@ -5297,6 +5297,8 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       return;
     }
 
+    const currentRole = ERPManager.getRole();
+    const isAssistant = currentRole === "assistant";
     const kpis = ERPManager.getExecutiveKPIs();
     const members = ERPManager.getMembers();
     const attendance = ERPManager.getAttendance();
@@ -5359,15 +5361,20 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
                       <i class="fa-solid fa-mug-hot"></i> Điểm Danh
                     </button>
                   `}
+                  <button type="button" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.8rem; font-weight: 700; color: #8b5cf6; border-color: #ddd6fe;" onclick="App.openInBodyModal('${escapeJsAttr(m.id)}')">
+                    <i class="fa-solid fa-weight-scale"></i> InBody
+                  </button>
                   <button type="button" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.8rem; font-weight: 700; color: var(--primary);" onclick="App.viewErpMemberCard('${escapeJsAttr(m.id)}')">
                     <i class="fa-solid fa-id-card"></i> Thẻ QR
                   </button>
                   <a href="https://zalo.me/${encodeURIComponent(m.phone)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 6px 10px; font-size: 0.8rem; background: #0068ff; border: none;" title="Nhắn Zalo">
                     <i class="fa-solid fa-comment-dots"></i> Zalo
                   </a>
-                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 8px; font-size: 0.8rem;" onclick="App.deleteErpMember('${escapeJsAttr(m.id)}')">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </button>
+                  ${isAssistant ? '' : `
+                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 8px; font-size: 0.8rem;" onclick="App.deleteErpMember('${escapeJsAttr(m.id)}')">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  `}
                 </div>
               </div>
             `;
@@ -5419,9 +5426,11 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
                   <div style="display: flex; gap: 4px;">
                     <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', 1)">+</button>
                     <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', -1)">-</button>
-                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpInventory('${escapeJsAttr(i.id)}')">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                    ${isAssistant ? '' : `
+                      <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpInventory('${escapeJsAttr(i.id)}')">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    `}
                   </div>
                 </div>
               </div>
@@ -5434,12 +5443,16 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
           <div>
             <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-file-invoice-dollar" style="color: #10b981;"></i> Sổ Quỹ Thu - Chi P&L Thực Tế</h5>
-            <div style="font-size: 0.83rem; color: var(--text-muted);">Ghi nhận doanh thu bán gói NDD, bán lẻ & chi phí vận hành mặt bằng, điện nước</div>
+            <div style="font-size: 0.83rem; color: var(--text-muted);">
+              ${isAssistant ? '🔒 Quyền Trợ lý: Số tiền chi tiết và lợi nhuận ròng P&L được ẩn theo phân quyền bảo mật.' : 'Ghi nhận doanh thu bán gói NDD, bán lẻ & chi phí vận hành mặt bằng, điện nước'}
+            </div>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('transactions')" style="font-weight: 700; font-size: 0.85rem;">
-              <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
-            </button>
+            ${isAssistant ? '' : `
+              <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('transactions')" style="font-weight: 700; font-size: 0.85rem;">
+                <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
+              </button>
+            `}
             <button type="button" class="btn btn-primary" onclick="App.openModal('addErpTransactionModal')" style="font-weight: 700; font-size: 0.88rem; background: #059669; border-color: #059669;">
               <i class="fa-solid fa-plus-minus"></i> ➕ Ghi Nhận Thu / Chi
             </button>
@@ -5471,11 +5484,13 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
 
                 <div style="display: flex; align-items: center; gap: 12px;">
                   <div style="font-weight: 900; font-size: 1.05rem; color: ${isInc ? '#059669' : '#dc2626'};">
-                    ${isInc ? '+' : '-'}${ERPManager.formatVND(t.amount)}
+                    ${isAssistant ? '🔒 Chỉ Chủ nhóm' : `${isInc ? '+' : '-'}${ERPManager.formatVND(t.amount)}`}
                   </div>
-                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpTransaction('${escapeJsAttr(t.id)}')">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </button>
+                  ${isAssistant ? '' : `
+                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpTransaction('${escapeJsAttr(t.id)}')">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  `}
                 </div>
               </div>
             `;
@@ -5489,9 +5504,11 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-packing" style="color: #f59e0b;"></i> Cấu Hình Gói Dinh Dưỡng</h5>
             <div style="font-size: 0.83rem; color: var(--text-muted);">Quản lý danh sách các gói dinh dưỡng trải nghiệm tại nhóm</div>
           </div>
-          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpPackageModal')" style="font-weight: 700; font-size: 0.88rem; background: #f59e0b; border-color: #f59e0b;">
-            <i class="fa-solid fa-plus"></i> ➕ Thêm Gói Mới
-          </button>
+          ${isAssistant ? '' : `
+            <button type="button" class="btn btn-primary" onclick="App.openModal('addErpPackageModal')" style="font-weight: 700; font-size: 0.88rem; background: #f59e0b; border-color: #f59e0b;">
+              <i class="fa-solid fa-plus"></i> ➕ Thêm Gói Mới
+            </button>
+          `}
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
@@ -5500,14 +5517,16 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                   <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary);">${escapeHtml(p.name)}</div>
-                  <div style="display: flex; gap: 4px;">
-                    <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem;" onclick="App.openEditErpPackageModal('${escapeJsAttr(p.id)}')" title="Chỉnh sửa">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem; color: #ef4444; border-color: #fca5a5;" onclick="App.deleteErpPackage('${escapeJsAttr(p.id)}')" title="Xóa gói">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                  </div>
+                  ${isAssistant ? '' : `
+                    <div style="display: flex; gap: 4px;">
+                      <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem;" onclick="App.openEditErpPackageModal('${escapeJsAttr(p.id)}')" title="Chỉnh sửa">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem; color: #ef4444; border-color: #fca5a5;" onclick="App.deleteErpPackage('${escapeJsAttr(p.id)}')" title="Xóa gói">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </div>
+                  `}
                 </div>
                 <div style="font-size: 1.15rem; font-weight: 900; color: var(--text-main); margin-bottom: 8px;">${ERPManager.formatVND(p.price)}</div>
                 <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">${escapeHtml(p.desc)}</p>
@@ -5529,7 +5548,18 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
               <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> ERP Quản Lý Toàn Diện Nhóm Dinh Dưỡng
             </h4>
             <div style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;">
-              Tự động hóa điểm danh 1-touch, kiểm soát thẻ gói hội viên, quản lý tồn kho & sổ quỹ thu chi P&L ròng
+              Tự động hóa điểm danh 1-touch, kiểm soát thẻ gói hội viên, đo InBody & đồng bộ Cloud 24/7
+            </div>
+          </div>
+
+          <!-- ROLE SWITCHER & CLOUD BADGE -->
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 4px;">
+              <i class="fa-solid fa-cloud"></i> ☁️ Realtime Cloud Sync
+            </span>
+            <div style="display: flex; align-items: center; gap: 4px; background: var(--bg-card); padding: 4px 6px; border-radius: 20px; border: 1px solid var(--border-color);">
+              <button type="button" class="btn ${!isAssistant ? 'btn-primary' : 'btn-outline'}" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; border: none;" onclick="App.switchErpRole('owner')">👑 Chủ Nhóm</button>
+              <button type="button" class="btn ${isAssistant ? 'btn-primary' : 'btn-outline'}" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; border: none;" onclick="App.switchErpRole('assistant')">⚙️ Trợ Lý</button>
             </div>
           </div>
         </div>
@@ -5546,7 +5576,9 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
           </div>
           <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid #059669; border: 1px solid var(--border-color); border-left-width: 4px;">
             <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Lợi Nhuận Ròng P&L</div>
-            <div style="font-size: 1.2rem; font-weight: 900; color: #059669; margin-top: 4px;">${ERPManager.formatVND(kpis.netProfit)}</div>
+            <div style="font-size: 1.2rem; font-weight: 900; color: #059669; margin-top: 4px;">
+              ${isAssistant ? '🔒 Chỉ Chủ Nhóm' : ERPManager.formatVND(kpis.netProfit)}
+            </div>
           </div>
           <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid ${kpis.lowStockCount > 0 ? '#dc2626' : 'var(--secondary)'}; border: 1px solid var(--border-color); border-left-width: 4px;">
             <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Cảnh Báo Tồn Kho</div>
@@ -5824,6 +5856,184 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       ERPManager.deletePackage(pkgId);
       this.showToast("Đã xóa gói dinh dưỡng!");
       this.renderErpSection();
+    }
+  },
+
+  switchErpRole(role) {
+    ERPManager.setRole(role);
+    this.showToast(role === "assistant" ? "⚙️ Đã chuyển sang giao diện Trợ Lý (Ẩn tài chính P&L & Quyền xóa)" : "👑 Đã chuyển sang giao diện Chủ Nhóm (Toàn quyền quản trị)");
+    this.renderErpSection();
+  },
+
+  openInBodyModal(memberId) {
+    const memberIdEl = document.getElementById("inbodyMemberId");
+    const dateEl = document.getElementById("inbodyDate");
+    if (memberIdEl) memberIdEl.value = memberId;
+    if (dateEl) dateEl.value = new Date().toISOString().split("T")[0];
+
+    const members = ERPManager.getMembers();
+    const m = members.find(item => item.id === memberId);
+    const titleEl = document.getElementById("inbodyMemberTitle");
+    if (titleEl) titleEl.textContent = `Nhật Ký InBody & Tiến Trình Thể Trạng - ${m ? m.name : ''}`;
+
+    const logs = ERPManager.getInBodyLogs(memberId);
+    
+    // Header summary delta
+    const summaryEl = document.getElementById("inbodyHeaderSummary");
+    if (summaryEl) {
+      if (logs.length === 0) {
+        summaryEl.innerHTML = `<div style="font-size: 0.85rem; color: var(--text-muted); background: var(--bg-card); padding: 10px; border-radius: 8px;">Chưa có lịch sử đo InBody nào. Hãy nhập bản ghi đầu tiên bên dưới.</div>`;
+      } else {
+        const first = logs[0];
+        const latest = logs[logs.length - 1];
+        const weightDiff = (latest.weight - first.weight).toFixed(1);
+        const fatDiff = (latest.fatPercent - first.fatPercent).toFixed(1);
+
+        summaryEl.innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
+            <div style="background: var(--bg-card); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Cân nặng mới nhất</div>
+              <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-main);">${latest.weight} kg <span style="font-size: 0.78rem; color: ${weightDiff <= 0 ? '#059669' : '#dc2626'};">(${weightDiff > 0 ? '+' : ''}${weightDiff}kg)</span></div>
+            </div>
+            <div style="background: var(--bg-card); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Tỷ lệ mỡ mới nhất</div>
+              <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-main);">${latest.fatPercent}% <span style="font-size: 0.78rem; color: ${fatDiff <= 0 ? '#059669' : '#dc2626'};">(${fatDiff > 0 ? '+' : ''}${fatDiff}%)</span></div>
+            </div>
+            <div style="background: var(--bg-card); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Tổng số lần đo</div>
+              <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">${logs.length} lượt</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Render SVG chart
+    this.renderInBodySvgChart(logs);
+
+    // Render Table logs
+    const tableBody = document.getElementById("inbodyLogsTableBody");
+    const isAssistant = ERPManager.getRole() === "assistant";
+    if (tableBody) {
+      if (logs.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 16px;">Chưa có dữ liệu đo.</td></tr>`;
+      } else {
+        tableBody.innerHTML = logs.slice().reverse().map(l => `
+          <tr>
+            <td style="font-weight: 700;">${escapeHtml(l.date)}</td>
+            <td style="font-weight: 800; color: var(--primary);">${l.weight} kg</td>
+            <td style="font-weight: 700; color: #dc2626;">${l.fatPercent}%</td>
+            <td>${l.muscleMass ? l.muscleMass + ' kg' : '-'}</td>
+            <td>${l.visceralFat ? 'Level ' + l.visceralFat : '-'}</td>
+            <td style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(l.notes || '')}</td>
+            <td style="text-align: right;">
+              ${isAssistant ? '' : `
+                <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 2px 6px; font-size: 0.75rem;" onclick="App.deleteInBodyLog('${escapeJsAttr(l.id)}', '${escapeJsAttr(memberId)}')">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              `}
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    this.openModal("inbodyErpModal");
+  },
+
+  renderInBodySvgChart(logs) {
+    const container = document.getElementById("inbodySvgChartContainer");
+    if (!container) return;
+
+    if (!logs || logs.length < 2) {
+      container.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; height: 160px; color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
+          (Cần ít nhất 2 lượt đo InBody để vẽ biểu đồ tiến trình xu hướng)
+        </div>
+      `;
+      return;
+    }
+
+    const width = 600;
+    const height = 180;
+    const padding = 30;
+
+    const weights = logs.map(l => l.weight);
+    const fats = logs.map(l => l.fatPercent);
+
+    const minW = Math.min(...weights) - 2;
+    const maxW = Math.max(...weights) + 2;
+    const minF = Math.min(...fats) - 2;
+    const maxF = Math.max(...fats) + 2;
+
+    const getX = (index) => padding + (index / (logs.length - 1)) * (width - 2 * padding);
+    const getWPoint = (val) => height - padding - ((val - minW) / (maxW - minW || 1)) * (height - 2 * padding);
+    const getFPoint = (val) => height - padding - ((val - minF) / (maxF - minF || 1)) * (height - 2 * padding);
+
+    const weightPoints = logs.map((l, i) => `${getX(i)},${getWPoint(l.weight)}`).join(" ");
+    const fatPoints = logs.map((l, i) => `${getX(i)},${getFPoint(l.fatPercent)}`).join(" ");
+
+    let svgHtml = `
+      <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 180px; overflow: visible;">
+        <!-- Background grid lines -->
+        <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" stroke="var(--border-color)" stroke-dasharray="4" />
+        <line x1="${padding}" y1="${height / 2}" x2="${width - padding}" y2="${height / 2}" stroke="var(--border-color)" stroke-dasharray="4" />
+        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="var(--border-color)" stroke-dasharray="4" />
+
+        <!-- Weight Line (Green) -->
+        <polyline fill="none" stroke="#10b981" stroke-width="3" points="${weightPoints}" />
+
+        <!-- Fat Line (Red) -->
+        <polyline fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="3,3" points="${fatPoints}" />
+
+        <!-- Points and Date Labels -->
+        ${logs.map((l, i) => {
+          const x = getX(i);
+          const wy = getWPoint(l.weight);
+          const fy = getFPoint(l.fatPercent);
+          return `
+            <circle cx="${x}" cy="${wy}" r="4" fill="#10b981" />
+            <text x="${x}" y="${wy - 8}" font-size="10" font-weight="bold" fill="#10b981" text-anchor="middle">${l.weight}kg</text>
+            <circle cx="${x}" cy="${fy}" r="4" fill="#ef4444" />
+            <text x="${x}" y="${fy + 14}" font-size="10" font-weight="bold" fill="#ef4444" text-anchor="middle">${l.fatPercent}%</text>
+            <text x="${x}" y="${height - 8}" font-size="9" fill="var(--text-muted)" text-anchor="middle">${l.date.split('-').slice(1).join('/')}</text>
+          `;
+        }).join('')}
+      </svg>
+    `;
+
+    container.innerHTML = svgHtml;
+  },
+
+  submitAddInBodyLog(e) {
+    e.preventDefault();
+    const form = e.target;
+    const memberId = form.memberId.value;
+    const date = form.date.value;
+    const weight = Number(form.weight.value);
+    const fatPercent = Number(form.fatPercent.value);
+    const muscleMass = form.muscleMass.value ? Number(form.muscleMass.value) : null;
+    const visceralFat = form.visceralFat.value ? Number(form.visceralFat.value) : null;
+    const notes = form.notes.value.trim();
+
+    if (!memberId || !date || !weight || !fatPercent) {
+      this.showToast("Vui lòng điền ngày đo, cân nặng và tỷ lệ mỡ!", "error");
+      return;
+    }
+
+    ERPManager.addInBodyLog({ memberId, date, weight, fatPercent, muscleMass, visceralFat, notes });
+    this.showToast("📈 Đã lưu bản ghi InBody mới!");
+    form.reset();
+    document.getElementById("inbodyMemberId").value = memberId;
+    document.getElementById("inbodyDate").value = new Date().toISOString().split("T")[0];
+    this.openInBodyModal(memberId);
+  },
+
+  deleteInBodyLog(logId, memberId) {
+    if (confirm("Bạn có chắc chắn muốn xóa bản ghi InBody này?")) {
+      ERPManager.deleteInBodyLog(logId);
+      this.showToast("Đã xóa bản ghi InBody!");
+      this.openInBodyModal(memberId);
     }
   }
 };

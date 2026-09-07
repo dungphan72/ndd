@@ -17,7 +17,9 @@ const ERPManager = {
     ATTENDANCE: "nutriclub_erp_attendance",
     INVENTORY: "nutriclub_erp_inventory",
     TRANSACTIONS: "nutriclub_erp_transactions",
-    PACKAGES: "nutriclub_erp_packages"
+    PACKAGES: "nutriclub_erp_packages",
+    INBODY: "nutriclub_erp_inbody",
+    ROLE: "nutriclub_erp_role"
   },
 
   // Mẫu Gói Dinh Dưỡng Mặc Định
@@ -31,6 +33,7 @@ const ERPManager = {
   // 1. KHỞI TẠO HỆ THỐNG ERP
   init() {
     this.initDefaultData();
+    this.initCloudSync();
   },
 
   initDefaultData() {
@@ -129,9 +132,30 @@ const ERPManager = {
       ];
       localStorage.setItem(this.STORAGE_KEYS.ATTENDANCE, JSON.stringify(demoAttendance));
     }
+
+    if (!localStorage.getItem(this.STORAGE_KEYS.INBODY)) {
+      const demoInBody = [
+        { id: "inb_01", memberId: "mem_01", date: "2026-08-10", weight: 78.5, fatPercent: 24.5, muscleMass: 32.0, visceralFat: 9, notes: "Khám thể trạng ban đầu khi nhập gói" },
+        { id: "inb_02", memberId: "mem_01", date: "2026-08-25", weight: 76.2, fatPercent: 22.8, muscleMass: 32.8, visceralFat: 8, notes: "Giảm 2.3kg cân nặng, giảm 1.7% mỡ, tăng 0.8kg cơ" },
+        { id: "inb_03", memberId: "mem_01", date: "2026-09-05", weight: 75.0, fatPercent: 21.4, muscleMass: 33.2, visceralFat: 7, notes: "Tiến trình cực kỳ tốt, vòng bụng thon gọn hẳn" },
+        { id: "inb_04", memberId: "mem_02", date: "2026-08-25", weight: 58.0, fatPercent: 28.0, muscleMass: 21.0, visceralFat: 5, notes: "Khảo sát đầu vào gói 10 ngày" },
+        { id: "inb_05", memberId: "mem_02", date: "2026-09-03", weight: 56.8, fatPercent: 26.5, muscleMass: 21.4, visceralFat: 4, notes: "Cơ thể nhẹ nhàng, da sáng, giảm 1.5% mỡ" }
+      ];
+      localStorage.setItem(this.STORAGE_KEYS.INBODY, JSON.stringify(demoInBody));
+    }
   },
 
   // 2. GETTERS & SETTERS DỮ LIỆU
+  getRole() {
+    return localStorage.getItem(this.STORAGE_KEYS.ROLE) || "owner";
+  },
+  setRole(role) {
+    const validRole = role === "assistant" ? "assistant" : "owner";
+    localStorage.setItem(this.STORAGE_KEYS.ROLE, validRole);
+    this.broadcastLocalSync();
+    return validRole;
+  },
+
   getMembers() {
     try {
       return JSON.parse(localStorage.getItem(this.STORAGE_KEYS.MEMBERS)) || [];
@@ -141,6 +165,8 @@ const ERPManager = {
   },
   saveMembers(members) {
     localStorage.setItem(this.STORAGE_KEYS.MEMBERS, JSON.stringify(members));
+    this.syncCollectionToCloud(this.STORAGE_KEYS.MEMBERS, members);
+    this.broadcastLocalSync();
   },
 
   getInventory() {
@@ -152,6 +178,8 @@ const ERPManager = {
   },
   saveInventory(inventory) {
     localStorage.setItem(this.STORAGE_KEYS.INVENTORY, JSON.stringify(inventory));
+    this.syncCollectionToCloud(this.STORAGE_KEYS.INVENTORY, inventory);
+    this.broadcastLocalSync();
   },
 
   getTransactions() {
@@ -163,6 +191,8 @@ const ERPManager = {
   },
   saveTransactions(txs) {
     localStorage.setItem(this.STORAGE_KEYS.TRANSACTIONS, JSON.stringify(txs));
+    this.syncCollectionToCloud(this.STORAGE_KEYS.TRANSACTIONS, txs);
+    this.broadcastLocalSync();
   },
 
   getAttendance() {
@@ -174,6 +204,8 @@ const ERPManager = {
   },
   saveAttendance(list) {
     localStorage.setItem(this.STORAGE_KEYS.ATTENDANCE, JSON.stringify(list));
+    this.syncCollectionToCloud(this.STORAGE_KEYS.ATTENDANCE, list);
+    this.broadcastLocalSync();
   },
 
   getPackages() {
@@ -185,6 +217,49 @@ const ERPManager = {
   },
   savePackages(packages) {
     localStorage.setItem(this.STORAGE_KEYS.PACKAGES, JSON.stringify(packages));
+    this.syncCollectionToCloud(this.STORAGE_KEYS.PACKAGES, packages);
+    this.broadcastLocalSync();
+  },
+
+  getInBodyLogs(memberId = null) {
+    try {
+      const logs = JSON.parse(localStorage.getItem(this.STORAGE_KEYS.INBODY)) || [];
+      if (memberId) {
+        return logs.filter(l => l.memberId === memberId).sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+      return logs;
+    } catch (e) {
+      return [];
+    }
+  },
+  saveInBodyLogs(logs) {
+    localStorage.setItem(this.STORAGE_KEYS.INBODY, JSON.stringify(logs));
+    this.syncCollectionToCloud(this.STORAGE_KEYS.INBODY, logs);
+    this.broadcastLocalSync();
+  },
+
+  addInBodyLog(logData) {
+    const logs = this.getInBodyLogs();
+    const newLog = {
+      id: "inb_" + Date.now(),
+      memberId: logData.memberId,
+      date: logData.date || new Date().toISOString().split("T")[0],
+      weight: Number(logData.weight) || 0,
+      fatPercent: Number(logData.fatPercent) || 0,
+      muscleMass: Number(logData.muscleMass) || 0,
+      visceralFat: Number(logData.visceralFat) || 0,
+      notes: (logData.notes || "").trim()
+    };
+    logs.push(newLog);
+    this.saveInBodyLogs(logs);
+    return newLog;
+  },
+
+  deleteInBodyLog(logId) {
+    let logs = this.getInBodyLogs();
+    logs = logs.filter(l => l.id !== logId);
+    this.saveInBodyLogs(logs);
+    return true;
   },
 
   addPackage(pkgData) {
@@ -383,6 +458,8 @@ const ERPManager = {
     const attendance = this.getAttendance();
     const inventory = this.getInventory();
     const txs = this.getTransactions();
+    const role = this.getRole();
+    const isAssistant = role === "assistant";
 
     const todayStr = new Date().toISOString().split("T")[0];
 
@@ -408,12 +485,14 @@ const ERPManager = {
     const lowStockItems = inventory.filter(i => i.stock <= i.minStock);
 
     return {
+      role,
+      isAssistant,
       todayAttendanceCount,
       activeMembersCount,
       expiringMembersCount,
-      totalIncome,
-      totalExpense,
-      netProfit,
+      totalIncome: isAssistant ? "🔒 Ẩn với Trợ lý" : totalIncome,
+      totalExpense: isAssistant ? "🔒 Ẩn với Trợ lý" : totalExpense,
+      netProfit: isAssistant ? "🔒 Ẩn với Trợ lý" : netProfit,
       lowStockCount: lowStockItems.length,
       lowStockItems
     };
@@ -421,7 +500,102 @@ const ERPManager = {
 
   // Format tiền tệ Việt Nam
   formatVND(amount) {
+    if (typeof amount === "string" && amount.includes("Ẩn")) return amount;
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount || 0);
+  },
+
+  // 8. ĐỒNG BỘ REALTIME ĐA THIẾT BỊ (FIREBASE FIRESTORE & CROSS-TAB BROADCASTCHANNEL)
+  _syncChannel: null,
+
+  initCloudSync() {
+    try {
+      if (typeof BroadcastChannel !== "undefined") {
+        this._syncChannel = new BroadcastChannel("nutriclub_erp_sync");
+        this._syncChannel.onmessage = () => {
+          if (typeof App !== "undefined" && App.renderErpSection) {
+            App.renderErpSection();
+          }
+        };
+      }
+      window.addEventListener("storage", (e) => {
+        if (e.key && e.key.startsWith("nutriclub_erp_")) {
+          if (typeof App !== "undefined" && App.renderErpSection) {
+            App.renderErpSection();
+          }
+        }
+      });
+    } catch (err) {
+      console.warn("Local sync channel warning:", err);
+    }
+
+    this.initFirestoreSync();
+  },
+
+  broadcastLocalSync() {
+    try {
+      if (this._syncChannel) this._syncChannel.postMessage({ timestamp: Date.now() });
+    } catch (e) {}
+  },
+
+  async initFirestoreSync() {
+    if (typeof window === "undefined" || !window.firebaseDb || !window.firestoreHelpers) return;
+    const db = window.firebaseDb;
+    const { collection, onSnapshot } = window.firestoreHelpers;
+
+    const collectionsToSync = ["members", "attendance", "inventory", "transactions", "packages", "inbody"];
+
+    collectionsToSync.forEach(colName => {
+      try {
+        const storageKey = this.STORAGE_KEYS[colName.toUpperCase()];
+        if (!storageKey) return;
+
+        onSnapshot(collection(db, `erp_${colName}`), (snapshot) => {
+          if (snapshot.empty) return;
+          const remoteData = [];
+          snapshot.forEach(docSnap => {
+            remoteData.push(docSnap.data());
+          });
+          if (remoteData.length > 0) {
+            const localStr = localStorage.getItem(storageKey);
+            const remoteStr = JSON.stringify(remoteData);
+            if (localStr !== remoteStr) {
+              localStorage.setItem(storageKey, remoteStr);
+              if (typeof App !== "undefined" && App.renderErpSection) {
+                App.renderErpSection();
+              }
+            }
+          }
+        }, (err) => {
+          console.warn(`Firestore listener warning for erp_${colName}:`, err);
+        });
+      } catch (err) {
+        console.warn("Firestore sync setup error:", err);
+      }
+    });
+  },
+
+  async syncCollectionToCloud(storageKey, data) {
+    if (typeof window === "undefined" || !window.firebaseDb || !window.firestoreHelpers) return;
+    const db = window.firebaseDb;
+    const { doc, setDoc } = window.firestoreHelpers;
+
+    let colName = "";
+    Object.keys(this.STORAGE_KEYS).forEach(k => {
+      if (this.STORAGE_KEYS[k] === storageKey) colName = k.toLowerCase();
+    });
+    if (!colName || colName === "role") return;
+
+    try {
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (item && item.id) {
+            await setDoc(doc(db, `erp_${colName}`, item.id), item, { merge: true });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`Error syncing erp_${colName} to cloud:`, err);
+    }
   },
 
   // 8. XUẤT BÁO CÁO EXCEL/CSV (UTF-8 BOM hỗ trợ mở bằng Microsoft Excel Tiếng Việt)
