@@ -986,16 +986,13 @@
             <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div style="margin-bottom: 12px;">
                 <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Phần 1: Upload hình từ máy / điện thoại (Tối đa 5 hình)
+                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Upload hình từ máy / điện thoại (Tối đa 5 hình)
                 </label>
                 <input type="file" id="clubImageFiles" accept="image/*" multiple onchange="App.handleClubImagesUpload(event, false)" class="form-control">
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-link" style="margin-right: 4px;"></i> Phần 2: Link hình ảnh (URL)
-                </label>
-                <input type="text" id="clubImage" name="clubImage" class="form-control" placeholder="https://... (dán URL ảnh nếu có)" value="images/default-club.jpg" onchange="App.onClubImageUrlChange(this.value, false)">
+                <input type="hidden" id="clubImage" name="clubImage" value="images/default-club.jpg" onchange="App.onClubImageUrlChange(this.value, false)">
               </div>
               <div id="clubImagesPreviewGrid" class="club-images-preview-grid"></div>
             </div>
@@ -1133,16 +1130,13 @@
             <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div style="margin-bottom: 12px;">
                 <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Phần 1: Upload hình từ máy / điện thoại
+                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Upload hình từ máy / điện thoại
                 </label>
                 <input type="file" id="createEventImageFile" accept="image/*" class="form-control" onchange="App.handleSingleImageFileUpload(this, 'createEventImageInput')">
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-link" style="margin-right: 4px;"></i> Phần 2: Link hình ảnh (URL)
-                </label>
-                <input type="text" id="createEventImageInput" name="eventImage" class="form-control" placeholder="https://..." value="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80">
+                <input type="hidden" id="createEventImageInput" name="eventImage" value="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80">
               </div>
             </div>
           </div>
@@ -1522,16 +1516,13 @@
             <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div style="margin-bottom: 12px;">
                 <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Phần 1: Upload hình từ máy / điện thoại (Tối đa 5 hình)
+                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Upload hình từ máy / điện thoại (Tối đa 5 hình)
                 </label>
                 <input type="file" id="editClubImageFiles" accept="image/*" multiple onchange="App.handleClubImagesUpload(event, true)" class="form-control">
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-link" style="margin-right: 4px;"></i> Phần 2: Link hình ảnh (URL)
-                </label>
-                <input type="text" id="editClubImage" name="editClubImage" class="form-control" placeholder="https://..." onchange="App.onClubImageUrlChange(this.value, true)">
+                <input type="hidden" id="editClubImage" name="editClubImage" onchange="App.onClubImageUrlChange(this.value, true)">
               </div>
               <div id="editClubImagesPreviewGrid" class="club-images-preview-grid"></div>
             </div>
@@ -1670,16 +1661,13 @@
             <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div style="margin-bottom: 12px;">
                 <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Phần 1: Upload hình từ máy / điện thoại
+                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Upload hình từ máy / điện thoại
                 </label>
                 <input type="file" id="editEventImageFile" accept="image/*" class="form-control" onchange="App.handleSingleImageFileUpload(this, 'editEventImage')">
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-link" style="margin-right: 4px;"></i> Phần 2: Link hình ảnh (URL)
-                </label>
-                <input type="text" id="editEventImage" name="editEventImage" class="form-control" placeholder="https://...">
+                <input type="hidden" id="editEventImage" name="editEventImage">
               </div>
             </div>
           </div>
@@ -1751,16 +1739,13 @@
             <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div style="margin-bottom: 12px;">
                 <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Phần 1: Upload hình từ máy / điện thoại
+                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Upload hình từ máy / điện thoại
                 </label>
                 <input type="file" id="editProductImageFile" accept="image/*" class="form-control" onchange="App.handleSingleImageFileUpload(this, 'editProductImage')">
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-link" style="margin-right: 4px;"></i> Phần 2: Link hình ảnh (URL)
-                </label>
-                <input type="text" id="editProductImage" name="editProductImage" class="form-control" placeholder="https://...">
+                <input type="hidden" id="editProductImage" name="editProductImage">
               </div>
             </div>
           </div>
@@ -1856,16 +1841,13 @@
             <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div style="margin-bottom: 12px;">
                 <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Phần 1: Upload hình từ máy / điện thoại
+                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Upload hình từ máy / điện thoại
                 </label>
                 <input type="file" id="createCourseThumbnailFile" accept="image/*" class="form-control" onchange="App.handleSingleImageFileUpload(this, 'createCourseThumbnail')">
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-link" style="margin-right: 4px;"></i> Phần 2: Link hình ảnh (URL)
-                </label>
-                <input type="text" id="createCourseThumbnail" name="courseThumbnail" class="form-control" placeholder="https://images.unsplash.com/...">
+                <input type="hidden" id="createCourseThumbnail" name="courseThumbnail">
               </div>
             </div>
           </div>
@@ -1935,16 +1917,13 @@
             <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
               <div style="margin-bottom: 12px;">
                 <label class="form-label" style="font-weight: 700; color: var(--primary); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Phần 1: Upload hình từ máy / điện thoại
+                  <i class="fa-solid fa-upload" style="margin-right: 4px;"></i> Upload hình từ máy / điện thoại
                 </label>
                 <input type="file" id="editCourseThumbnailFile" accept="image/*" class="form-control" onchange="App.handleSingleImageFileUpload(this, 'editCourseThumbnail')">
               </div>
 
               <div>
-                <label class="form-label" style="font-weight: 700; color: var(--text-main); font-size: 0.85rem; margin-bottom: 6px;">
-                  <i class="fa-solid fa-link" style="margin-right: 4px;"></i> Phần 2: Link hình ảnh (URL)
-                </label>
-                <input type="text" id="editCourseThumbnail" name="editCourseThumbnail" class="form-control" placeholder="https://...">
+                <input type="hidden" id="editCourseThumbnail" name="editCourseThumbnail">
               </div>
             </div>
           </div>
@@ -2115,17 +2094,12 @@
           </div>
 
           <div style="background: var(--bg-main); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-            <!-- PHẦN 1: UPLOAD HÌNH -->
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="font-weight: 800; color: var(--primary); font-size: 0.88rem;"><i class="fa-solid fa-upload" style="margin-right: 6px;"></i> Phần 1: Upload hình từ máy tính / điện thoại</label>
+            <!-- UPLOAD HÌNH -->
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" style="font-weight: 800; color: var(--primary); font-size: 0.88rem;"><i class="fa-solid fa-upload" style="margin-right: 6px;"></i> Upload hình từ máy tính / điện thoại</label>
               <input type="file" id="avatarFileInput" accept="image/*" class="form-control" onchange="App.handleAvatarFileUpload(this)" style="padding: 6px 12px; cursor: pointer;">
               <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ ảnh định dạng JPG, PNG, WEBP hoặc GIF (tối đa 5MB)</div>
-            </div>
-
-            <!-- PHẦN 2: LINK HÌNH ẢNH (URL) -->
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" style="font-weight: 800; color: var(--text-main); font-size: 0.88rem;"><i class="fa-solid fa-link" style="margin-right: 6px;"></i> Phần 2: Link hình ảnh (URL)</label>
-              <input type="text" name="avatarUrl" id="changeAvatarUrlInput" class="form-control" placeholder="https://..." oninput="App.previewAvatarUrl(this.value)">
+              <input type="hidden" name="avatarUrl" id="changeAvatarUrlInput" oninput="App.previewAvatarUrl(this.value)">
             </div>
           </div>
 
