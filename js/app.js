@@ -2851,132 +2851,131 @@ const App = {
               <div class="dash-avatar-badge" title="Đổi ảnh đại diện"><i class="fa-solid fa-camera"></i></div>
             </div>
             <div>
-              <div style="font-weight: 800; font-size: 1rem; color: var(--text-main); line-height: 1.2;">${escapeHtml(currentUser.name)}</div>
-              <div style="font-size: 0.78rem; color: var(--primary); font-weight: 700; margin-top: 3px;">${escapeHtml(currentUser.role || 'HLV Dinh Dưỡng')}</div>
-              <button type="button" onclick="App.openChangeAvatarModal()" style="border: none; background: transparent; padding: 0; color: var(--primary); font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
-                <i class="fa-solid fa-camera"></i> Đổi ảnh đại diện
+              <div style="font-weight: 800; font-size: 1.05rem; color: var(--text-main); line-height: 1.3;">${escapeHtml(currentUser.name)}</div>
+              <div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; margin-top: 2px;">${escapeHtml(currentUser.role || 'HLV Dinh Dưỡng')}</div>
+              <button type="button" onclick="App.openChangeAvatarModal()" style="border: none; background: transparent; padding: 0; color: var(--text-muted); font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 4px;">
+                Đổi ảnh đại diện
               </button>
             </div>
           </div>
 
-          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 10px;">DANH MỤC QUẢN LÝ</div>
+          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 12px;">DANH MỤC QUẢN LÝ</div>
 
           <!-- Vertical Nav Menu Sidebar -->
           <ul class="dash-nav-list">
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myClubsSec')">
-                <span><i class="fa-solid fa-leaf" style="color: var(--primary); width: 22px;"></i> Nhóm Của Tôi</span>
+              <button type="button" class="dash-nav-btn profile-tab-btn active" onclick="App.switchProfileTab(this, 'myClubsSec')">
+                <span>Nhóm Của Tôi</span>
                 <span class="badge-pill">${myClubs.length}</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myErpSec')">
-                <span><i class="fa-solid fa-chart-line" style="color: var(--primary); width: 22px;"></i> ERP Quản Lý Nhóm</span>
+                <span>ERP Quản Lý Nhóm</span>
                 <span class="badge-pill" style="background: var(--primary); color: #ffffff;">ERP</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myMetricsSec')">
-                <span><i class="fa-solid fa-notes-medical" style="color: var(--primary); width: 22px;"></i> Chỉ Số InBody</span>
+                <span>Chỉ Số InBody</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myEventsSec')">
-                <span><i class="fa-solid fa-calendar-days" style="color: var(--secondary); width: 22px;"></i> Sự Kiện Của Tôi</span>
+                <span>Sự Kiện Của Tôi</span>
                 <span class="badge-pill">${myEvents.length}</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myProductsSec')">
-                <span><i class="fa-solid fa-store" style="color: var(--accent-sport); width: 22px;"></i> Shop Công Cụ</span>
+                <span>Shop Công Cụ</span>
                 <span class="badge-pill">${myProducts.length}</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myAffiliateSec')">
-                <span><i class="fa-solid fa-gift" style="color: var(--secondary); width: 22px;"></i> Affiliates & Thưởng</span>
+                <span>Affiliates & Thưởng</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myVIPSec')">
-                <span><i class="fa-solid fa-crown" style="color: var(--secondary); width: 22px;"></i> Gói VIP & Quyền Lợi</span>
+                <span>Gói VIP & Quyền Lợi</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'editProfileSec')">
-                <span><i class="fa-solid fa-gear" style="color: var(--text-muted); width: 22px;"></i> Cài Đặt Hồ Sơ</span>
+                <span>Cài Đặt Hồ Sơ</span>
               </button>
             </li>
           </ul>
 
-          <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px;">
+          <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px;">
             ${!isVIP ? `
-              <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openVIPUpgradeModal();" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; font-weight: 700; font-size: 0.88rem;">
-                <i class="fa-solid fa-crown"></i> 🚀 Nâng Cấp VIP (99k)
+              <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openVIPUpgradeModal();" style="width: 100%; font-weight: 700; font-size: 0.88rem;">
+                Nâng Cấp VIP (99k)
               </button>
             ` : ''}
             <button type="button" class="btn btn-outline" onclick="App.logout()" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); font-weight: 700; font-size: 0.85rem;">
-              <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+              Đăng Xuất
             </button>
           </div>
         </div>
 
         <!-- KHU VỰC HIỂN THỊ NỘI DUNG CHÍNH BÊN PHẢI -->
         <div class="dashboard-main-content">
-          <!-- BẢNG THỐNG KÊ NHANH (KPI STATS) -->
+          <!-- BẢNG THỐNG KÊ NHANH (KPI STATS) - CLEAN MINIMALIST -->
           <div class="profile-stats-grid">
-            <div class="profile-stat-card" style="border-left: 4px solid var(--primary);">
+            <div class="profile-stat-card">
               <div class="stat-num" style="color: var(--primary);">${myClubs.length}</div>
-              <div class="stat-label"><i class="fa-solid fa-leaf" style="color: var(--primary); margin-right: 4px;"></i> Nhóm Quản Lý</div>
+              <div class="stat-label">Nhóm Quản Lý</div>
             </div>
-            <div class="profile-stat-card" style="border-left: 4px solid var(--secondary);">
+            <div class="profile-stat-card">
               <div class="stat-num" style="color: var(--secondary);">${myEvents.length}</div>
-              <div class="stat-label"><i class="fa-solid fa-calendar-days" style="color: var(--secondary); margin-right: 4px;"></i> Sự Kiện Đã Đăng</div>
+              <div class="stat-label">Sự Kiện Đã Đăng</div>
             </div>
-            <div class="profile-stat-card" style="border-left: 4px solid var(--accent-sport);">
+            <div class="profile-stat-card">
               <div class="stat-num" style="color: var(--accent-sport);">${myProducts.length}</div>
-              <div class="stat-label"><i class="fa-solid fa-store" style="color: var(--accent-sport); margin-right: 4px;"></i> Thiết Bị Đăng Bán</div>
+              <div class="stat-label">Thiết Bị Đăng Bán</div>
             </div>
-            <div class="profile-stat-card" style="border-left: 4px solid var(--secondary);">
-              <div class="stat-num" style="color: var(--secondary);">${currentUser.vipDays || 0} Ngày</div>
-              <div class="stat-label"><i class="fa-solid fa-gift" style="color: var(--secondary); margin-right: 4px;"></i> VIP Thưởng</div>
+            <div class="profile-stat-card">
+              <div class="stat-num" style="color: var(--primary);">${currentUser.vipDays || 0} Ngày</div>
+              <div class="stat-label">VIP Thưởng</div>
             </div>
           </div>
 
       <!-- TAB 1: NHÓM DINH DƯỠNG CỦA TÔI -->
       <div id="myClubsSec" class="profile-tab-sec" style="display: block;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <h4 style="font-size: 1.05rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-leaf" style="color: var(--primary); margin-right: 6px;"></i> Danh Sách Nhóm Dinh Dưỡng Bạn Đang Quản Lý</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">Danh Sách Nhóm Dinh Dưỡng Bạn Đang Quản Lý</h4>
           <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateClubModal();" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700;">
-            <i class="fa-solid fa-plus"></i> Đăng Nhóm Mới
+            Thêm Nhóm Mới
           </button>
         </div>
 
         ${myClubs.length === 0 ? `
-          <div style="text-align: center; padding: 30px; background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
-            <i class="fa-solid fa-house-medical" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 10px;"></i>
-            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 14px;">Bạn chưa tạo hoặc đồng vận hành nhóm dinh dưỡng nào.</p>
+          <div style="text-align: center; padding: 36px 20px; background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">Bạn chưa tạo hoặc đồng vận hành nhóm dinh dưỡng nào.</p>
             <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateClubModal();">
-              <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Tạo Nhóm Dinh Dưỡng Đầu Tiên
+              Tạo Nhóm Dinh Dưỡng Đầu Tiên
             </button>
           </div>
         ` : `
           <div style="display: flex; flex-direction: column; gap: 12px;">
             ${myClubs.map(c => `
-              <div class="profile-item-row" style="display: flex; align-items: center; gap: 14px; background: var(--bg-main); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div class="profile-item-row" style="display: flex; align-items: center; gap: 16px; background: var(--bg-main); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                 <img src="${sanitizeUrl(c.image, 'images/default-club.jpg')}" class="profile-item-thumb" alt="${escapeHtml(c.name)}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
                 <div style="flex-grow: 1;">
                   <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${escapeHtml(c.name)}</div>
-                  <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">
-                    <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${escapeHtml(c.addressDetail || '')}, ${escapeHtml(c.ward || '')}, ${escapeHtml(c.province || '')} • <i class="fa-solid fa-phone" style="color: var(--primary);"></i> ${escapeHtml(c.ownerPhone)}
+                  <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 3px;">
+                    ${escapeHtml(c.addressDetail || '')}, ${escapeHtml(c.ward || '')}, ${escapeHtml(c.province || '')} • ${escapeHtml(c.ownerPhone)}
                   </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                  <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 700;" onclick="App.closeAllModals(); ClubManager.showClubDetailModal('${escapeJsAttr(c.id)}');">
-                    <i class="fa-solid fa-eye"></i> Xem
+                  <button type="button" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700;" onclick="App.closeAllModals(); ClubManager.showClubDetailModal('${escapeJsAttr(c.id)}');">
+                    Xem
                   </button>
-                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 12px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyClub('${escapeJsAttr(c.id)}')">
-                    <i class="fa-solid fa-trash-can"></i> Xóa
+                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 14px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyClub('${escapeJsAttr(c.id)}')">
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -2987,38 +2986,37 @@ const App = {
 
       <!-- TAB 2: SỰ KIỆN CỘNG ĐỒNG CỦA TÔI -->
       <div id="myEventsSec" class="profile-tab-sec" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <h4 style="font-size: 1.05rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-calendar-days" style="color: #f59e0b; margin-right: 6px;"></i> Các Sự Kiện Sức Khỏe Bạn Đã Tổ Chức</h4>
-          <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateEventModal();" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700; background: #f59e0b; border-color: #f59e0b;">
-            <i class="fa-solid fa-plus"></i> Đăng Sự Kiện Mới
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">Các Sự Kiện Sức Khỏe Bạn Đã Tổ Chức</h4>
+          <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateEventModal();" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700;">
+            Thêm Sự Kiện Mới
           </button>
         </div>
 
         ${myEvents.length === 0 ? `
-          <div style="text-align: center; padding: 30px; background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
-            <i class="fa-solid fa-calendar-xmark" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 10px;"></i>
-            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 14px;">Bạn chưa tạo sự kiện vận động / workshop dinh dưỡng nào.</p>
+          <div style="text-align: center; padding: 36px 20px; background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">Bạn chưa tạo sự kiện vận động / workshop dinh dưỡng nào.</p>
             <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateEventModal();">
-              <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Đăng Sự Kiện Ngay
+              Đăng Sự Kiện Ngay
             </button>
           </div>
         ` : `
           <div style="display: flex; flex-direction: column; gap: 12px;">
             ${myEvents.map(e => `
-              <div class="profile-item-row" style="display: flex; align-items: center; gap: 14px; background: var(--bg-main); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div class="profile-item-row" style="display: flex; align-items: center; gap: 16px; background: var(--bg-main); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                 <img src="${sanitizeUrl(e.image, 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80')}" class="profile-item-thumb" alt="${escapeHtml(e.title)}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
                 <div style="flex-grow: 1;">
                   <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${escapeHtml(e.title)}</div>
-                  <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">
-                    <i class="fa-solid fa-calendar-day" style="color: #f59e0b;"></i> ${escapeHtml(e.date)} (${escapeHtml(e.time)}) • <i class="fa-solid fa-location-dot" style="color: var(--primary);"></i> ${escapeHtml(e.address || '')}
+                  <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 3px;">
+                    ${escapeHtml(e.date)} (${escapeHtml(e.time)}) • ${escapeHtml(e.address || '')}
                   </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                  <button type="button" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 700; background: #059669; border-color: #059669;" onclick="App.openEventRegistrationsModal('${escapeJsAttr(e.id)}')">
-                    <i class="fa-solid fa-users-gear"></i> Người Đăng Ký (${(e.registrations || []).length})
+                  <button type="button" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; background: #059669; border-color: #059669;" onclick="App.openEventRegistrationsModal('${escapeJsAttr(e.id)}')">
+                    Người Đăng Ký (${(e.registrations || []).length})
                   </button>
-                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 12px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyEvent('${escapeJsAttr(e.id)}')">
-                    <i class="fa-solid fa-trash-can"></i> Xóa
+                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 14px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyEvent('${escapeJsAttr(e.id)}')">
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -3029,35 +3027,34 @@ const App = {
 
       <!-- TAB 3: SẢN PHẨM SHOP CỦA TÔI -->
       <div id="myProductsSec" class="profile-tab-sec" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <h4 style="font-size: 1.05rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-store" style="color: var(--accent-sport); margin-right: 6px;"></i> Công Cụ & Thiết Bị Bạn Đang Đăng Bán</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">Công Cụ & Thiết Bị Bạn Đang Đăng Bán</h4>
           <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateProductModal();" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700;">
-            <i class="fa-solid fa-plus"></i> Đăng Bán Công Cụ
+            Đăng Bán Công Cụ
           </button>
         </div>
 
         ${myProducts.length === 0 ? `
-          <div style="text-align: center; padding: 30px; background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
-            <i class="fa-solid fa-store-slash" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 10px;"></i>
-            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 14px;">Bạn chưa đăng bán máy quét InBody hay thiết bị mở nhóm nào.</p>
+          <div style="text-align: center; padding: 36px 20px; background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">Bạn chưa đăng bán máy quét InBody hay thiết bị mở nhóm nào.</p>
             <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateProductModal();">
-              <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Đăng Bán Công Cụ Mới
+              Đăng Bán Công Cụ Mới
             </button>
           </div>
         ` : `
           <div style="display: flex; flex-direction: column; gap: 12px;">
             ${myProducts.map(p => `
-              <div class="profile-item-row" style="display: flex; align-items: center; gap: 14px; background: var(--bg-main); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div class="profile-item-row" style="display: flex; align-items: center; gap: 16px; background: var(--bg-main); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                 <img src="${sanitizeUrl(p.image, 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80')}" class="profile-item-thumb" alt="${escapeHtml(p.title)}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
                 <div style="flex-grow: 1;">
                   <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${escapeHtml(p.title)}</div>
-                  <div style="font-size: 0.85rem; color: var(--primary); font-weight: 800; margin-top: 2px;">
+                  <div style="font-size: 0.85rem; color: var(--primary); font-weight: 800; margin-top: 3px;">
                     ${ShopManager.formatCurrency(p.price)} • Tình trạng: ${escapeHtml(p.condition)}
                   </div>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 12px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyProduct('${escapeJsAttr(p.id)}')">
-                    <i class="fa-solid fa-trash-can"></i> Xóa
+                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 14px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyProduct('${escapeJsAttr(p.id)}')">
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -3068,44 +3065,46 @@ const App = {
 
       <!-- TAB 4: CHƯƠNG TRÌNH AFFILIATES -->
       <div id="myAffiliateSec" class="profile-tab-sec" style="display: none;">
-        <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-          <h4 style="font-size: 1.1rem; font-weight: 800; color: #d97706; margin-bottom: 8px;">
-            <i class="fa-solid fa-gift" style="color: #ec4899; margin-right: 6px;"></i> Chương Trình Chia Sẻ Link Giới Thiệu Nhận VIP Miễn Phí
+        <div style="background: var(--bg-main); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+          <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">
+            Chương Trình Chia Sẻ Link Giới Thiệu Nhận VIP Miễn Phí
           </h4>
-          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.7;">
-            • Chia sẻ link cá nhân để mời bạn bè đăng ký ➡️ <strong>Bạn bè đăng ký Thưởng ngay +1 Ngày VIP Miễn Phí</strong>.<br>
-            • Khi người được giới thiệu nâng cấp Gói VIP 1 Tháng ➡️ <strong>Thưởng ngay +1 Tuần VIP (7 Ngày VIP)</strong>.<br>
-            • Khi người được giới thiệu nâng cấp Gói VIP 1 Năm ➡️ <strong>Thưởng ngay +3 Tháng VIP (90 Ngày VIP)</strong>.
-          </p>
+          <ul style="padding-left: 18px; margin-bottom: 22px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.8;">
+            <li>Chia sẻ link cá nhân để mời bạn bè đăng ký &mdash; <strong>Thưởng ngay +1 Ngày VIP Miễn Phí</strong>.</li>
+            <li>Khi người được giới thiệu nâng cấp Gói VIP 1 Tháng &mdash; <strong>Thưởng ngay +1 Tuần VIP (7 Ngày VIP)</strong>.</li>
+            <li>Khi người được giới thiệu nâng cấp Gói VIP 1 Năm &mdash; <strong>Thưởng ngay +3 Tháng VIP (90 Ngày VIP)</strong>.</li>
+          </ul>
 
-          <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap;">
             <input type="text" id="myReferralLinkInput" class="form-control" value="${window.location.origin}/?ref=${currentUser.phone}" readonly style="font-weight: 700; color: var(--primary); flex-grow: 1;">
             <button type="button" class="btn btn-primary" onclick="App.copyReferralLink()" style="white-space: nowrap; font-weight: 700;">
-              <i class="fa-solid fa-copy"></i> Sao Chép Link Giới Thiệu
+              Sao Chép Link Giới Thiệu
             </button>
           </div>
 
-          <div class="profile-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
-            <div class="profile-stat-card" style="border-left: 3px solid #10b981; background: var(--bg-card); padding: 12px;">
-              <div class="stat-num" style="color: #10b981; font-weight: 800; font-size: 1.3rem;">${(currentUser.referralLogs || []).length}</div>
-              <div class="stat-label" style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-users" style="color: #10b981; margin-right: 4px;"></i> Đã Giới Thiệu</div>
+          <div class="profile-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px;">
+            <div class="profile-stat-card">
+              <div class="stat-num" style="color: #10b981;">${(currentUser.referralLogs || []).length}</div>
+              <div class="stat-label">Đã Giới Thiệu</div>
             </div>
-            <div class="profile-stat-card" style="border-left: 3px solid #f59e0b; background: var(--bg-card); padding: 12px;">
-              <div class="stat-num" style="color: #f59e0b; font-weight: 800; font-size: 1.3rem;">${currentUser.vipDays || 0}</div>
-              <div class="stat-label" style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-gift" style="color: #f59e0b; margin-right: 4px;"></i> Tổng Ngày VIP Thưởng</div>
+            <div class="profile-stat-card">
+              <div class="stat-num" style="color: var(--secondary);">${currentUser.vipDays || 0}</div>
+              <div class="stat-label">Tổng Ngày VIP Thưởng</div>
             </div>
-            <div class="profile-stat-card" style="border-left: 3px solid #8b5cf6; background: var(--bg-card); padding: 12px;">
-              <div class="stat-num" style="color: #8b5cf6; font-weight: 800; font-size: 1.3rem;">${(currentUser.referralLogs || []).filter(l => l.type === 'monthly_package' || l.type === 'yearly_package').length}</div>
-              <div class="stat-label" style="font-size: 0.82rem; color: var(--text-muted);"><i class="fa-solid fa-crown" style="color: #8b5cf6; margin-right: 4px;"></i> Nâng Cấp VIP</div>
+            <div class="profile-stat-card">
+              <div class="stat-num" style="color: #8b5cf6;">${(currentUser.referralLogs || []).filter(l => l.type === 'monthly_package' || l.type === 'yearly_package').length}</div>
+              <div class="stat-label">Nâng Cấp VIP</div>
             </div>
           </div>
 
-          <h5 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 12px;"><i class="fa-solid fa-list-check" style="color: var(--primary); margin-right: 6px;"></i> Lịch Sử Nhận Thưởng:</h5>
+          <h5 style="font-size: 1rem; font-weight: 800; margin-bottom: 12px; color: var(--text-main);">Lịch Sử Nhận Thưởng:</h5>
           ${(!currentUser.referralLogs || currentUser.referralLogs.length === 0) ? `
-            <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; padding: 16px;">Bạn chưa có lượt giới thiệu nào. Hãy copy link trên và chia sẻ cho đồng nghiệp nhé!</p>
+            <p style="font-size: 0.88rem; color: var(--text-muted); text-align: center; padding: 20px; background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              Bạn chưa có lượt giới thiệu nào. Hãy copy link trên và chia sẻ cho đồng nghiệp nhé!
+            </p>
           ` : `
             <div class="admin-table-wrap">
-              <table class="admin-table">
+              <table class="erp-table">
                 <thead>
                   <tr>
                     <th>Ngày Nhận</th>
@@ -3132,43 +3131,43 @@ const App = {
 
       <!-- TAB 5: QUẢN LÝ GÓI VIP -->
       <div id="myVIPSec" class="profile-tab-sec" style="display: none;">
-        <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-          <h4 style="font-size: 1.1rem; font-weight: 800; color: #b45309; margin-bottom: 12px;">
-            <i class="fa-solid fa-shield-halved" style="color: #f59e0b; margin-right: 6px;"></i> Thông Tin Gói VIP & Quyền Lợi Tài Khoản
+        <div style="background: var(--bg-main); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+          <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main); margin-bottom: 16px;">
+            Thông Tin Gói VIP & Quyền Lợi Tài Khoản
           </h4>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-            <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-              <div style="font-size: 0.83rem; color: var(--text-muted);">Trạng thái gói:</div>
-              <div style="font-size: 1.1rem; font-weight: 800; color: ${isVIP ? '#10b981' : '#f59e0b'}; margin-top: 4px;">
-                ${isVIP ? '<i class="fa-solid fa-star" style="color: #f59e0b;"></i> Đã Kích Hoạt VIP' : '<i class="fa-solid fa-lock" style="color: #f59e0b;"></i> Dùng Thử Miễn Phí'}
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
+            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="font-size: 0.83rem; color: var(--text-muted); font-weight: 600;">Trạng thái gói:</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: ${isVIP ? '#10b981' : '#f59e0b'}; margin-top: 4px;">
+                ${isVIP ? 'Đã Kích Hoạt VIP' : 'Dùng Thử Miễn Phí'}
               </div>
             </div>
-            <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-              <div style="font-size: 0.83rem; color: var(--text-muted);">Tên gói hiện tại:</div>
-              <div style="font-size: 1.05rem; font-weight: 800; color: var(--primary); margin-top: 4px;">
+            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="font-size: 0.83rem; color: var(--text-muted); font-weight: 600;">Tên gói hiện tại:</div>
+              <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-top: 4px;">
                 ${pkgName}
               </div>
             </div>
           </div>
 
-          <div style="margin-bottom: 20px;">
-            <h5 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 10px;"><i class="fa-solid fa-wand-magic-sparkles" style="color: #f59e0b; margin-right: 6px;"></i> Quyền Lợi Đã Mở Khóa:</h5>
-            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; font-size: 0.9rem;">
-              <li><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Xem Số điện thoại đầy đủ tất cả Chủ nhóm</li>
-              <li><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Xem Số nhà & Tên đường chi tiết</li>
-              <li><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Bản đồ Leaflet vị trí & chỉ đường</li>
-              <li><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Đăng bài viết Sự kiện sức khỏe không giới hạn</li>
+          <div style="margin-bottom: 24px;">
+            <h5 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 12px; color: var(--text-main);">Quyền Lợi Đã Mở Khóa:</h5>
+            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; font-size: 0.9rem;">
+              <li style="display: flex; align-items: center; gap: 10px; color: var(--text-main);"><span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.75rem; font-weight: 800;">✓</span> Xem Số điện thoại đầy đủ tất cả Chủ nhóm</li>
+              <li style="display: flex; align-items: center; gap: 10px; color: var(--text-main);"><span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.75rem; font-weight: 800;">✓</span> Xem Số nhà & Tên đường chi tiết</li>
+              <li style="display: flex; align-items: center; gap: 10px; color: var(--text-main);"><span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.75rem; font-weight: 800;">✓</span> Bản đồ Leaflet vị trí & chỉ đường</li>
+              <li style="display: flex; align-items: center; gap: 10px; color: var(--text-main);"><span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 0.75rem; font-weight: 800;">✓</span> Đăng bài viết Sự kiện sức khỏe không giới hạn</li>
             </ul>
           </div>
 
           ${!isVIP ? `
-            <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openVIPUpgradeModal();" style="width: 100%; padding: 12px; font-size: 1rem; font-weight: 800; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
-              <i class="fa-solid fa-rocket" style="margin-right: 6px;"></i> Nâng Cấp VIP Ngay Chỉ 99.000đ / Tháng
+            <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openVIPUpgradeModal();" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 800;">
+              Nâng Cấp VIP Ngay (99.000đ / Tháng)
             </button>
           ` : `
             <button type="button" class="btn btn-outline" onclick="App.closeAllModals(); App.openVIPUpgradeModal();" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 700;">
-              <i class="fa-solid fa-arrows-rotate" style="margin-right: 6px;"></i> Gia Hạn Hoặc Đổi Gói VIP Khác
+              Gia Hạn Hoặc Đổi Gói VIP Khác
             </button>
           `}
         </div>
@@ -3176,76 +3175,76 @@ const App = {
 
       <!-- TAB 6: CÀI ĐẶT HỒ SƠ & MẬT KHẨU -->
       <div id="editProfileSec" class="profile-tab-sec" style="display: none;">
-        <div style="background: var(--bg-main); padding: 22px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 20px;">
-          <h4 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i> Cập Nhật Thông Tin Cá Nhân
+        <div style="background: var(--bg-main); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 24px;">
+          <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 20px; color: var(--text-main);">
+            Cập Nhật Thông Tin Cá Nhân
           </h4>
           <form onsubmit="App.submitUpdateProfile(event)">
-            <div class="form-group-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 14px;">
+            <div class="form-group-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 16px;">
               <div class="form-group" style="margin: 0;">
-                <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-user" style="color: var(--primary); margin-right: 4px;"></i> Họ và tên *</label>
+                <label class="form-label" style="font-weight: 700;">Họ và tên *</label>
                 <input type="text" name="updName" class="form-control" value="${escapeHtml(currentUser.name)}" required>
               </div>
               <div class="form-group" style="margin: 0;">
-                <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-phone" style="color: var(--primary); margin-right: 4px;"></i> Số điện thoại (Tài khoản cố định)</label>
+                <label class="form-label" style="font-weight: 700;">Số điện thoại (Tài khoản cố định)</label>
                 <input type="text" class="form-control" value="${escapeHtml(currentUser.phone)}" disabled readonly style="background: var(--bg-card); opacity: 0.8;">
               </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-envelope" style="color: var(--secondary); margin-right: 4px;"></i> Email đăng nhập</label>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" style="font-weight: 700;">Email đăng nhập</label>
               <input type="email" class="form-control" value="${escapeHtml(currentUser.email || '')}" disabled readonly style="background: var(--bg-card); opacity: 0.8;">
             </div>
 
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-image" style="color: var(--accent-sport); margin-right: 4px;"></i> Ảnh Đại Diện (Avatar)</label>
-              <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-                <img id="editProfileAvatarThumb" src="${sanitizeUrl(currentUser.avatar, '')}" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 3px 10px rgba(5, 150, 105, 0.2);">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" style="font-weight: 700;">Ảnh Đại Diện (Avatar)</label>
+              <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <img id="editProfileAvatarThumb" src="${sanitizeUrl(currentUser.avatar, '')}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); flex-shrink: 0;">
                 <div style="flex-grow: 1;">
                   <input type="url" name="updAvatar" id="updAvatarInput" class="form-control" value="${escapeHtml(currentUser.avatar || '')}" placeholder="https://example.com/avatar.jpg" oninput="document.getElementById('editProfileAvatarThumb').src=this.value">
-                  <div style="margin-top: 6px; display: flex; gap: 8px; align-items: center;">
-                    <button type="button" class="btn btn-sm btn-outline" onclick="App.openChangeAvatarModal()" style="font-weight: 700; font-size: 0.78rem;">
-                      <i class="fa-solid fa-camera" style="color: var(--primary);"></i> Tải Ảnh Mới Hoặc Chọn Mẫu...
+                  <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                    <button type="button" class="btn btn-sm btn-outline" onclick="App.openChangeAvatarModal()" style="font-weight: 700; font-size: 0.8rem;">
+                      Tải Ảnh Mới Hoặc Chọn Mẫu...
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="form-group" style="margin-bottom: 18px;">
-              <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-comment-dots" style="color: var(--secondary); margin-right: 4px;"></i> Giới thiệu bản thân / Nhóm dinh dưỡng</label>
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label class="form-label" style="font-weight: 700;">Giới thiệu bản thân / Nhóm dinh dưỡng</label>
               <textarea name="updBio" class="form-control" rows="3" placeholder="Chia sẻ câu chuyện và kinh nghiệm vận hành nhóm dinh dưỡng của bạn...">${escapeHtml(currentUser.bio || '')}</textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary" style="font-weight: 800; padding: 10px 20px;">
-              <i class="fa-solid fa-floppy-disk" style="margin-right: 6px;"></i> Lưu Thay Đổi Hồ Sơ
+            <button type="submit" class="btn btn-primary" style="font-weight: 800; padding: 10px 22px;">
+              Lưu Thay Đổi Hồ Sơ
             </button>
           </form>
         </div>
 
         <!-- ĐỔI MẬT KHẨU -->
-        <div style="background: var(--bg-main); padding: 22px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-          <h4 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 18px; color: var(--secondary); display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-lock" style="color: var(--secondary);"></i> Đổi Mật Khẩu Đăng Nhập
+        <div style="background: var(--bg-main); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+          <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 20px; color: var(--text-main);">
+            Đổi Mật Khẩu Đăng Nhập
           </h4>
           <form onsubmit="App.submitChangePassword(event)">
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-key" style="color: var(--secondary); margin-right: 4px;"></i> Mật khẩu hiện tại *</label>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label" style="font-weight: 700;">Mật khẩu hiện tại *</label>
               <input type="password" name="oldPassword" class="form-control" placeholder="Nhập mật khẩu cũ" required>
             </div>
-            <div class="form-group-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 18px;">
+            <div class="form-group-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 20px;">
               <div class="form-group" style="margin: 0;">
-                <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-shield-halved" style="color: var(--primary); margin-right: 4px;"></i> Mật khẩu mới *</label>
+                <label class="form-label" style="font-weight: 700;">Mật khẩu mới *</label>
                 <input type="password" name="newPassword" class="form-control" placeholder="Nhập mật khẩu mới" required>
               </div>
               <div class="form-group" style="margin: 0;">
-                <label class="form-label" style="font-weight: 700;"><i class="fa-solid fa-check-double" style="color: var(--primary); margin-right: 4px;"></i> Xác nhận mật khẩu mới *</label>
+                <label class="form-label" style="font-weight: 700;">Xác nhận mật khẩu mới *</label>
                 <input type="password" name="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu mới" required>
               </div>
             </div>
 
-            <button type="submit" class="btn btn-outline" style="border-color: var(--secondary); color: var(--secondary); font-weight: 800; padding: 10px 20px;">
-              <i class="fa-solid fa-key" style="margin-right: 6px;"></i> Cập Nhật Mật Khẩu
+            <button type="submit" class="btn btn-outline" style="border-color: var(--secondary); color: var(--secondary); font-weight: 800; padding: 10px 22px;">
+              Cập Nhật Mật Khẩu
             </button>
           </form>
         </div>
@@ -3328,84 +3327,84 @@ const App = {
     const chartHTML = this.generateMetricsSVGChart(logs);
 
     return `
-      <div style="background: var(--bg-main); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+      <div style="background: var(--bg-main); padding: 22px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
           <div>
-            <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-chart-line" style="color: #10b981;"></i> Theo Dõi 9 Chỉ Số Sức Khỏe InBody Hàng Ngày
+            <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0;">
+              Theo Dõi 9 Chỉ Số Sức Khỏe InBody Hàng Ngày
             </h4>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 0;">Lịch sử đo và phân tích tiến trình giảm mỡ, tăng cơ & độ trẻ hóa cơ thể</p>
           </div>
-          <button type="button" class="btn btn-primary" onclick="App.openAddMetricsModal()" style="font-weight: 700; font-size: 0.88rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
-            <i class="fa-solid fa-notes-medical"></i> Nhập Chỉ Số Hôm Nay
+          <button type="button" class="btn btn-primary" onclick="App.openAddMetricsModal()" style="font-weight: 700; font-size: 0.88rem; background: var(--primary); border: none;">
+            Nhập Chỉ Số Hôm Nay
           </button>
         </div>
 
         <!-- 9 KEY METRICS KPI CARDS GRID -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--primary);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 22px;">
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--primary);">
             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
-              <span><i class="fa-solid fa-weight-scale" style="color: var(--primary);"></i> Cân Nặng</span>
+              <span>Cân Nặng</span>
               <span style="color: ${weightDiff <= 0 ? 'var(--primary)' : '#e11d48'};">${weightDiff <= 0 ? weightDiff + ' kg' : '+' + weightDiff + ' kg'}</span>
             </div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${latest.weight || '--'} kg</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--secondary);">
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--secondary);">
             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
-              <span><i class="fa-solid fa-percent" style="color: var(--secondary);"></i> % Mỡ Cơ Thể</span>
+              <span>% Mỡ Cơ Thể</span>
               <span style="color: ${fatDiff <= 0 ? 'var(--primary)' : '#e11d48'};">${fatDiff <= 0 ? fatDiff + '%' : '+' + fatDiff + '%'}</span>
             </div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${latest.bodyFat || '--'}%</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--primary);">
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--primary);">
             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">
-              <span><i class="fa-solid fa-dumbbell" style="color: var(--primary);"></i> Khối Lượng Cơ</span>
+              <span>Khối Lượng Cơ</span>
               <span style="color: ${muscleDiff >= 0 ? 'var(--primary)' : '#e11d48'};">${muscleDiff >= 0 ? '+' + muscleDiff + ' kg' : muscleDiff + ' kg'}</span>
             </div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${latest.muscle || '--'} kg</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-sport);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;"><i class="fa-solid fa-droplet" style="color: var(--accent-sport);"></i> Lượng Nước</div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-sport);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Lượng Nước</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${latest.water || '--'}%</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--secondary);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;"><i class="fa-solid fa-calculator" style="color: var(--secondary);"></i> Chỉ Số BMI</div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--secondary);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Chỉ Số BMI</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--secondary);">${latest.bmi || '--'} (${bmiRating.status})</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-deep);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;"><i class="fa-solid fa-heart-circle-check" style="color: var(--accent-deep);"></i> Mỡ Nội Tạng</div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-deep);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Mỡ Nội Tạng</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-deep);">Cấp ${latest.visceralFat || '--'} (${visceralRating.status})</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--secondary);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;"><i class="fa-solid fa-bolt" style="color: var(--secondary);"></i> BMR Trao Đổi Chất</div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--secondary);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">BMR Trao Đổi Chất</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${latest.bmr || '--'} kcal</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-sport);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;"><i class="fa-solid fa-dna" style="color: var(--accent-sport);"></i> Tuổi Sinh Học</div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--accent-sport);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Tuổi Sinh Học</div>
             <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-main);">${latest.metabolicAge || '--'} tuổi</div>
           </div>
 
-          <div style="background: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); grid-column: span 1 / -1;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;"><i class="fa-solid fa-person-rays" style="color: var(--primary);"></i> Đánh Giá Vóc Dáng (Physique Rating)</div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); border-left: 4px solid var(--primary); grid-column: span 1 / -1;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Đánh Giá Vóc Dáng (Physique Rating)</div>
             <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">Mức ${latest.physiqueRating || 5}/9: ${physiqueText}</div>
           </div>
         </div>
 
         <!-- SVG Line Chart Visualizer -->
-        <div style="margin-bottom: 20px;">
-          <h5 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 10px;">📈 Biểu Đồ Cân Nặng Qua Các Lần Đo:</h5>
+        <div style="margin-bottom: 22px;">
+          <h5 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 12px; color: var(--text-main);">Biểu Đồ Cân Nặng Qua Các Lần Đo</h5>
           ${chartHTML}
         </div>
 
         <!-- History Table -->
-        <h5 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 10px;">📋 Lịch Sử Nhật Ký InBody:</h5>
+        <h5 style="font-size: 0.95rem; font-weight: 800; margin-bottom: 12px; color: var(--text-main);">Lịch Sử Nhật Ký InBody</h5>
         <div class="admin-table-wrap">
           <table class="admin-table">
             <thead>
@@ -3435,8 +3434,8 @@ const App = {
                   <td>${l.bmr}k / ${l.metabolicAge}t</td>
                   <td style="font-size: 0.78rem; font-weight: 700;">${MetricsManager.getPhysiqueLabel(l.physiqueRating)}</td>
                   <td>
-                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 2px 6px; font-size: 0.75rem;" onclick="App.deleteMetricLog('${escapeJsAttr(l.id)}')">
-                      <i class="fa-solid fa-trash-can"></i>
+                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 3px 8px; font-size: 0.75rem; font-weight: 600;" onclick="App.deleteMetricLog('${escapeJsAttr(l.id)}')">
+                      Xóa
                     </button>
                   </td>
                 </tr>
