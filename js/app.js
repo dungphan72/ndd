@@ -5342,17 +5342,17 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
 
     if (this._activeErpSubTab === "members") {
       subTabContentHtml = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-users" style="color: var(--primary);"></i> Danh Sách Hội Viên & Điểm Danh 1-Touch</h5>
-            <div style="font-size: 0.83rem; color: var(--text-muted);">Bấm "Điểm Danh" để ghi nhận hội viên dùng trà & shake hôm nay</div>
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0; color: var(--text-main);">Danh Sách Hội Viên & Điểm Danh 1-Touch</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">Bấm "Điểm Danh" để ghi nhận hội viên dùng trà & shake hôm nay</div>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('members')" style="font-weight: 700; font-size: 0.85rem;">
-              <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
+              Xuất CSV / Excel
             </button>
             <button type="button" class="btn btn-primary" onclick="App.openModal('addErpMemberModal')" style="font-weight: 700; font-size: 0.88rem;">
-              <i class="fa-solid fa-user-plus"></i> ➕ Đăng Ký Hội Viên Mới
+              Đăng Ký Hội Viên Mới
             </button>
           </div>
         </div>
@@ -5367,7 +5367,7 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             const isExpired = m.remainingVisits <= 0;
 
             return `
-              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); gap: 14px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 200px;">
                   <div style="font-weight: 800; font-size: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
                     ${escapeHtml(m.name)} 
@@ -5376,35 +5376,35 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
                     </span>
                   </div>
                   <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 4px;">
-                    <i class="fa-solid fa-phone" style="color: var(--primary);"></i> ${escapeHtml(m.phone)} • <i class="fa-solid fa-box" style="color: var(--secondary);"></i> ${escapeHtml(m.packageName)}
+                    ${escapeHtml(m.phone)} &bull; ${escapeHtml(m.packageName)}
                   </div>
                   <div style="font-size: 0.82rem; color: var(--text-main); font-weight: 700; margin-top: 4px;">
                     Buổi đã dùng: <span style="color: var(--primary);">${m.usedVisits}/${m.totalVisits}</span> (Còn lại <span style="color: ${isExpiring ? '#dc2626' : 'var(--primary)'}">${m.remainingVisits}</span> buổi)
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   ${isCheckedToday ? `
                     <button type="button" class="btn btn-outline" disabled style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; font-weight: 800; font-size: 0.82rem;">
-                      <i class="fa-solid fa-circle-check"></i> Đã Có Mặt
+                      Đã Có Mặt
                     </button>
                   ` : `
-                    <button type="button" class="btn btn-primary" onclick="App.checkInErpMember('${escapeJsAttr(m.id)}')" style="font-weight: 800; font-size: 0.82rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
-                      <i class="fa-solid fa-mug-hot"></i> Điểm Danh
+                    <button type="button" class="btn btn-primary" onclick="App.checkInErpMember('${escapeJsAttr(m.id)}')" style="font-weight: 800; font-size: 0.82rem; background: var(--primary); border: none;">
+                      Điểm Danh
                     </button>
                   `}
-                  <button type="button" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.8rem; font-weight: 700; color: #8b5cf6; border-color: #ddd6fe;" onclick="App.openInBodyModal('${escapeJsAttr(m.id)}')">
-                    <i class="fa-solid fa-weight-scale"></i> InBody
+                  <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: #8b5cf6; border-color: #ddd6fe;" onclick="App.openInBodyModal('${escapeJsAttr(m.id)}')">
+                    InBody
                   </button>
-                  <button type="button" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.8rem; font-weight: 700; color: var(--primary);" onclick="App.viewErpMemberCard('${escapeJsAttr(m.id)}')">
-                    <i class="fa-solid fa-id-card"></i> Thẻ QR
+                  <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: var(--primary);" onclick="App.viewErpMemberCard('${escapeJsAttr(m.id)}')">
+                    Thẻ QR
                   </button>
-                  <a href="https://zalo.me/${encodeURIComponent(m.phone)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 6px 10px; font-size: 0.8rem; background: #0068ff; border: none;" title="Nhắn Zalo">
-                    <i class="fa-solid fa-comment-dots"></i> Zalo
+                  <a href="https://zalo.me/${encodeURIComponent(m.phone)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem; background: #0068ff; border: none;" title="Nhắn Zalo">
+                    Zalo
                   </a>
                   ${isAssistant ? '' : `
-                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 8px; font-size: 0.8rem;" onclick="App.deleteErpMember('${escapeJsAttr(m.id)}')">
-                      <i class="fa-solid fa-trash-can"></i>
+                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 10px; font-size: 0.8rem; font-weight: 600;" onclick="App.deleteErpMember('${escapeJsAttr(m.id)}')">
+                      Xóa
                     </button>
                   `}
                 </div>
@@ -5415,17 +5415,17 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       `;
     } else if (this._activeErpSubTab === "inventory") {
       subTabContentHtml = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-stacked" style="color: var(--secondary);"></i> Quản Lý Tồn Kho & Vật Tư Nhóm</h5>
-            <div style="font-size: 0.83rem; color: var(--text-muted);">Tự động cảnh báo đỏ khi sản phẩm tồn thấp hơn mức tối thiểu</div>
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0; color: var(--text-main);">Quản Lý Tồn Kho & Vật Tư Nhóm</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">Tự động cảnh báo đỏ khi sản phẩm tồn thấp hơn mức tối thiểu</div>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('inventory')" style="font-weight: 700; font-size: 0.85rem;">
-              <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
+              Xuất CSV / Excel
             </button>
             <button type="button" class="btn btn-primary" onclick="App.openModal('addErpInventoryModal')" style="font-weight: 700; font-size: 0.88rem; background: var(--secondary); border-color: var(--secondary);">
-              <i class="fa-solid fa-box-archive"></i> ➕ Nhập Sản Phẩm Kho
+              Nhập Sản Phẩm Kho
             </button>
           </div>
         </div>
@@ -5437,30 +5437,30 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             const isLow = i.stock <= i.minStock;
 
             return `
-              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid ${isLow ? '#fecdd3' : 'var(--border-color)'}; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid ${isLow ? '#fecdd3' : 'var(--border-color)'}; gap: 14px; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 200px;">
                   <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
                     [${escapeHtml(i.code)}] ${escapeHtml(i.name)}
-                    ${isLow ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; background: #fef2f2; color: #dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo tồn thấp</span>` : ''}
+                    ${isLow ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; background: #fef2f2; color: #dc2626;">Tồn thấp</span>` : ''}
                   </div>
                   <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 4px;">
-                    Danh mục: ${escapeHtml(i.category)} • Giá niêm yết: ${ERPManager.formatVND(i.unitPrice)}
+                    Danh mục: ${escapeHtml(i.category)} &bull; Giá niêm yết: ${ERPManager.formatVND(i.unitPrice)}
                   </div>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
                   <div style="text-align: right;">
                     <div style="font-size: 1.1rem; font-weight: 900; color: ${isLow ? '#dc2626' : 'var(--primary)'}">
                       ${i.stock} ${escapeHtml(i.unit)}
                     </div>
                     <div style="font-size: 0.75rem; color: var(--text-muted);">Tồn tối thiểu: ${i.minStock}</div>
                   </div>
-                  <div style="display: flex; gap: 4px;">
-                    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', 1)">+</button>
-                    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', -1)">-</button>
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" class="btn btn-outline" style="padding: 4px 12px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', 1)">+</button>
+                    <button type="button" class="btn btn-outline" style="padding: 4px 12px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', -1)">-</button>
                     ${isAssistant ? '' : `
-                      <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpInventory('${escapeJsAttr(i.id)}')">
-                        <i class="fa-solid fa-trash-can"></i>
+                      <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 10px; font-size: 0.8rem; font-weight: 600;" onclick="App.deleteErpInventory('${escapeJsAttr(i.id)}')">
+                        Xóa
                       </button>
                     `}
                   </div>
@@ -5472,21 +5472,21 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       `;
     } else if (this._activeErpSubTab === "transactions") {
       subTabContentHtml = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-file-invoice-dollar" style="color: #10b981;"></i> Sổ Quỹ Thu - Chi P&L Thực Tế</h5>
-            <div style="font-size: 0.83rem; color: var(--text-muted);">
-              ${isAssistant ? '🔒 Quyền Trợ lý: Số tiền chi tiết và lợi nhuận ròng P&L được ẩn theo phân quyền bảo mật.' : 'Ghi nhận doanh thu bán gói NDD, bán lẻ & chi phí vận hành mặt bằng, điện nước'}
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0; color: var(--text-main);">Sổ Quỹ Thu - Chi (P&L Thực Tế)</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">
+              ${isAssistant ? 'Quyền Trợ lý: Số tiền chi tiết và lợi nhuận ròng P&L được ẩn theo phân quyền bảo mật.' : 'Ghi nhận doanh thu bán gói NDD, bán lẻ & chi phí vận hành mặt bằng, điện nước'}
             </div>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             ${isAssistant ? '' : `
               <button type="button" class="btn btn-outline" onclick="App.exportErpCSV('transactions')" style="font-weight: 700; font-size: 0.85rem;">
-                <i class="fa-solid fa-file-excel" style="color: #059669;"></i> Xuất Excel / CSV
+                Xuất CSV / Excel
               </button>
             `}
             <button type="button" class="btn btn-primary" onclick="App.openModal('addErpTransactionModal')" style="font-weight: 700; font-size: 0.88rem; background: #059669; border-color: #059669;">
-              <i class="fa-solid fa-plus-minus"></i> ➕ Ghi Nhận Thu / Chi
+              Ghi Nhận Thu / Chi
             </button>
           </div>
         </div>
@@ -5498,7 +5498,7 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             const isInc = t.type === "income";
 
             return `
-              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); gap: 12px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); gap: 14px;">
                 <div>
                   <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 0.78rem; padding: 2px 8px; border-radius: 8px; font-weight: 800; background: ${isInc ? '#ecfdf5' : '#fef2f2'}; color: ${isInc ? '#059669' : '#dc2626'};">
@@ -5510,17 +5510,17 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
                     ${escapeHtml(t.description)} ${t.memberName ? `(${escapeHtml(t.memberName)})` : ''}
                   </div>
                   <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                    <i class="fa-solid fa-clock"></i> ${escapeHtml(t.date)}
+                    ${escapeHtml(t.date)}
                   </div>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 12px;">
                   <div style="font-weight: 900; font-size: 1.05rem; color: ${isInc ? '#059669' : '#dc2626'};">
-                    ${isAssistant ? '🔒 Chỉ Chủ nhóm' : `${isInc ? '+' : '-'}${ERPManager.formatVND(t.amount)}`}
+                    ${isAssistant ? 'Chỉ Chủ nhóm' : `${isInc ? '+' : '-'}${ERPManager.formatVND(t.amount)}`}
                   </div>
                   ${isAssistant ? '' : `
-                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpTransaction('${escapeJsAttr(t.id)}')">
-                      <i class="fa-solid fa-trash-can"></i>
+                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 10px; font-size: 0.8rem; font-weight: 600;" onclick="App.deleteErpTransaction('${escapeJsAttr(t.id)}')">
+                      Xóa
                     </button>
                   `}
                 </div>
@@ -5531,31 +5531,31 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       `;
     } else if (this._activeErpSubTab === "packages") {
       subTabContentHtml = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-packing" style="color: #f59e0b;"></i> Cấu Hình Gói Dinh Dưỡng</h5>
-            <div style="font-size: 0.83rem; color: var(--text-muted);">Quản lý danh sách các gói dinh dưỡng trải nghiệm tại nhóm</div>
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0; color: var(--text-main);">Cấu Hình Gói Dinh Dưỡng</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 2px;">Quản lý danh sách các gói dinh dưỡng trải nghiệm tại nhóm</div>
           </div>
           ${isAssistant ? '' : `
             <button type="button" class="btn btn-primary" onclick="App.openModal('addErpPackageModal')" style="font-weight: 700; font-size: 0.88rem; background: #f59e0b; border-color: #f59e0b;">
-              <i class="fa-solid fa-plus"></i> ➕ Thêm Gói Mới
+              Thêm Gói Mới
             </button>
           `}
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
           ${packages.map(p => `
-            <div style="background: var(--bg-card); padding: 16px; border-radius: 14px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
                   <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary);">${escapeHtml(p.name)}</div>
                   ${isAssistant ? '' : `
-                    <div style="display: flex; gap: 4px;">
-                      <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem;" onclick="App.openEditErpPackageModal('${escapeJsAttr(p.id)}')" title="Chỉnh sửa">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                    <div style="display: flex; gap: 6px;">
+                      <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 0.78rem; font-weight: 600;" onclick="App.openEditErpPackageModal('${escapeJsAttr(p.id)}')" title="Chỉnh sửa">
+                        Sửa
                       </button>
-                      <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem; color: #ef4444; border-color: #fca5a5;" onclick="App.deleteErpPackage('${escapeJsAttr(p.id)}')" title="Xóa gói">
-                        <i class="fa-solid fa-trash-can"></i>
+                      <button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 0.78rem; color: #ef4444; border-color: #fca5a5; font-weight: 600;" onclick="App.deleteErpPackage('${escapeJsAttr(p.id)}')" title="Xóa gói">
+                        Xóa
                       </button>
                     </div>
                   `}
@@ -5573,11 +5573,11 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
     }
 
     secEl.innerHTML = `
-      <div style="background: var(--bg-main); padding: 22px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+      <div style="background: var(--bg-main); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 14px;">
           <div>
-            <h4 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> ERP Quản Lý Toàn Diện Nhóm Dinh Dưỡng
+            <h4 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--text-main);">
+              ERP Quản Lý Toàn Diện Nhóm Dinh Dưỡng
             </h4>
             <div style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;">
               Tự động hóa điểm danh 1-touch, kiểm soát thẻ gói hội viên, đo InBody & đồng bộ Cloud 24/7
@@ -5586,54 +5586,54 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
 
           <!-- ROLE SWITCHER & CLOUD BADGE -->
           <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; color: #0284c7; border-color: #7dd3fc;" onclick="App.openErpSettingsModal()">
-              <i class="fa-solid fa-bell"></i> ⚙️ Bot Thông Báo
+            <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 16px; color: #0284c7; border-color: #7dd3fc;" onclick="App.openErpSettingsModal()">
+              Bot Thông Báo
             </button>
-            <span style="font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 4px;">
-              <i class="fa-solid fa-cloud"></i> ☁️ Realtime Cloud Sync
+            <span style="font-size: 0.78rem; padding: 5px 12px; border-radius: 20px; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; display: inline-flex; align-items: center;">
+              Cloud Sync
             </span>
             <div style="display: flex; align-items: center; gap: 4px; background: var(--bg-card); padding: 4px 6px; border-radius: 20px; border: 1px solid var(--border-color);">
-              <button type="button" class="btn ${!isAssistant ? 'btn-primary' : 'btn-outline'}" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; border: none;" onclick="App.switchErpRole('owner')">👑 Chủ Nhóm</button>
-              <button type="button" class="btn ${isAssistant ? 'btn-primary' : 'btn-outline'}" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; border: none;" onclick="App.switchErpRole('assistant')">⚙️ Trợ Lý</button>
+              <button type="button" class="btn ${!isAssistant ? 'btn-primary' : 'btn-outline'}" style="padding: 4px 12px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; border: none;" onclick="App.switchErpRole('owner')">Chủ Nhóm</button>
+              <button type="button" class="btn ${isAssistant ? 'btn-primary' : 'btn-outline'}" style="padding: 4px 12px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; border: none;" onclick="App.switchErpRole('assistant')">Trợ Lý</button>
             </div>
           </div>
         </div>
 
         <!-- 4 EXECUTIVE KPI CARDS HEADER -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
-          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid var(--primary); border: 1px solid var(--border-color); border-left-width: 4px;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Hội Viên Có Mặt Hôm Nay</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px;">
+          <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); border-left: 4px solid var(--primary); border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">Hội Viên Có Mặt Hôm Nay</div>
             <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 4px;">${kpis.todayAttendanceCount} <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">lượt</span></div>
           </div>
-          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid #10b981; border: 1px solid var(--border-color); border-left-width: 4px;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Hội Viên Đang Dùng Gói</div>
+          <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); border-left: 4px solid #10b981; border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">Hội Viên Đang Dùng Gói</div>
             <div style="font-size: 1.5rem; font-weight: 900; color: #10b981; margin-top: 4px;">${kpis.activeMembersCount} <span style="font-size: 0.85rem; font-weight: 600; color: #d97706;">(${kpis.expiringMembersCount} sắp hết)</span></div>
           </div>
-          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid #059669; border: 1px solid var(--border-color); border-left-width: 4px;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Lợi Nhuận Ròng P&L</div>
+          <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); border-left: 4px solid #059669; border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">Lợi Nhuận Ròng P&L</div>
             <div style="font-size: 1.2rem; font-weight: 900; color: #059669; margin-top: 4px;">
-              ${isAssistant ? '🔒 Chỉ Chủ Nhóm' : ERPManager.formatVND(kpis.netProfit)}
+              ${isAssistant ? 'Chỉ Chủ Nhóm' : ERPManager.formatVND(kpis.netProfit)}
             </div>
           </div>
-          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid ${kpis.lowStockCount > 0 ? '#dc2626' : 'var(--secondary)'}; border: 1px solid var(--border-color); border-left-width: 4px;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Cảnh Báo Tồn Kho</div>
+          <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); border-left: 4px solid ${kpis.lowStockCount > 0 ? '#dc2626' : 'var(--secondary)'}; border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">Cảnh Báo Tồn Kho</div>
             <div style="font-size: 1.5rem; font-weight: 900; color: ${kpis.lowStockCount > 0 ? '#dc2626' : 'var(--secondary)'}; margin-top: 4px;">${kpis.lowStockCount} <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">sản phẩm</span></div>
           </div>
         </div>
 
         <!-- ERP SUB-TABS NAVIGATION -->
-        <div style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color); margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px;">
-          <button type="button" class="btn ${this._activeErpSubTab === 'members' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('members')">
-            <i class="fa-solid fa-users"></i> 👥 Hội Viên & Điểm Danh (${members.length})
+        <div style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color); margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px;">
+          <button type="button" class="btn ${this._activeErpSubTab === 'members' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem; padding: 8px 16px;" onclick="App.switchErpSubTab('members')">
+            Hội Viên & Điểm Danh (${members.length})
           </button>
-          <button type="button" class="btn ${this._activeErpSubTab === 'inventory' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('inventory')">
-            <i class="fa-solid fa-boxes-stacked"></i> 📦 Kho Hàng & Vật Tư (${inventory.length})
+          <button type="button" class="btn ${this._activeErpSubTab === 'inventory' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem; padding: 8px 16px;" onclick="App.switchErpSubTab('inventory')">
+            Kho Hàng & Vật Tư (${inventory.length})
           </button>
-          <button type="button" class="btn ${this._activeErpSubTab === 'transactions' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('transactions')">
-            <i class="fa-solid fa-file-invoice-dollar"></i> 💵 Thu - Chi P&L (${txs.length})
+          <button type="button" class="btn ${this._activeErpSubTab === 'transactions' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem; padding: 8px 16px;" onclick="App.switchErpSubTab('transactions')">
+            Thu - Chi P&L (${txs.length})
           </button>
-          <button type="button" class="btn ${this._activeErpSubTab === 'packages' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('packages')">
-            <i class="fa-solid fa-boxes-packing"></i> 🎁 Gói Dinh Dưỡng (${packages.length})
+          <button type="button" class="btn ${this._activeErpSubTab === 'packages' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem; padding: 8px 16px;" onclick="App.switchErpSubTab('packages')">
+            Gói Dinh Dưỡng (${packages.length})
           </button>
         </div>
 
