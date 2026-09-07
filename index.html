@@ -2596,7 +2596,22 @@
         <div style="font-weight: 800; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-main);">
           📋 Lịch Sử Kiểm Tra Chỉ Số InBody
         </div>
-        <div id="inbodyLogsTable" style="max-height: 220px; overflow-y: auto;"></div>
+        <div id="inbodyLogsTable" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>Ngày đo</th>
+                <th>Cân nặng</th>
+                <th>Tỷ lệ mỡ</th>
+                <th>Cơ</th>
+                <th>Mỡ nội tạng</th>
+                <th>Ghi chú</th>
+                <th style="text-align: right;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="inbodyLogsTableBody"></tbody>
+          </table>
+        </div>
       </div>
       <div class="modal-footer" style="padding: 12px 20px;">
         <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Đóng Window</button>

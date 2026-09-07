@@ -1926,6 +1926,54 @@ body.dark-mode .radio-pill.pill-female:has(input:checked) {
   margin-top: 2px;
 }
 
+/* Unified Table & Scrollbar System */
+.erp-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.erp-table th {
+  background: var(--bg-main);
+  color: var(--text-muted);
+  font-weight: 800;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.erp-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.erp-table tr:hover {
+  background: var(--primary-light);
+}
+
+/* Custom Smooth Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 /* Modals */
 .modal-backdrop {
   position: fixed;
