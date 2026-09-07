@@ -5554,6 +5554,9 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
 
           <!-- ROLE SWITCHER & CLOUD BADGE -->
           <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 800; border-radius: 16px; color: #0284c7; border-color: #7dd3fc;" onclick="App.openErpSettingsModal()">
+              <i class="fa-solid fa-bell"></i> ⚙️ Bot Thông Báo
+            </button>
             <span style="font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 4px;">
               <i class="fa-solid fa-cloud"></i> ☁️ Realtime Cloud Sync
             </span>
@@ -5926,7 +5929,10 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             <td>${l.muscleMass ? l.muscleMass + ' kg' : '-'}</td>
             <td>${l.visceralFat ? 'Level ' + l.visceralFat : '-'}</td>
             <td style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(l.notes || '')}</td>
-            <td style="text-align: right;">
+            <td style="text-align: right; display: flex; gap: 4px; justify-content: flex-end;">
+              <button type="button" class="btn btn-primary" style="padding: 2px 8px; font-size: 0.75rem; background: #0068ff; border: none; font-weight: 700;" onclick="App.sendZaloInBodyReport('${escapeJsAttr(memberId)}', '${escapeJsAttr(l.id)}')">
+                <i class="fa-solid fa-paper-plane"></i> Zalo
+              </button>
               ${isAssistant ? '' : `
                 <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 2px 6px; font-size: 0.75rem;" onclick="App.deleteInBodyLog('${escapeJsAttr(l.id)}', '${escapeJsAttr(memberId)}')">
                   <i class="fa-solid fa-trash-can"></i>
@@ -6035,6 +6041,85 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       this.showToast("Đã xóa bản ghi InBody!");
       this.openInBodyModal(memberId);
     }
+  },
+
+  openErpSettingsModal() {
+    const settings = ERPManager.getNotificationSettings();
+    const tgTokenEl = document.getElementById("erpSettingTgToken");
+    const tgChatIdEl = document.getElementById("erpSettingTgChatId");
+    const zaloWebhookEl = document.getElementById("erpSettingZaloWebhook");
+    const autoLowStockEl = document.getElementById("erpSettingAutoLowStock");
+
+    if (tgTokenEl) tgTokenEl.value = settings.telegramToken || "";
+    if (tgChatIdEl) tgChatIdEl.value = settings.telegramChatId || "";
+    if (zaloWebhookEl) zaloWebhookEl.value = settings.zaloWebhook || "";
+    if (autoLowStockEl) autoLowStockEl.checked = !!settings.autoNotifyLowStock;
+
+    this.openModal("erpSettingsModal");
+  },
+
+  submitSaveErpSettings(e) {
+    e.preventDefault();
+    const telegramToken = document.getElementById("erpSettingTgToken").value.trim();
+    const telegramChatId = document.getElementById("erpSettingTgChatId").value.trim();
+    const zaloWebhook = document.getElementById("erpSettingZaloWebhook").value.trim();
+    const autoNotifyLowStock = document.getElementById("erpSettingAutoLowStock").checked;
+
+    ERPManager.saveNotificationSettings({ telegramToken, telegramChatId, zaloWebhook, autoNotifyLowStock });
+    this.showToast("🔔 Đã lưu cấu hình thông báo Telegram / Zalo!");
+    this.closeAllModals();
+  },
+
+  async testTelegramNotification() {
+    const telegramToken = document.getElementById("erpSettingTgToken").value.trim();
+    const telegramChatId = document.getElementById("erpSettingTgChatId").value.trim();
+
+    if (!telegramToken || !telegramChatId) {
+      this.showToast("Vui lòng nhập Telegram Bot Token và Chat ID trước khi thử nghiệm!", "error");
+      return;
+    }
+
+    ERPManager.saveNotificationSettings({
+      ...ERPManager.getNotificationSettings(),
+      telegramToken,
+      telegramChatId
+    });
+
+    const res = await ERPManager.sendTelegramAlert(
+      "🎉 <b>TEST THÔNG BÁO THÀNH CÔNG</b>\n" +
+      "Hệ thống ERP Nhóm Dinh Dưỡng đã kết nối thành công tới Telegram Bot của bạn!"
+    );
+
+    if (res.success) {
+      this.showToast(res.message);
+    } else {
+      this.showToast(res.message, "error");
+    }
+  },
+
+  sendZaloInBodyReport(memberId, logId) {
+    const members = ERPManager.getMembers();
+    const m = members.find(item => item.id === memberId);
+    if (!m) {
+      this.showToast("Không tìm thấy thông tin hội viên!", "error");
+      return;
+    }
+
+    const logs = ERPManager.getInBodyLogs(memberId);
+    const targetLog = logs.find(l => l.id === logId) || logs[logs.length - 1];
+    const firstLog = logs[0];
+
+    const messageText = ERPManager.generateZaloInBodyMessage(m, targetLog, firstLog);
+    if (!messageText) return;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(messageText);
+    }
+
+    const zaloUrl = `https://zalo.me/${encodeURIComponent(m.phone)}`;
+    window.open(zaloUrl, '_blank');
+
+    this.showToast(`📲 Đã sao chép báo cáo InBody của ${m.name}! Mở Zalo để gửi cho hội viên.`);
   }
 };
 

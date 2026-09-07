@@ -19,7 +19,8 @@ const ERPManager = {
     TRANSACTIONS: "nutriclub_erp_transactions",
     PACKAGES: "nutriclub_erp_packages",
     INBODY: "nutriclub_erp_inbody",
-    ROLE: "nutriclub_erp_role"
+    ROLE: "nutriclub_erp_role",
+    SETTINGS: "nutriclub_erp_settings"
   },
 
   // Mẫu Gói Dinh Dưỡng Mặc Định
@@ -433,6 +434,7 @@ const ERPManager = {
     };
     inventory.unshift(newItem);
     this.saveInventory(inventory);
+    this.checkAndNotifyLowStock(newItem);
     return newItem;
   },
 
@@ -449,6 +451,7 @@ const ERPManager = {
 
     item.stock = Math.max(0, item.stock + Number(deltaQty));
     this.saveInventory(inventory);
+    this.checkAndNotifyLowStock(item);
     return { success: true, newStock: item.stock };
   },
 
@@ -649,6 +652,93 @@ const ERPManager = {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  },
+
+  // 11. CẤU HÌNH THÔNG BÁO ZALO & TELEGRAM BOT WEBHOOK
+  getNotificationSettings() {
+    const raw = localStorage.getItem(this.STORAGE_KEYS.SETTINGS);
+    if (!raw) {
+      return {
+        telegramToken: "",
+        telegramChatId: "",
+        zaloWebhook: "",
+        autoNotifyLowStock: true
+      };
+    }
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return { telegramToken: "", telegramChatId: "", zaloWebhook: "", autoNotifyLowStock: true };
+    }
+  },
+
+  saveNotificationSettings(settings) {
+    localStorage.setItem(this.STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+  },
+
+  generateZaloInBodyMessage(member, latestLog, firstLog) {
+    if (!member || !latestLog) return "";
+    let msg = `📊 BÁO CÁO CHỈ SỐ INBODY & SỨC KHỎE - ${member.name.toUpperCase()}\n`;
+    msg += `📅 Ngày đo: ${latestLog.date}\n`;
+    msg += `-----------------------------\n`;
+    msg += `⚖️ Cân nặng: ${latestLog.weight} kg`;
+    if (firstLog && firstLog.id !== latestLog.id) {
+      const diffW = (latestLog.weight - firstLog.weight).toFixed(1);
+      msg += ` (${diffW > 0 ? '+' : ''}${diffW} kg)`;
+    }
+    msg += `\n🔴 Tỷ lệ mỡ: ${latestLog.fatPercent}%`;
+    if (firstLog && firstLog.id !== latestLog.id) {
+      const diffF = (latestLog.fatPercent - firstLog.fatPercent).toFixed(1);
+      msg += ` (${diffF > 0 ? '+' : ''}${diffF}%)`;
+    }
+    if (latestLog.muscleMass) msg += `\n🔵 Khối lượng cơ: ${latestLog.muscleMass} kg`;
+    if (latestLog.visceralFat) msg += `\n⚠️ Mỡ nội tạng: Level ${latestLog.visceralFat}`;
+    if (latestLog.notes) msg += `\n💡 Nhận xét HLV: ${latestLog.notes}`;
+    msg += `\n-----------------------------\n`;
+    msg += `🌱 Chúc ${member.name} duy trì kỷ luật dinh dưỡng và đạt mục tiêu vóc dáng! 💚`;
+    return msg;
+  },
+
+  async sendTelegramAlert(textMessage) {
+    const settings = this.getNotificationSettings();
+    if (!settings.telegramToken || !settings.telegramChatId) {
+      return { success: false, message: "Chưa cấu hình Telegram Bot Token hoặc Chat ID!" };
+    }
+
+    try {
+      const url = `https://api.telegram.org/bot${settings.telegramToken}/sendMessage`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: settings.telegramChatId,
+          text: textMessage,
+          parse_mode: "HTML"
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        return { success: true, message: "Đã gửi thông báo qua Telegram Bot thành công!" };
+      } else {
+        return { success: false, message: data.description || "Gửi Telegram thất bại." };
+      }
+    } catch (err) {
+      return { success: false, message: "Lỗi kết nối mạng: " + err.message };
+    }
+  },
+
+  checkAndNotifyLowStock(item) {
+    if (!item) return;
+    const settings = this.getNotificationSettings();
+    if (!settings.autoNotifyLowStock) return;
+
+    if (item.stock <= item.minStock) {
+      const alertMsg = `🚨 <b>CẢNH BÁO TỒN KHO THẤP - ERP NHÓM DINH DƯỠNG</b>\n` +
+        `📦 Sản phẩm: <b>[${item.code}] ${item.name}</b>\n` +
+        `⚠️ Số lượng tồn hiện tại: <b>${item.stock} ${item.unit}</b> (Mức tối thiểu: ${item.minStock})\n` +
+        `💡 <i>Vui lòng lên kế hoạch nhập hàng bổ sung ngay!</i>`;
+      this.sendTelegramAlert(alertMsg);
+    }
   }
 };
 
