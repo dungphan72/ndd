@@ -3198,15 +3198,18 @@ const App = {
 
             <div class="form-group" style="margin-bottom: 16px;">
               <label class="form-label" style="font-weight: 700;">Ảnh Đại Diện (Avatar)</label>
-              <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                <img id="editProfileAvatarThumb" src="${sanitizeUrl(currentUser.avatar, '')}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); flex-shrink: 0;">
-                <div style="flex-grow: 1;">
+              <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 14px;">
+                  <img id="editProfileAvatarThumb" src="${sanitizeUrl(currentUser.avatar, '')}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); flex-shrink: 0;">
+                  <div style="font-size: 0.85rem; font-weight: 600;">Xem trước ảnh đại diện</div>
+                </div>
+                <div>
+                  <label class="form-label" style="font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">1. Tải ảnh từ thiết bị</label>
+                  <input type="file" accept="image/*" class="form-control" onchange="App.handleSingleImageFileUpload(this, 'updAvatarInput');">
+                </div>
+                <div>
+                  <label class="form-label" style="font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">2. Hoặc dán link hình ảnh (URL)</label>
                   <input type="url" name="updAvatar" id="updAvatarInput" class="form-control" value="${escapeHtml(currentUser.avatar || '')}" placeholder="https://example.com/avatar.jpg" oninput="document.getElementById('editProfileAvatarThumb').src=this.value">
-                  <div style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
-                    <button type="button" class="btn btn-sm btn-outline" onclick="App.openChangeAvatarModal()" style="font-weight: 700; font-size: 0.8rem;">
-                      Tải Ảnh Mới Hoặc Chọn Mẫu...
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
