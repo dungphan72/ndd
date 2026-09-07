@@ -2315,6 +2315,155 @@
     </div>
   </div>
 
+  <!-- Modal: Đăng Ký Hội Viên Mới & Thẻ Gói ERP -->
+  <div id="addErpMemberModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">➕ Thêm Hội Viên Mới & Đăng Ký Thẻ Gói</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitAddErpMember(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Họ và tên hội viên *</label>
+            <input type="text" name="erpMemName" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Số điện thoại *</label>
+              <input type="tel" name="erpMemPhone" class="form-control" placeholder="09xxxxxxx" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giới tính</label>
+              <select name="erpMemGender" class="form-control">
+                <option value="Nữ">Nữ</option>
+                <option value="Nam">Nam</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Chọn Gói Dinh Dưỡng Trải Nghiệm *</label>
+            <select name="erpMemPackage" class="form-control" required>
+              <option value="pkg_10d">Gói 10 Ngày Trải Nghiệm (500.000đ - 10 buổi)</option>
+              <option value="pkg_30d_std" selected>Gói 30 Ngày Cơ Bản (1.450.000đ - 30 buổi)</option>
+              <option value="pkg_30d_adv">Gói 30 Ngày Nâng Cao Tăng Cơ/Giảm Mỡ (2.800.000đ - 30 buổi)</option>
+              <option value="pkg_vip">Gói VIP Thể Thao / Platinum (7.500.000đ - 90 buổi)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mục tiêu & Ghi chú chăm sóc</label>
+            <textarea name="erpMemNotes" class="form-control" rows="2" placeholder="Ví dụ: Giảm 3kg mỡ bụng, dị ứng hải sản..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Đăng Ký Thẻ Gói</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Ghi Nhận Thu / Chi Sổ Quỹ P&L ERP -->
+  <div id="addErpTransactionModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">💵 Ghi Nhận Thu / Chi Thực Tế (Sổ Quỹ P&L)</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitAddErpTransaction(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Loại Giao Dịch *</label>
+            <select name="erpTxType" class="form-control" required>
+              <option value="income">🟢 Khoản THU (Doanh Thu Bán Gói/Bán Lẻ/Sự Kiện)</option>
+              <option value="expense">🔴 Khoản CHI (Mặt Bằng, Điện Nước, Đá, Vật Tư)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Danh Mục Giao Dịch *</label>
+            <select name="erpTxCategory" class="form-control" required>
+              <option value="Bán Thẻ Gói NDD">Bán Thẻ Gói NDD</option>
+              <option value="Bán Lẻ Sản Phẩm">Bán Lẻ Sản Phẩm</option>
+              <option value="Thuế & Phí Sự Kiện">Thuế & Phí Sự Kiện</option>
+              <option value="Thuê Mặt Bằng">Thuê Mặt Bằng</option>
+              <option value="Điện - Nước - Wifi">Điện - Nước - Wifi</option>
+              <option value="Nguyên Liệu Đá & Ly">Nguyên Liệu Đá & Ly</option>
+              <option value="Chi Phí Khác">Chi Phí Khác</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số Tiền (VNĐ) *</label>
+            <input type="number" name="erpTxAmount" class="form-control" placeholder="Ví dụ: 1500000" min="1000" step="1000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Diễn giải chi tiết</label>
+            <input type="text" name="erpTxDesc" class="form-control" placeholder="Mô tả nội dung thu chi..." required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Lưu Giao Dịch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Thêm Sản Phẩm / Vật Tư Kho ERP -->
+  <div id="addErpInventoryModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">📦 Nhập Kho / Khai Báo Vật Tư Mới</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitAddErpInventory(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Mã sản phẩm / SKU</label>
+            <input type="text" name="erpInvCode" class="form-control" placeholder="Ví dụ: F1-STRAW (Tự tạo nếu trống)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tên Sản Phẩm / Nguyên Liệu *</label>
+            <input type="text" name="erpInvName" class="form-control" placeholder="Ví dụ: Hỗn Hợp F1 Vị Dâu 550g" required>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Danh mục</label>
+              <select name="erpInvCategory" class="form-control">
+                <option value="Thực phẩm bổ sung">Thực phẩm bổ sung</option>
+                <option value="Trà & Thảo dược">Trà & Thảo dược</option>
+                <option value="Thức uống thảo mộc">Thức uống thảo mộc</option>
+                <option value="Bổ sung Đạm">Bổ sung Đạm</option>
+                <option value="Dụng cụ nhóm">Dụng cụ nhóm (Ly/Bình)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Đơn vị tính</label>
+              <input type="text" name="erpInvUnit" class="form-control" value="Hộp" required>
+            </div>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Số lượng tồn kho ban đầu *</label>
+              <input type="number" name="erpInvStock" class="form-control" value="10" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tồn kho tối thiểu (Cảnh báo)</label>
+              <input type="number" name="erpInvMinStock" class="form-control" value="5" min="1" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Đơn giá niêm yết (VNĐ)</label>
+            <input type="number" name="erpInvUnitPrice" class="form-control" placeholder="750000" min="0" step="1000">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Lưu Sản Phẩm Kho</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts (Local core scripts loaded first for maximum reliability & zero CDN blocking) -->
   <script src="js/data.js?v=5.0"></script>
   <script src="js/location.js?v=5.0"></script>
@@ -2325,6 +2474,7 @@
   <script src="js/bmi.js?v=5.0"></script>
   <script src="js/courses.js?v=5.0"></script>
   <script src="js/metrics.js?v=5.0"></script>
+  <script src="js/erp.js?v=5.0"></script>
   <script type="module" src="js/firebase-config.js?v=2.0"></script>
   <script src="js/app.js?v=5.0"></script>
   <script>

@@ -2831,9 +2831,15 @@ const App = {
           <!-- Vertical Nav Menu Sidebar -->
           <ul class="dash-nav-list">
             <li>
-              <button type="button" class="dash-nav-btn profile-tab-btn active" onclick="App.switchProfileTab(this, 'myClubsSec')">
+              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myClubsSec')">
                 <span><i class="fa-solid fa-leaf" style="color: var(--primary); width: 22px;"></i> Nhóm Của Tôi</span>
                 <span class="badge-pill">${myClubs.length}</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myErpSec')">
+                <span><i class="fa-solid fa-chart-line" style="color: var(--primary); width: 22px;"></i> ERP Quản Lý Nhóm</span>
+                <span class="badge-pill" style="background: var(--primary); color: #ffffff;">ERP</span>
               </button>
             </li>
             <li>
@@ -3217,6 +3223,9 @@ const App = {
         ${metricsHTML}
       </div>
 
+      <!-- TAB: HỆ THỐNG ERP QUẢN LÝ NHÓM DINH DƯỠNG -->
+      <div id="myErpSec" class="profile-tab-sec" style="display: none;"></div>
+
         </div><!-- End dashboard-main-content -->
       </div><!-- End dashboard-grid-container -->
     `;
@@ -3263,6 +3272,11 @@ const App = {
     } else {
       const target = document.getElementById(secId);
       if (target) target.style.display = "block";
+    }
+
+    // Khởi tạo render hệ thống ERP khi chuyển sang Tab ERP
+    if (secId === "myErpSec") {
+      this.renderErpSection();
     }
   },
 
@@ -5267,6 +5281,373 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
     } else {
       this.showToast(res.message || "Thêm thất bại", "error");
     }
+  },
+
+  // ===================================================================
+  // NUTRITION CLUB ERP SYSTEM HANDLERS
+  // ===================================================================
+  _activeErpSubTab: "members",
+
+  renderErpSection() {
+    const secEl = document.getElementById("myErpSec");
+    if (!secEl) return;
+
+    if (typeof ERPManager === "undefined") {
+      secEl.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted);">Đang tải hệ thống ERP...</div>`;
+      return;
+    }
+
+    const kpis = ERPManager.getExecutiveKPIs();
+    const members = ERPManager.getMembers();
+    const attendance = ERPManager.getAttendance();
+    const inventory = ERPManager.getInventory();
+    const txs = ERPManager.getTransactions();
+    const packages = ERPManager.getPackages();
+
+    let subTabContentHtml = "";
+
+    if (this._activeErpSubTab === "members") {
+      subTabContentHtml = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-users" style="color: var(--primary);"></i> Danh Sách Hội Viên & Điểm Danh 1-Touch</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted);">Bấm "Điểm Danh" để ghi nhận hội viên dùng trà & shake hôm nay</div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpMemberModal')" style="font-weight: 700; font-size: 0.88rem;">
+            <i class="fa-solid fa-user-plus"></i> ➕ Đăng Ký Hội Viên Mới
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${members.length === 0 ? `
+            <div style="text-align: center; padding: 24px; color: var(--text-muted);">Chưa có hội viên nào. Hãy đăng ký hội viên đầu tiên!</div>
+          ` : members.map(m => {
+            const todayStr = new Date().toISOString().split("T")[0];
+            const isCheckedToday = attendance.some(a => a.memberId === m.id && a.date === todayStr);
+            const isExpiring = m.remainingVisits <= 2 && m.remainingVisits > 0;
+            const isExpired = m.remainingVisits <= 0;
+
+            return `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="font-weight: 800; font-size: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    ${escapeHtml(m.name)} 
+                    <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; background: ${isExpired ? '#fef2f2' : isExpiring ? '#fffbeb' : '#ecfdf5'}; color: ${isExpired ? '#dc2626' : isExpiring ? '#d97706' : '#059669'};">
+                      ${isExpired ? 'Đã hết gói' : isExpiring ? 'Sắp hết hạn' : 'Đang hoạt động'}
+                    </span>
+                  </div>
+                  <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 4px;">
+                    <i class="fa-solid fa-phone" style="color: var(--primary);"></i> ${escapeHtml(m.phone)} • <i class="fa-solid fa-box" style="color: var(--secondary);"></i> ${escapeHtml(m.packageName)}
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-main); font-weight: 700; margin-top: 4px;">
+                    Buổi đã dùng: <span style="color: var(--primary);">${m.usedVisits}/${m.totalVisits}</span> (Còn lại <span style="color: ${isExpiring ? '#dc2626' : 'var(--primary)'}">${m.remainingVisits}</span> buổi)
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  ${isCheckedToday ? `
+                    <button type="button" class="btn btn-outline" disabled style="background: #ecfdf5; color: #059669; border-color: #a7f3d0; font-weight: 800; font-size: 0.85rem;">
+                      <i class="fa-solid fa-circle-check"></i> Đã Có Mặt Hôm Nay
+                    </button>
+                  ` : `
+                    <button type="button" class="btn btn-primary" onclick="App.checkInErpMember('${escapeJsAttr(m.id)}')" style="font-weight: 800; font-size: 0.85rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                      <i class="fa-solid fa-mug-hot"></i> 1-Touch Điểm Danh
+                    </button>
+                  `}
+                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 10px; font-size: 0.8rem;" onclick="App.deleteErpMember('${escapeJsAttr(m.id)}')">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    } else if (this._activeErpSubTab === "inventory") {
+      subTabContentHtml = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-stacked" style="color: var(--secondary);"></i> Quản Lý Tồn Kho & Vật Tư Nhóm</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted);">Tự động cảnh báo đỏ khi sản phẩm tồn thấp hơn mức tối thiểu</div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpInventoryModal')" style="font-weight: 700; font-size: 0.88rem; background: var(--secondary); border-color: var(--secondary);">
+            <i class="fa-solid fa-box-archive"></i> ➕ Nhập Sản Phẩm Kho
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${inventory.length === 0 ? `
+            <div style="text-align: center; padding: 24px; color: var(--text-muted);">Kho hàng trống.</div>
+          ` : inventory.map(i => {
+            const isLow = i.stock <= i.minStock;
+
+            return `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid ${isLow ? '#fecdd3' : 'var(--border-color)'}; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    [${escapeHtml(i.code)}] ${escapeHtml(i.name)}
+                    ${isLow ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; background: #fef2f2; color: #dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo tồn thấp</span>` : ''}
+                  </div>
+                  <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 4px;">
+                    Danh mục: ${escapeHtml(i.category)} • Giá niêm yết: ${ERPManager.formatVND(i.unitPrice)}
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="text-align: right;">
+                    <div style="font-size: 1.1rem; font-weight: 900; color: ${isLow ? '#dc2626' : 'var(--primary)'}">
+                      ${i.stock} ${escapeHtml(i.unit)}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Tồn tối thiểu: ${i.minStock}</div>
+                  </div>
+                  <div style="display: flex; gap: 4px;">
+                    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', 1)">+</button>
+                    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-weight: 800;" onclick="App.updateErpStock('${escapeJsAttr(i.id)}', -1)">-</button>
+                    <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpInventory('${escapeJsAttr(i.id)}')">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    } else if (this._activeErpSubTab === "transactions") {
+      subTabContentHtml = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-file-invoice-dollar" style="color: #10b981;"></i> Sổ Quỹ Thu - Chi P&L Thực Tế</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted);">Ghi nhận doanh thu bán gói NDD, bán lẻ & chi phí vận hành mặt bằng, điện nước</div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpTransactionModal')" style="font-weight: 700; font-size: 0.88rem; background: #059669; border-color: #059669;">
+            <i class="fa-solid fa-plus-minus"></i> ➕ Ghi Nhận Thu / Chi
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${txs.length === 0 ? `
+            <div style="text-align: center; padding: 24px; color: var(--text-muted);">Chưa có giao dịch thu chi nào.</div>
+          ` : txs.map(t => {
+            const isInc = t.type === "income";
+
+            return `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-color); gap: 12px;">
+                <div>
+                  <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.78rem; padding: 2px 8px; border-radius: 8px; font-weight: 800; background: ${isInc ? '#ecfdf5' : '#fef2f2'}; color: ${isInc ? '#059669' : '#dc2626'};">
+                      ${isInc ? 'THU' : 'CHI'}
+                    </span>
+                    ${escapeHtml(t.category)}
+                  </div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 3px;">
+                    ${escapeHtml(t.description)} ${t.memberName ? `(${escapeHtml(t.memberName)})` : ''}
+                  </div>
+                  <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                    <i class="fa-solid fa-clock"></i> ${escapeHtml(t.date)}
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="font-weight: 900; font-size: 1.05rem; color: ${isInc ? '#059669' : '#dc2626'};">
+                    ${isInc ? '+' : '-'}${ERPManager.formatVND(t.amount)}
+                  </div>
+                  <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 4px 8px;" onclick="App.deleteErpTransaction('${escapeJsAttr(t.id)}')">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    } else if (this._activeErpSubTab === "packages") {
+      subTabContentHtml = `
+        <div style="margin-bottom: 14px;">
+          <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-packing" style="color: #f59e0b;"></i> Các Gói Dinh Dưỡng Mẫu Tại Nhóm</h5>
+          <div style="font-size: 0.83rem; color: var(--text-muted);">Các gói trải nghiệm dinh dưỡng tiêu chuẩn tại Nhóm Dinh Dưỡng</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+          ${packages.map(p => `
+            <div style="background: var(--bg-card); padding: 16px; border-radius: 14px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary); margin-bottom: 6px;">${escapeHtml(p.name)}</div>
+                <div style="font-size: 1.15rem; font-weight: 900; color: var(--text-main); margin-bottom: 8px;">${ERPManager.formatVND(p.price)}</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">${escapeHtml(p.desc)}</p>
+              </div>
+              <div style="font-size: 0.82rem; font-weight: 700; color: var(--secondary); background: var(--bg-main); padding: 6px 10px; border-radius: 8px; text-align: center;">
+                ${p.visits} Buổi Trải Nghiệm tại Nhóm
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    secEl.innerHTML = `
+      <div style="background: var(--bg-main); padding: 22px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h4 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-chart-line" style="color: var(--primary);"></i> ERP Quản Lý Toàn Diện Nhóm Dinh Dưỡng
+            </h4>
+            <div style="font-size: 0.88rem; color: var(--text-muted); margin-top: 4px;">
+              Tự động hóa điểm danh 1-touch, kiểm soát thẻ gói hội viên, quản lý tồn kho & sổ quỹ thu chi P&L ròng
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 EXECUTIVE KPI CARDS HEADER -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid var(--primary); border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Hội Viên Có Mặt Hôm Nay</div>
+            <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 4px;">${kpis.todayAttendanceCount} <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">lượt</span></div>
+          </div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid #10b981; border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Hội Viên Đang Dùng Gói</div>
+            <div style="font-size: 1.5rem; font-weight: 900; color: #10b981; margin-top: 4px;">${kpis.activeMembersCount} <span style="font-size: 0.85rem; font-weight: 600; color: #d97706;">(${kpis.expiringMembersCount} sắp hết)</span></div>
+          </div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid #059669; border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Lợi Nhuận Ròng P&L</div>
+            <div style="font-size: 1.2rem; font-weight: 900; color: #059669; margin-top: 4px;">${ERPManager.formatVND(kpis.netProfit)}</div>
+          </div>
+          <div style="background: var(--bg-card); padding: 14px 16px; border-radius: 14px; border-left: 4px solid ${kpis.lowStockCount > 0 ? '#dc2626' : 'var(--secondary)'}; border: 1px solid var(--border-color); border-left-width: 4px;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Cảnh Báo Tồn Kho</div>
+            <div style="font-size: 1.5rem; font-weight: 900; color: ${kpis.lowStockCount > 0 ? '#dc2626' : 'var(--secondary)'}; margin-top: 4px;">${kpis.lowStockCount} <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">sản phẩm</span></div>
+          </div>
+        </div>
+
+        <!-- ERP SUB-TABS NAVIGATION -->
+        <div style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color); margin-bottom: 18px; overflow-x: auto; padding-bottom: 4px;">
+          <button type="button" class="btn ${this._activeErpSubTab === 'members' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('members')">
+            <i class="fa-solid fa-users"></i> 👥 Hội Viên & Điểm Danh (${members.length})
+          </button>
+          <button type="button" class="btn ${this._activeErpSubTab === 'inventory' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('inventory')">
+            <i class="fa-solid fa-boxes-stacked"></i> 📦 Kho Hàng & Vật Tư (${inventory.length})
+          </button>
+          <button type="button" class="btn ${this._activeErpSubTab === 'transactions' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('transactions')">
+            <i class="fa-solid fa-file-invoice-dollar"></i> 💵 Thu - Chi P&L (${txs.length})
+          </button>
+          <button type="button" class="btn ${this._activeErpSubTab === 'packages' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('packages')">
+            <i class="fa-solid fa-boxes-packing"></i> 🎁 Gói Dinh Dưỡng
+          </button>
+        </div>
+
+        <!-- SUB-TAB DYNAMIC CONTENT -->
+        ${subTabContentHtml}
+      </div>
+    `;
+  },
+
+  switchErpSubTab(subTabName) {
+    this._activeErpSubTab = subTabName;
+    this.renderErpSection();
+  },
+
+  checkInErpMember(memberId) {
+    const res = ERPManager.checkInMember(memberId);
+    if (res.success) {
+      this.showToast(res.message);
+      this.renderErpSection();
+    } else {
+      this.showToast(res.message, "error");
+    }
+  },
+
+  submitAddErpMember(e) {
+    e.preventDefault();
+    const form = e.target;
+    const name = form.erpMemName.value.trim();
+    const phone = form.erpMemPhone.value.trim();
+    const gender = form.erpMemGender.value;
+    const packageId = form.erpMemPackage.value;
+    const notes = form.erpMemNotes.value.trim();
+
+    if (!name || !phone) {
+      this.showToast("Vui lòng nhập đầy đủ tên và số điện thoại hội viên!", "error");
+      return;
+    }
+
+    const res = ERPManager.addMember({ name, phone, gender, packageId, notes });
+    if (res.success) {
+      this.showToast(`🎉 Thêm hội viên ${res.member.name} và đăng ký thẻ gói thành công!`);
+      this.closeAllModals();
+      form.reset();
+      this.renderErpSection();
+    }
+  },
+
+  deleteErpMember(memberId) {
+    if (confirm("Bạn có chắc chắn muốn xóa hội viên này khỏi hệ thống ERP?")) {
+      ERPManager.deleteMember(memberId);
+      this.showToast("Đã xóa hội viên!");
+      this.renderErpSection();
+    }
+  },
+
+  submitAddErpTransaction(e) {
+    e.preventDefault();
+    const form = e.target;
+    const type = form.erpTxType.value;
+    const category = form.erpTxCategory.value;
+    const amount = Number(form.erpTxAmount.value);
+    const description = form.erpTxDesc.value.trim();
+
+    if (!amount || amount <= 0 || !description) {
+      this.showToast("Vui lòng nhập số tiền hợp lệ và diễn giải chi tiết!", "error");
+      return;
+    }
+
+    ERPManager.addTransaction({ type, category, amount, description });
+    this.showToast("💵 Đã ghi nhận giao dịch vào Sổ Quỹ P&L!");
+    this.closeAllModals();
+    form.reset();
+    this.renderErpSection();
+  },
+
+  deleteErpTransaction(txId) {
+    if (confirm("Bạn có chắc chắn muốn xóa giao dịch thu/chi này?")) {
+      ERPManager.deleteTransaction(txId);
+      this.showToast("Đã xóa giao dịch!");
+      this.renderErpSection();
+    }
+  },
+
+  submitAddErpInventory(e) {
+    e.preventDefault();
+    const form = e.target;
+    const code = form.erpInvCode.value.trim();
+    const name = form.erpInvName.value.trim();
+    const category = form.erpInvCategory.value;
+    const unit = form.erpInvUnit.value.trim();
+    const stock = Number(form.erpInvStock.value);
+    const minStock = Number(form.erpInvMinStock.value);
+    const unitPrice = Number(form.erpInvUnitPrice.value);
+
+    if (!name) {
+      this.showToast("Vui lòng nhập tên sản phẩm / nguyên liệu!", "error");
+      return;
+    }
+
+    ERPManager.addInventoryItem({ code, name, category, unit, stock, minStock, unitPrice });
+    this.showToast(`📦 Đã thêm sản phẩm "${name}" vào Kho ERP!`);
+    this.closeAllModals();
+    form.reset();
+    this.renderErpSection();
+  },
+
+  deleteErpInventory(itemId) {
+    if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi Kho ERP?")) {
+      ERPManager.deleteInventoryItem(itemId);
+      this.showToast("Đã xóa sản phẩm kho!");
+      this.renderErpSection();
+    }
+  },
+
+  updateErpStock(itemId, deltaQty) {
+    ERPManager.updateStock(itemId, deltaQty);
+    this.renderErpSection();
   }
 };
 
