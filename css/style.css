@@ -210,7 +210,7 @@ body.dark-mode {
 
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -222,7 +222,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
 }
 
@@ -250,22 +250,33 @@ button, input, select, textarea {
   padding: 0 20px;
 }
 
-/* Top Navigation Bar */
+/* Top Navigation Bar (Fixed / Sticky Header) */
 .navbar {
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
-  z-index: 1000;
-  background: rgba(255, 255, 255, 0.88);
+  z-index: 10000;
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
-  transition: var(--transition);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar.scrolled {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 body.dark-mode .navbar {
-  background: rgba(15, 23, 42, 0.88);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .navbar.scrolled {
+  background: rgba(15, 23, 42, 0.97);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
 }
 
 .nav-container {

@@ -106,11 +106,22 @@ const App = {
     const initialTab = this.getTabFromURL();
     this.switchTab(initialTab, false);
 
-    // Đăng ký lắng nghe sự kiện Back/Forward của trình duyệt
     window.addEventListener("popstate", () => {
       const currentTab = this.getTabFromURL();
       this.switchTab(currentTab, false);
     });
+
+    // Lắng nghe trượt trang để đổi trạng thái shadow cho Navbar Cố Định
+    window.addEventListener("scroll", () => {
+      const navbar = document.querySelector(".navbar");
+      if (navbar) {
+        if (window.scrollY > 15) {
+          navbar.classList.add("scrolled");
+        } else {
+          navbar.classList.remove("scrolled");
+        }
+      }
+    }, { passive: true });
 
     this.renderEvents();
     this.renderProducts();
