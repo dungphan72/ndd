@@ -43,107 +43,32 @@ const ERPManager = {
       localStorage.setItem(this.STORAGE_KEYS.PACKAGES, JSON.stringify(this.DEFAULT_PACKAGES));
     }
 
-    // Dữ liệu mẫu ban đầu để Chủ nhóm trải nghiệm ERP ngay lập tức
+    // Khởi tạo dữ liệu trống mặc định cho người dùng mới (không khởi tạo dữ liệu mẫu/mock)
     if (!localStorage.getItem(this.STORAGE_KEYS.MEMBERS)) {
-      const demoMembers = [
-        {
-          id: "mem_01",
-          clubId: "club_demo",
-          name: "Nguyễn Thiện Nhân",
-          phone: "0908123456",
-          gender: "Nam",
-          joinDate: "2026-08-01",
-          packageId: "pkg_30d_adv",
-          packageName: "Gói 30 Ngày Nâng Cao",
-          totalVisits: 30,
-          usedVisits: 18,
-          remainingVisits: 12,
-          startDate: "2026-08-10",
-          endDate: "2026-09-10",
-          status: "active",
-          notes: "Mục tiêu giảm 4kg mỡ bụng, tăng 2kg cơ"
-        },
-        {
-          id: "mem_02",
-          clubId: "club_demo",
-          name: "Trần Thị Mai",
-          phone: "0912987654",
-          gender: "Nữ",
-          joinDate: "2026-08-15",
-          packageId: "pkg_10d",
-          packageName: "Gói 10 Ngày Trải Nghiệm",
-          totalVisits: 10,
-          usedVisits: 9,
-          remainingVisits: 1, // Sắp hết hạn
-          startDate: "2026-08-25",
-          endDate: "2026-09-05",
-          status: "active",
-          notes: "Đang trải nghiệm vị dâu, tiêu hóa tốt"
-        },
-        {
-          id: "mem_03",
-          clubId: "club_demo",
-          name: "Phạm Quốc Bảo",
-          phone: "0934567890",
-          gender: "Nam",
-          joinDate: "2026-07-20",
-          packageId: "pkg_30d_std",
-          packageName: "Gói 30 Ngày Cơ Bản",
-          totalVisits: 30,
-          usedVisits: 30,
-          remainingVisits: 0,
-          startDate: "2026-07-20",
-          endDate: "2026-08-20",
-          status: "expired",
-          notes: "Đã hoàn thành xuất sắc 1 liệu trình"
-        }
-      ];
-      localStorage.setItem(this.STORAGE_KEYS.MEMBERS, JSON.stringify(demoMembers));
+      localStorage.setItem(this.STORAGE_KEYS.MEMBERS, JSON.stringify([]));
     }
-
     if (!localStorage.getItem(this.STORAGE_KEYS.INVENTORY)) {
-      const demoInventory = [
-        { id: "inv_01", code: "F1-CHO", name: "Hỗn Hợp Dinh Dưỡng F1 (Vị Socola)", category: "Thực phẩm bổ sung", unit: "Hộp", stock: 12, minStock: 5, unitPrice: 750000 },
-        { id: "inv_02", code: "F1-VAN", name: "Hỗn Hợp Dinh Dưỡng F1 (Vị Vani)", category: "Thực phẩm bổ sung", unit: "Hộp", stock: 3, minStock: 5, unitPrice: 750000 }, // Sắp hết
-        { id: "inv_03", code: "TEA-100", name: "Trà Thảo Mộc Cô Đặc 100g", category: "Trà & Thảo dược", unit: "Hộp", stock: 8, minStock: 4, unitPrice: 520000 },
-        { id: "inv_04", code: "ALO-CON", name: "Lô Hội Thảo Mộc Cô Đặc (Aloe)", category: "Thức uống thảo mộc", unit: "Chai", stock: 15, minStock: 5, unitPrice: 680000 },
-        { id: "inv_05", code: "PPP-240", name: "Bột Protein PPP 240g", category: "Bổ sung Đạm", unit: "Hộp", stock: 2, minStock: 4, unitPrice: 480000 }, // Cảnh báo đỏ
-        { id: "inv_06", code: "SHK-CUP", name: "Ly Lắc NDD Logo Cao Cấp 500ml", category: "Dụng cụ nhóm", unit: "Cái", stock: 25, minStock: 10, unitPrice: 45000 }
-      ];
-      localStorage.setItem(this.STORAGE_KEYS.INVENTORY, JSON.stringify(demoInventory));
+      localStorage.setItem(this.STORAGE_KEYS.INVENTORY, JSON.stringify([]));
     }
-
     if (!localStorage.getItem(this.STORAGE_KEYS.TRANSACTIONS)) {
-      const demoTransactions = [
-        { id: "tx_01", type: "income", category: "Bán Thẻ Gói NDD", amount: 2800000, description: "Hội viên Nguyễn Thiện Nhân đăng ký Gói 30 ngày nâng cao", date: "2026-08-10", memberName: "Nguyễn Thiện Nhân" },
-        { id: "tx_02", type: "income", category: "Bán Thẻ Gói NDD", amount: 500000, description: "Hội viên Trần Thị Mai mua Gói 10 ngày trải nghiệm", date: "2026-08-25", memberName: "Trần Thị Mai" },
-        { id: "tx_03", type: "income", category: "Bán Lẻ Sản Phẩm", amount: 1270000, description: "Bán lẻ 1 F1 Socola + 1 Trà thảo mộc 100g", date: "2026-09-01", memberName: "Khách lẻ" },
-        { id: "tx_04", type: "expense", category: "Thuê Mặt Bằng", amount: 4500000, description: "Tiền thuê mặt bằng Nhóm Dinh Dưỡng tháng 9", date: "2026-09-01", memberName: "" },
-        { id: "tx_05", type: "expense", category: "Điện - Nước - Wifi", amount: 850000, description: "Tiền điện nước máy lạnh pha chế tháng 8", date: "2026-09-02", memberName: "" },
-        { id: "tx_06", type: "expense", category: "Nguyên Liệu Đá & Ly", amount: 350000, description: "Mua đá sạch & ly nhựa sinh học phục vụ trà", date: "2026-09-03", memberName: "" }
-      ];
-      localStorage.setItem(this.STORAGE_KEYS.TRANSACTIONS, JSON.stringify(demoTransactions));
+      localStorage.setItem(this.STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
     }
-
     if (!localStorage.getItem(this.STORAGE_KEYS.ATTENDANCE)) {
-      const todayStr = new Date().toISOString().split("T")[0];
-      const demoAttendance = [
-        { id: "att_01", memberId: "mem_01", memberName: "Nguyễn Thiện Nhân", date: todayStr, time: "07:15", drink: "Trà thảo mộc + Shake Socola Đạm", checkedBy: "Chủ nhóm" },
-        { id: "att_02", memberId: "mem_02", memberName: "Trần Thị Mai", date: todayStr, time: "07:45", drink: "Trà Aloe + Shake Vani", checkedBy: "Chủ nhóm" }
-      ];
-      localStorage.setItem(this.STORAGE_KEYS.ATTENDANCE, JSON.stringify(demoAttendance));
+      localStorage.setItem(this.STORAGE_KEYS.ATTENDANCE, JSON.stringify([]));
     }
-
     if (!localStorage.getItem(this.STORAGE_KEYS.INBODY)) {
-      const demoInBody = [
-        { id: "inb_01", memberId: "mem_01", date: "2026-08-10", weight: 78.5, fatPercent: 24.5, muscleMass: 32.0, visceralFat: 9, notes: "Khám thể trạng ban đầu khi nhập gói" },
-        { id: "inb_02", memberId: "mem_01", date: "2026-08-25", weight: 76.2, fatPercent: 22.8, muscleMass: 32.8, visceralFat: 8, notes: "Giảm 2.3kg cân nặng, giảm 1.7% mỡ, tăng 0.8kg cơ" },
-        { id: "inb_03", memberId: "mem_01", date: "2026-09-05", weight: 75.0, fatPercent: 21.4, muscleMass: 33.2, visceralFat: 7, notes: "Tiến trình cực kỳ tốt, vòng bụng thon gọn hẳn" },
-        { id: "inb_04", memberId: "mem_02", date: "2026-08-25", weight: 58.0, fatPercent: 28.0, muscleMass: 21.0, visceralFat: 5, notes: "Khảo sát đầu vào gói 10 ngày" },
-        { id: "inb_05", memberId: "mem_02", date: "2026-09-03", weight: 56.8, fatPercent: 26.5, muscleMass: 21.4, visceralFat: 4, notes: "Cơ thể nhẹ nhàng, da sáng, giảm 1.5% mỡ" }
-      ];
-      localStorage.setItem(this.STORAGE_KEYS.INBODY, JSON.stringify(demoInBody));
+      localStorage.setItem(this.STORAGE_KEYS.INBODY, JSON.stringify([]));
     }
+  },
+
+  // Phương thức xóa sạch dữ liệu mẫu demo cũ nếu người dùng muốn làm mới toàn bộ
+  clearMockData() {
+    localStorage.setItem(this.STORAGE_KEYS.MEMBERS, JSON.stringify([]));
+    localStorage.setItem(this.STORAGE_KEYS.INVENTORY, JSON.stringify([]));
+    localStorage.setItem(this.STORAGE_KEYS.TRANSACTIONS, JSON.stringify([]));
+    localStorage.setItem(this.STORAGE_KEYS.ATTENDANCE, JSON.stringify([]));
+    localStorage.setItem(this.STORAGE_KEYS.INBODY, JSON.stringify([]));
+    this.broadcastLocalSync();
   },
 
   // 2. GETTERS & SETTERS DỮ LIỆU
