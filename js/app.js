@@ -2845,66 +2845,63 @@ const App = {
       <div class="dashboard-grid-container">
         <!-- SIDEBAR THÔNG TIN & MENU BÊN TRÁI -->
         <div class="dashboard-sidebar-card">
-          <div class="dash-user-mini">
-            <div class="dash-user-avatar-wrapper" onclick="App.openChangeAvatarModal()" title="Bấm để thay đổi ảnh đại diện">
+          <div class="dash-user-mini" style="flex-direction: column; text-align: center; gap: 8px; align-items: center; justify-content: center; padding-bottom: 20px; margin-bottom: 20px;">
+            <div class="dash-user-avatar-wrapper" onclick="App.openChangeAvatarModal()" title="Bấm để thay đổi ảnh đại diện" style="margin: 0 auto;">
               <img src="${sanitizeUrl(currentUser.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User')}" alt="${escapeHtml(currentUser.name)}">
               <div class="dash-avatar-badge" title="Đổi ảnh đại diện"><i class="fa-solid fa-camera"></i></div>
             </div>
-            <div>
-              <div style="font-weight: 800; font-size: 1.05rem; color: var(--text-main); line-height: 1.3;">${escapeHtml(currentUser.name)}</div>
-              <div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; margin-top: 2px;">${escapeHtml(currentUser.role || 'HLV Dinh Dưỡng')}</div>
-              <button type="button" onclick="App.openChangeAvatarModal()" style="border: none; background: transparent; padding: 0; color: var(--text-muted); font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 4px;">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-main); line-height: 1.3;">${escapeHtml(currentUser.name)}</div>
+              <button type="button" onclick="App.openChangeAvatarModal()" style="border: none; background: transparent; padding: 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-top: 6px;">
                 Đổi ảnh đại diện
               </button>
             </div>
           </div>
 
-          <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 12px;">DANH MỤC QUẢN LÝ</div>
-
           <!-- Vertical Nav Menu Sidebar -->
           <ul class="dash-nav-list">
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn active" onclick="App.switchProfileTab(this, 'myClubsSec')">
-                <span>Nhóm Của Tôi</span>
+                <span><i class="fa-solid fa-users" style="margin-right: 10px; color: var(--primary);"></i>Nhóm Của Tôi</span>
                 <span class="badge-pill">${myClubs.length}</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myErpSec')">
-                <span>ERP Quản Lý Nhóm</span>
+                <span><i class="fa-solid fa-chart-line" style="margin-right: 10px; color: #10b981;"></i>ERP Quản Lý Nhóm</span>
                 <span class="badge-pill" style="background: var(--primary); color: #ffffff;">ERP</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myMetricsSec')">
-                <span>Chỉ Số InBody</span>
+                <span><i class="fa-solid fa-weight-scale" style="margin-right: 10px; color: #06b6d4;"></i>Chỉ Số InBody</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myEventsSec')">
-                <span>Sự Kiện Của Tôi</span>
+                <span><i class="fa-solid fa-calendar-days" style="margin-right: 10px; color: #f59e0b;"></i>Sự Kiện Của Tôi</span>
                 <span class="badge-pill">${myEvents.length}</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myProductsSec')">
-                <span>Shop Công Cụ</span>
+                <span><i class="fa-solid fa-store" style="margin-right: 10px; color: #8b5cf6;"></i>Shop Công Cụ</span>
                 <span class="badge-pill">${myProducts.length}</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myAffiliateSec')">
-                <span>Affiliates & Thưởng</span>
+                <span><i class="fa-solid fa-gift" style="margin-right: 10px; color: #ec4899;"></i>Affiliates & Thưởng</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myVIPSec')">
-                <span>Gói VIP & Quyền Lợi</span>
+                <span><i class="fa-solid fa-crown" style="margin-right: 10px; color: #eab308;"></i>Gói VIP & Quyền Lợi</span>
               </button>
             </li>
             <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'editProfileSec')">
-                <span>Cài Đặt Hồ Sơ</span>
+                <span><i class="fa-solid fa-user-gear" style="margin-right: 10px; color: var(--text-muted);"></i>Cài Đặt Hồ Sơ</span>
               </button>
             </li>
           </ul>
