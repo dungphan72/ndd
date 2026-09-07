@@ -183,6 +183,46 @@ const ERPManager = {
       return this.DEFAULT_PACKAGES;
     }
   },
+  savePackages(packages) {
+    localStorage.setItem(this.STORAGE_KEYS.PACKAGES, JSON.stringify(packages));
+  },
+
+  addPackage(pkgData) {
+    const packages = this.getPackages();
+    const newPkg = {
+      id: "pkg_" + Date.now(),
+      name: pkgData.name.trim(),
+      days: Number(pkgData.days) || 30,
+      visits: Number(pkgData.visits) || 30,
+      price: Number(pkgData.price) || 0,
+      desc: (pkgData.desc || "").trim()
+    };
+    packages.push(newPkg);
+    this.savePackages(packages);
+    return newPkg;
+  },
+
+  updatePackage(pkgId, pkgData) {
+    const packages = this.getPackages();
+    const target = packages.find(p => p.id === pkgId);
+    if (!target) return { success: false, message: "Không tìm thấy gói dinh dưỡng!" };
+
+    target.name = pkgData.name.trim();
+    target.days = Number(pkgData.days) || 30;
+    target.visits = Number(pkgData.visits) || 30;
+    target.price = Number(pkgData.price) || 0;
+    target.desc = (pkgData.desc || "").trim();
+
+    this.savePackages(packages);
+    return { success: true, package: target };
+  },
+
+  deletePackage(pkgId) {
+    let packages = this.getPackages();
+    packages = packages.filter(p => p.id !== pkgId);
+    this.savePackages(packages);
+    return true;
+  },
 
   // 3. QUẢN LÝ ĐIỂM DẠNH 1-TOUCH HÀNG NGÀY
   checkInMember(memberId, drinkNote = "") {

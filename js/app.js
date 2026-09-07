@@ -5484,21 +5484,36 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       `;
     } else if (this._activeErpSubTab === "packages") {
       subTabContentHtml = `
-        <div style="margin-bottom: 14px;">
-          <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-packing" style="color: #f59e0b;"></i> Các Gói Dinh Dưỡng Mẫu Tại Nhóm</h5>
-          <div style="font-size: 0.83rem; color: var(--text-muted);">Các gói trải nghiệm dinh dưỡng tiêu chuẩn tại Nhóm Dinh Dưỡng</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h5 style="font-size: 1rem; font-weight: 800; margin: 0;"><i class="fa-solid fa-boxes-packing" style="color: #f59e0b;"></i> Cấu Hình Gói Dinh Dưỡng</h5>
+            <div style="font-size: 0.83rem; color: var(--text-muted);">Quản lý danh sách các gói dinh dưỡng trải nghiệm tại nhóm</div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="App.openModal('addErpPackageModal')" style="font-weight: 700; font-size: 0.88rem; background: #f59e0b; border-color: #f59e0b;">
+            <i class="fa-solid fa-plus"></i> ➕ Thêm Gói Mới
+          </button>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
           ${packages.map(p => `
             <div style="background: var(--bg-card); padding: 16px; border-radius: 14px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;">
               <div>
-                <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary); margin-bottom: 6px;">${escapeHtml(p.name)}</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                  <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary);">${escapeHtml(p.name)}</div>
+                  <div style="display: flex; gap: 4px;">
+                    <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem;" onclick="App.openEditErpPackageModal('${escapeJsAttr(p.id)}')" title="Chỉnh sửa">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline" style="padding: 2px 6px; font-size: 0.78rem; color: #ef4444; border-color: #fca5a5;" onclick="App.deleteErpPackage('${escapeJsAttr(p.id)}')" title="Xóa gói">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                </div>
                 <div style="font-size: 1.15rem; font-weight: 900; color: var(--text-main); margin-bottom: 8px;">${ERPManager.formatVND(p.price)}</div>
                 <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">${escapeHtml(p.desc)}</p>
               </div>
               <div style="font-size: 0.82rem; font-weight: 700; color: var(--secondary); background: var(--bg-main); padding: 6px 10px; border-radius: 8px; text-align: center;">
-                ${p.visits} Buổi Trải Nghiệm tại Nhóm
+                ${p.visits} Buổi Trải Nghiệm (${p.days} Ngày)
               </div>
             </div>
           `).join('')}
@@ -5551,7 +5566,7 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
             <i class="fa-solid fa-file-invoice-dollar"></i> 💵 Thu - Chi P&L (${txs.length})
           </button>
           <button type="button" class="btn ${this._activeErpSubTab === 'packages' ? 'btn-primary' : 'btn-outline'}" style="font-weight: 800; font-size: 0.88rem;" onclick="App.switchErpSubTab('packages')">
-            <i class="fa-solid fa-boxes-packing"></i> 🎁 Gói Dinh Dưỡng
+            <i class="fa-solid fa-boxes-packing"></i> 🎁 Gói Dinh Dưỡng (${packages.length})
           </button>
         </div>
 
@@ -5737,6 +5752,78 @@ Trạng thái hệ thống: ${audit.status === 'EXCELLENT' ? '✅ HOÀN HẢO (1
       } else {
         this.showToast("Chưa có dữ liệu kho để xuất!", "error");
       }
+    }
+  },
+
+  submitAddErpPackage(e) {
+    e.preventDefault();
+    const form = e.target;
+    const name = form.erpPkgName.value.trim();
+    const days = Number(form.erpPkgDays.value);
+    const visits = Number(form.erpPkgVisits.value);
+    const price = Number(form.erpPkgPrice.value);
+    const desc = form.erpPkgDesc.value.trim();
+
+    if (!name || price < 0) {
+      this.showToast("Vui lòng nhập tên gói và giá hợp lệ!", "error");
+      return;
+    }
+
+    ERPManager.addPackage({ name, days, visits, price, desc });
+    this.showToast(`🎁 Đã thêm gói dinh dưỡng "${name}"!`);
+    this.closeAllModals();
+    form.reset();
+    this.renderErpSection();
+  },
+
+  openEditErpPackageModal(pkgId) {
+    const packages = ERPManager.getPackages();
+    const p = packages.find(item => item.id === pkgId);
+    if (!p) {
+      this.showToast("Không tìm thấy thông tin gói!", "error");
+      return;
+    }
+
+    document.getElementById("editErpPkgId").value = p.id;
+    document.getElementById("editErpPkgName").value = p.name;
+    document.getElementById("editErpPkgDays").value = p.days;
+    document.getElementById("editErpPkgVisits").value = p.visits;
+    document.getElementById("editErpPkgPrice").value = p.price;
+    document.getElementById("editErpPkgDesc").value = p.desc || "";
+
+    this.openModal("editErpPackageModal");
+  },
+
+  submitEditErpPackage(e) {
+    e.preventDefault();
+    const form = e.target;
+    const pkgId = document.getElementById("editErpPkgId").value;
+    const name = document.getElementById("editErpPkgName").value.trim();
+    const days = Number(document.getElementById("editErpPkgDays").value);
+    const visits = Number(document.getElementById("editErpPkgVisits").value);
+    const price = Number(document.getElementById("editErpPkgPrice").value);
+    const desc = document.getElementById("editErpPkgDesc").value.trim();
+
+    if (!name || price < 0) {
+      this.showToast("Vui lòng nhập tên gói và giá hợp lệ!", "error");
+      return;
+    }
+
+    const res = ERPManager.updatePackage(pkgId, { name, days, visits, price, desc });
+    if (res.success) {
+      this.showToast(`✏️ Đã cập nhật gói "${name}"!`);
+      this.closeAllModals();
+      this.renderErpSection();
+    } else {
+      this.showToast(res.message || "Cập nhật thất bại", "error");
+    }
+  },
+
+  deleteErpPackage(pkgId) {
+    if (confirm("Bạn có chắc chắn muốn xóa gói dinh dưỡng này khỏi hệ thống?")) {
+      ERPManager.deletePackage(pkgId);
+      this.showToast("Đã xóa gói dinh dưỡng!");
+      this.renderErpSection();
     }
   }
 };

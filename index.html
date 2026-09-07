@@ -2481,6 +2481,87 @@
     </div>
   </div>
 
+  <!-- Modal: Thêm Gói Dinh Dưỡng Mới -->
+  <div id="addErpPackageModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🎁 Thêm Gói Dinh Dưỡng Mới</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitAddErpPackage(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên Gói Dinh Dưỡng *</label>
+            <input type="text" name="erpPkgName" class="form-control" placeholder="Ví dụ: Gói 30 Ngày Tăng Cơ Nâng Cao" required>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Số ngày hiệu lực *</label>
+              <input type="number" name="erpPkgDays" class="form-control" value="30" min="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số buổi trải nghiệm *</label>
+              <input type="number" name="erpPkgVisits" class="form-control" value="30" min="1" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Giá gói (VNĐ) *</label>
+            <input type="number" name="erpPkgPrice" class="form-control" placeholder="Ví dụ: 1450000" min="0" step="1000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mô tả thực đơn & Quyền lợi gói</label>
+            <textarea name="erpPkgDesc" class="form-control" rows="2" placeholder="Ví dụ: Trà thảo mộc + Aloe + Shake F1 + Đạm PPP..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Lưu Gói Mới</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Chỉnh Sửa Gói Dinh Dưỡng -->
+  <div id="editErpPackageModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Chỉnh Sửa Gói Dinh Dưỡng</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.submitEditErpPackage(event)">
+        <input type="hidden" id="editErpPkgId" name="editErpPkgId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên Gói Dinh Dưỡng *</label>
+            <input type="text" id="editErpPkgName" name="editErpPkgName" class="form-control" required>
+          </div>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label class="form-label">Số ngày hiệu lực *</label>
+              <input type="number" id="editErpPkgDays" name="editErpPkgDays" class="form-control" min="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số buổi trải nghiệm *</label>
+              <input type="number" id="editErpPkgVisits" name="editErpPkgVisits" class="form-control" min="1" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Giá gói (VNĐ) *</label>
+            <input type="number" id="editErpPkgPrice" name="editErpPkgPrice" class="form-control" min="0" step="1000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mô tả thực đơn & Quyền lợi gói</label>
+            <textarea id="editErpPkgDesc" name="editErpPkgDesc" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 Cập Nhật Gói</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts (Local core scripts loaded first for maximum reliability & zero CDN blocking) -->
   <script src="js/data.js?v=5.0"></script>
   <script src="js/location.js?v=5.0"></script>
