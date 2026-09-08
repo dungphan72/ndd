@@ -69,6 +69,22 @@ const App = {
     'admintab': 'adminTab'
   },
 
+  getRefFromUrl() {
+    let ref = new URLSearchParams(window.location.search).get("ref");
+    if (!ref && window.location.hash) {
+      const hashStr = window.location.hash.replace('#', '');
+      if (hashStr.includes('ref=')) {
+        const match = hashStr.match(/ref=([^&]+)/);
+        if (match) ref = match[1];
+      }
+    }
+    if (!ref && window.location.href.includes('ref=')) {
+      const match = window.location.href.match(/ref=([^&/#]+)/);
+      if (match) ref = match[1];
+    }
+    return ref ? decodeURIComponent(ref).trim() : null;
+  },
+
   getTabFromURL() {
     // 1. Kiểm tra Path (ví dụ: /courses hoặc /events)
     let path = window.location.pathname.replace(/^\/|\/$/g, '').toLowerCase().trim();
@@ -176,8 +192,7 @@ const App = {
     this.calculateBMI();
 
     // Kiểm tra link giới thiệu Affiliate ?ref=...
-    const urlParams = new URLSearchParams(window.location.search);
-    const refParam = urlParams.get("ref");
+    const refParam = this.getRefFromUrl();
     if (refParam) {
       sessionStorage.setItem("nutriclub_ref_code", refParam);
       const refInput = document.getElementById("regRefCodeInput");
@@ -2149,6 +2164,13 @@ const App = {
           errAlert.innerHTML = "";
         }
       }
+      if (modalId === "registerModal") {
+        const storedRef = sessionStorage.getItem("nutriclub_ref_code");
+        const refInput = document.getElementById("regRefCodeInput");
+        if (refInput && storedRef && !refInput.value) {
+          refInput.value = storedRef;
+        }
+      }
     }
   },
 
@@ -2851,6 +2873,11 @@ const App = {
       return;
     }
 
+    // Tự động kiểm tra và đồng bộ bù thưởng referral nếu có lượt giới thiệu chưa nhận
+    if (typeof AuthManager.syncMissedReferrals === "function") {
+      AuthManager.syncMissedReferrals(currentUser);
+    }
+
     const allClubs = ClubManager.getClubs();
     const myClubs = allClubs.filter(c => 
       c.ownerPhone === currentUser.phone || 
@@ -2868,6 +2895,10 @@ const App = {
     const pkgName = currentUser.package === "yearly" ? "Gói VIP Năm (999k)" : (currentUser.package === "monthly" ? "Gói VIP Tháng (99k)" : "Gói VIP Dùng Thử (1 Tháng Miễn Phí)");
     const pkgBadgeClass = isVIP ? "user-vip-badge" : "vip-lock-badge";
     const metricsHTML = this.getMetricsSecHTML(currentUser.phone);
+    const baseUrl = window.location.origin + window.location.pathname;
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+    const refLink = cleanBaseUrl + '?ref=' + encodeURIComponent(currentUser.phone);
+
     const contentHTML = `
       <div class="dashboard-grid-container">
         <!-- SIDEBAR THÔNG TIN & MENU BÊN TRÁI -->
@@ -3100,7 +3131,7 @@ const App = {
           </ul>
 
           <div style="display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap;">
-            <input type="text" id="myReferralLinkInput" class="form-control" value="${window.location.origin}/?ref=${currentUser.phone}" readonly style="font-weight: 700; color: var(--primary); flex-grow: 1;">
+            <input type="text" id="myReferralLinkInput" class="form-control" value="${refLink}" readonly style="font-weight: 700; color: var(--primary); flex-grow: 1;">
             <button type="button" class="btn btn-primary" onclick="App.copyReferralLink()" style="white-space: nowrap; font-weight: 700;">
               Sao Chép Link Giới Thiệu
             </button>

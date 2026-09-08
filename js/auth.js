@@ -249,34 +249,225 @@ const AuthManager = {
       return { success: false, message: "Tạo tài khoản thành công nhưng lưu hồ sơ thất bại: " + err.message };
     }
 
-    // Thưởng cho người giới thiệu khi đăng ký tài khoản mới (+1 ngày VIP)
+    // Thưởng cho người giới thiệu (User A) khi đăng ký tài khoản mới (+1 ngày VIP)
     let rewardMsg = "";
     if (refCode) {
-      try {
-        const refSnap = await getDocs(query(collection(db, "users"), where("phone", "==", refCode)));
-        if (!refSnap.empty) {
-          const refDocSnap = refSnap.docs[0];
-          const referrer = refDocSnap.data();
-          const newLog = {
-            id: "ref_" + Date.now(),
-            date: new Date().toLocaleDateString('vi-VN'),
-            refereeName: name,
-            refereePhone: maskPhone(phone),
-            type: "registration",
-            reward: "+1 Ngày VIP Miễn Phí"
-          };
-          await updateDoc(refDocSnap.ref, {
-            vipDays: (referrer.vipDays || 0) + 1,
-            referralLogs: [newLog, ...(referrer.referralLogs || [])]
-          });
-          rewardMsg = ` (🎁 Đã thưởng +1 ngày VIP cho người giới thiệu ${referrer.name})`;
-        }
-      } catch (e) {
-        console.error("Lỗi thưởng referral:", e);
-      }
+      await this._processReferralReward(newProfile, "registration");
+      rewardMsg = ` (🎁 Đã thưởng +1 ngày VIP cho người giới thiệu)`;
     }
 
     return { success: true, user: { uid, id: uid, ...newProfile }, rewardMsg };
+  },
+
+  // Helper xử lý thưởng Affiliate cho người giới thiệu (User A) khi User B đăng ký hoặc nâng VIP
+  async _processReferralReward(refereeUser, packageType) {
+    if (!refereeUser || !refereeUser.referredBy) return;
+    const refCode = String(refereeUser.referredBy).trim();
+    if (!refCode) return;
+
+    if (!window.firebaseDb || !window.firestoreHelpers) return;
+    const { doc, getDoc, updateDoc, collection, query, where, getDocs } = window.firestoreHelpers;
+    const db = window.firebaseDb;
+
+    try {
+      const cleanPhone = refCode.replace(/^(?:\+84|84)/, "0");
+      let refDocSnap = null;
+      let referrerData = null;
+
+      // 1. Tìm người giới thiệu (User A) theo SĐT, Email hoặc UID
+      const phoneSnap = await getDocs(query(collection(db, "users"), where("phone", "==", cleanPhone)));
+      if (!phoneSnap.empty) {
+        refDocSnap = phoneSnap.docs[0];
+        referrerData = refDocSnap.data();
+      } else {
+        const emailSnap = await getDocs(query(collection(db, "users"), where("email", "==", refCode.toLowerCase())));
+        if (!emailSnap.empty) {
+          refDocSnap = emailSnap.docs[0];
+          referrerData = emailSnap.data();
+        } else if (refCode.length >= 15) {
+          const directSnap = await getDoc(doc(db, "users", refCode));
+          if (directSnap.exists()) {
+            refDocSnap = directSnap;
+            referrerData = directSnap.data();
+          }
+        }
+      }
+
+      if (!refDocSnap || !referrerData) {
+        console.warn("Không tìm thấy người giới thiệu cho mã:", refCode);
+        return;
+      }
+
+      if (referrerData.phone === refereeUser.phone || referrerData.uid === refereeUser.uid) {
+        return;
+      }
+
+      // 2. Mức thưởng:
+      // - Đăng ký: +1 Ngày VIP Miễn Phí
+      // - Gói VIP 1 Tháng: +7 Ngày VIP (1 Tuần)
+      // - Gói VIP 1 Năm: +90 Ngày VIP (3 Tháng)
+      let addedDays = 0;
+      let rewardText = "";
+      let logType = packageType;
+
+      if (packageType === "registration") {
+        addedDays = 1;
+        rewardText = "+1 Ngày VIP Miễn Phí";
+      } else if (packageType === "monthly") {
+        addedDays = 7;
+        rewardText = "+7 Ngày VIP (1 Tuần)";
+      } else if (packageType === "yearly") {
+        addedDays = 90;
+        rewardText = "+90 Ngày VIP (3 Tháng)";
+      }
+
+      if (addedDays <= 0) return;
+
+      const logs = referrerData.referralLogs || [];
+      const refereePhoneMasked = maskPhone(refereeUser.phone || "");
+
+      const alreadyRewarded = logs.some(l => 
+        l.type === logType && 
+        (l.refereePhone === refereePhoneMasked || (l.refereeName && l.refereeName === refereeUser.name))
+      );
+
+      if (alreadyRewarded) {
+        console.log(`Đã thưởng mốc ${logType} trước đó cho ${referrerData.name}`);
+        return;
+      }
+
+      const newLog = {
+        id: "ref_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+        date: new Date().toLocaleDateString('vi-VN'),
+        refereeName: refereeUser.name || "Thành viên mới",
+        refereePhone: refereePhoneMasked,
+        type: logType,
+        reward: rewardText
+      };
+
+      const currentExpiry = referrerData.packageExpiry && referrerData.packageExpiry > Date.now() 
+        ? referrerData.packageExpiry 
+        : Date.now();
+      const newExpiry = currentExpiry + (addedDays * 86400000);
+
+      await updateDoc(refDocSnap.ref, {
+        vipDays: (referrerData.vipDays || 0) + addedDays,
+        packageExpiry: newExpiry,
+        package: (referrerData.package === "yearly" || referrerData.package === "monthly") ? referrerData.package : "trial",
+        referralLogs: [newLog, ...logs]
+      });
+
+      console.log(`🎁 Đã thưởng thành công ${addedDays} ngày VIP cho người giới thiệu ${referrerData.name}!`);
+    } catch (err) {
+      console.error("Lỗi thưởng referral:", err);
+    }
+  },
+
+  // Đồng bộ kiểm tra và bù thưởng bổ sung cho các lượt giới thiệu chưa nhận
+  async syncMissedReferrals(currentUser) {
+    if (!currentUser || !currentUser.phone) return;
+    if (!window.firebaseDb || !window.firestoreHelpers) return;
+    const { collection, query, where, getDocs, doc, updateDoc } = window.firestoreHelpers;
+    const db = window.firebaseDb;
+
+    try {
+      const userPhone = currentUser.phone.trim();
+      const userEmail = (currentUser.email || "").toLowerCase().trim();
+      const userId = currentUser.uid || currentUser.id;
+
+      let refereeDocs = [];
+      const qPhone = await getDocs(query(collection(db, "users"), where("referredBy", "==", userPhone)));
+      qPhone.forEach(d => refereeDocs.push({ uid: d.id, id: d.id, ...d.data() }));
+
+      if (userEmail) {
+        const qEmail = await getDocs(query(collection(db, "users"), where("referredBy", "==", userEmail)));
+        qEmail.forEach(d => {
+          if (!refereeDocs.some(x => x.uid === d.id)) refereeDocs.push({ uid: d.id, id: d.id, ...d.data() });
+        });
+      }
+
+      if (userId) {
+        const qId = await getDocs(query(collection(db, "users"), where("referredBy", "==", userId)));
+        qId.forEach(d => {
+          if (!refereeDocs.some(x => x.uid === d.id)) refereeDocs.push({ uid: d.id, id: d.id, ...d.data() });
+        });
+      }
+
+      if (refereeDocs.length === 0) return;
+
+      let logs = [...(currentUser.referralLogs || [])];
+      let addedDaysTotal = 0;
+      let hasChanges = false;
+
+      for (const referee of refereeDocs) {
+        const refereePhoneMasked = maskPhone(referee.phone || "");
+
+        // 1. Kiểm tra mốc đăng ký mới (+1 ngày)
+        const hasRegLog = logs.some(l => l.type === "registration" && (l.refereePhone === refereePhoneMasked || l.refereeName === referee.name));
+        if (!hasRegLog) {
+          logs.unshift({
+            id: "ref_reg_" + referee.uid,
+            date: new Date(referee.createdAt || Date.now()).toLocaleDateString('vi-VN'),
+            refereeName: referee.name || "Thành viên mới",
+            refereePhone: refereePhoneMasked,
+            type: "registration",
+            reward: "+1 Ngày VIP Miễn Phí"
+          });
+          addedDaysTotal += 1;
+          hasChanges = true;
+        }
+
+        // 2. Kiểm tra mốc nâng VIP 1 Tháng (+7 ngày)
+        if (referee.package === "monthly") {
+          const hasMonthlyLog = logs.some(l => l.type === "monthly_package" && (l.refereePhone === refereePhoneMasked || l.refereeName === referee.name));
+          if (!hasMonthlyLog) {
+            logs.unshift({
+              id: "ref_m_" + referee.uid,
+              date: new Date().toLocaleDateString('vi-VN'),
+              refereeName: referee.name || "Thành viên mới",
+              refereePhone: refereePhoneMasked,
+              type: "monthly_package",
+              reward: "+7 Ngày VIP (1 Tuần)"
+            });
+            addedDaysTotal += 7;
+            hasChanges = true;
+          }
+        }
+
+        // 3. Kiểm tra mốc nâng VIP 1 Năm (+90 ngày)
+        if (referee.package === "yearly") {
+          const hasYearlyLog = logs.some(l => l.type === "yearly_package" && (l.refereePhone === refereePhoneMasked || l.refereeName === referee.name));
+          if (!hasYearlyLog) {
+            logs.unshift({
+              id: "ref_y_" + referee.uid,
+              date: new Date().toLocaleDateString('vi-VN'),
+              refereeName: referee.name || "Thành viên mới",
+              refereePhone: refereePhoneMasked,
+              type: "yearly_package",
+              reward: "+90 Ngày VIP (3 Tháng)"
+            });
+            addedDaysTotal += 90;
+            hasChanges = true;
+          }
+        }
+      }
+
+      if (hasChanges) {
+        const currentExpiry = currentUser.packageExpiry && currentUser.packageExpiry > Date.now() 
+          ? currentUser.packageExpiry 
+          : Date.now();
+        const newExpiry = currentExpiry + (addedDaysTotal * 86400000);
+
+        await updateDoc(doc(db, "users", userId), {
+          vipDays: (currentUser.vipDays || 0) + addedDaysTotal,
+          packageExpiry: newExpiry,
+          referralLogs: logs
+        });
+        console.log(`🎉 Đã đồng bộ bổ sung ${addedDaysTotal} ngày VIP cho ${currentUser.name}!`);
+      }
+    } catch (e) {
+      console.error("Lỗi đồng bộ thưởng referral chưa nhận:", e);
+    }
   },
 
   // Đăng xuất
@@ -329,7 +520,7 @@ const AuthManager = {
     const user = this.getCurrentUser();
     if (!user) return { success: false, message: "Vui lòng đăng nhập trước khi nâng cấp gói!" };
 
-    const { doc, updateDoc, collection, query, where, getDocs } = window.firestoreHelpers;
+    const { doc, updateDoc } = window.firestoreHelpers;
     const db = window.firebaseDb;
     const packageExpiry = Date.now() + (packageType === "yearly" ? 365 : 30) * 86400000;
 
@@ -339,37 +530,9 @@ const AuthManager = {
       return { success: false, message: "Nâng cấp thất bại: " + err.message };
     }
 
-    // Thưởng cho người giới thiệu khi nâng cấp Gói VIP (1 Tháng => +7 ngày | 1 Năm => +90 ngày)
+    // Thưởng cho người giới thiệu (User A) khi nâng cấp Gói VIP (1 Tháng => +7 ngày | 1 Năm => +90 ngày)
     if (user.referredBy) {
-      try {
-        const refSnap = await getDocs(query(collection(db, "users"), where("phone", "==", user.referredBy)));
-        if (!refSnap.empty) {
-          const refDocSnap = refSnap.docs[0];
-          const referrer = refDocSnap.data();
-          let addedDays = 0, rewardText = "", logType = "";
-          if (packageType === "yearly") {
-            addedDays = 90; rewardText = "+90 Ngày VIP (3 Tháng)"; logType = "yearly_package";
-          } else if (packageType === "monthly") {
-            addedDays = 7; rewardText = "+7 Ngày VIP (1 Tuần)"; logType = "monthly_package";
-          }
-          if (addedDays > 0) {
-            const newLog = {
-              id: "ref_" + Date.now(),
-              date: new Date().toLocaleDateString('vi-VN'),
-              refereeName: user.name,
-              refereePhone: maskPhone(user.phone),
-              type: logType,
-              reward: rewardText
-            };
-            await updateDoc(refDocSnap.ref, {
-              vipDays: (referrer.vipDays || 0) + addedDays,
-              referralLogs: [newLog, ...(referrer.referralLogs || [])]
-            });
-          }
-        }
-      } catch (e) {
-        console.error("Lỗi thưởng referral khi nâng VIP:", e);
-      }
+      await this._processReferralReward(user, packageType);
     }
 
     return { success: true, user: { ...user, package: packageType, packageExpiry } };
@@ -474,9 +637,26 @@ const AuthManager = {
 
   async adminUpdateUser(userId, patch) {
     if (!window.firebaseDb || !window.firestoreHelpers) return { success: false, message: "Firestore chưa sẵn sàng." };
-    const { doc, updateDoc } = window.firestoreHelpers;
+    const { doc, updateDoc, getDoc } = window.firestoreHelpers;
+    const db = window.firebaseDb;
     try {
-      await updateDoc(doc(window.firebaseDb, "users", userId), patch);
+      await updateDoc(doc(db, "users", userId), patch);
+
+      // Nếu Admin nâng/duyệt gói VIP (monthly hoặc yearly), tự động thưởng cho người giới thiệu
+      if (patch && (patch.package === "monthly" || patch.package === "yearly")) {
+        try {
+          const userSnap = await getDoc(doc(db, "users", userId));
+          if (userSnap.exists()) {
+            const userB = { uid: userId, id: userId, ...userSnap.data() };
+            if (userB.referredBy) {
+              await this._processReferralReward(userB, patch.package);
+            }
+          }
+        } catch (e) {
+          console.error("Lỗi thưởng referral khi admin duyệt VIP:", e);
+        }
+      }
+
       return { success: true };
     } catch (err) {
       return { success: false, message: "Cập nhật thất bại: " + err.message };
