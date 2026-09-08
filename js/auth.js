@@ -100,6 +100,7 @@ const AuthManager = {
         (snap) => {
           if (snap.exists()) {
             this._currentUser = { uid: fbUser.uid, id: fbUser.uid, email: fbUser.email, ...snap.data() };
+            this._getUserReferralCode(this._currentUser);
           } else {
             // Trường hợp Firebase Auth có user đăng nhập nhưng chưa có document trong Firestore "users"
             const isAdm = !!(fbUser.email && fbUser.email.toLowerCase().includes("admin"));
@@ -113,6 +114,7 @@ const AuthManager = {
               package: "trial",
               vipDays: 30
             };
+            this._getUserReferralCode(this._currentUser);
           }
           this._initialized = true;
           if (typeof onChange === "function") onChange(this._currentUser);
@@ -191,6 +193,36 @@ const AuthManager = {
     }
   },
 
+  // Lấy hoặc tạo Mã Giới Thiệu cá nhân 6 số bảo mật (format: 000001 -> 999999)
+  _getUserReferralCode(user) {
+    if (!user) return "000001";
+    if (user.referralCode && String(user.referralCode).length === 6) {
+      return String(user.referralCode);
+    }
+
+    // Tạo mã ngẫu nhiên 6 số duy nhất từ UID / Email / SĐT
+    const seed = String(user.uid || user.id || user.email || user.phone || Math.random());
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash << 5) - hash + seed.charCodeAt(i);
+      hash |= 0;
+    }
+    const codeNum = (Math.abs(hash) % 900000) + 100000;
+    const generatedCode = String(codeNum).padStart(6, '0');
+
+    user.referralCode = generatedCode;
+
+    // Tự động lưu referralCode vào Firestore cho các user đã có
+    if (user.uid && window.firebaseDb && window.firestoreHelpers) {
+      try {
+        const { doc, updateDoc } = window.firestoreHelpers;
+        updateDoc(doc(window.firebaseDb, "users", user.uid), { referralCode: generatedCode }).catch(() => {});
+      } catch (e) {}
+    }
+
+    return generatedCode;
+  },
+
   // Đăng ký (async) — tạo tài khoản Auth thật + hồ sơ Firestore thật, không mock
   async register(userData) {
     const { name, phone, email, password, role, refCode } = userData;
@@ -205,8 +237,7 @@ const AuthManager = {
     const { createUserWithEmailAndPassword } = window.firebaseAuthHelpers;
     const db = window.firebaseDb;
 
-    // Kiểm tra trùng SĐT qua "phoneIndex" (đọc công khai) — chưa thể đọc
-    // "users" ở bước này vì người đăng ký chưa xác thực.
+    // Kiểm tra trùng SĐT qua "phoneIndex" (đọc công khai)
     try {
       const dupSnap = await getDoc(doc(db, "phoneIndex", phone));
       if (dupSnap.exists()) {
@@ -226,6 +257,8 @@ const AuthManager = {
     const uid = cred.user.uid;
     const trialDays = 30;
     const trialExpiry = Date.now() + trialDays * 86400000;
+    const referralCode = this._getUserReferralCode({ uid, phone, email, name });
+
     const newProfile = {
       name,
       phone,
@@ -236,6 +269,7 @@ const AuthManager = {
       package: "trial",
       packageExpiry: trialExpiry,
       vipDays: trialDays,
+      referralCode,
       referralLogs: [],
       referredBy: refCode || null,
       isAdmin: false,
@@ -270,25 +304,34 @@ const AuthManager = {
     const db = window.firebaseDb;
 
     try {
-      const cleanPhone = refCode.replace(/^(?:\+84|84)/, "0");
       let refDocSnap = null;
       let referrerData = null;
 
-      // 1. Tìm người giới thiệu (User A) theo SĐT, Email hoặc UID
-      const phoneSnap = await getDocs(query(collection(db, "users"), where("phone", "==", cleanPhone)));
-      if (!phoneSnap.empty) {
-        refDocSnap = phoneSnap.docs[0];
+      // 1. Ưu tiên tìm theo referralCode (mã 6 số ngẫu nhiên)
+      const refCodeSnap = await getDocs(query(collection(db, "users"), where("referralCode", "==", refCode)));
+      if (!refCodeSnap.empty) {
+        refDocSnap = refCodeSnap.docs[0];
         referrerData = refDocSnap.data();
       } else {
-        const emailSnap = await getDocs(query(collection(db, "users"), where("email", "==", refCode.toLowerCase())));
-        if (!emailSnap.empty) {
-          refDocSnap = emailSnap.docs[0];
-          referrerData = emailSnap.data();
-        } else if (refCode.length >= 15) {
-          const directSnap = await getDoc(doc(db, "users", refCode));
-          if (directSnap.exists()) {
-            refDocSnap = directSnap;
-            referrerData = directSnap.data();
+        // Tìm theo SĐT (dành cho mã giới thiệu cũ)
+        const cleanPhone = refCode.replace(/^(?:\+84|84)/, "0");
+        const phoneSnap = await getDocs(query(collection(db, "users"), where("phone", "==", cleanPhone)));
+        if (!phoneSnap.empty) {
+          refDocSnap = phoneSnap.docs[0];
+          referrerData = refDocSnap.data();
+        } else {
+          // Tìm theo Email
+          const emailSnap = await getDocs(query(collection(db, "users"), where("email", "==", refCode.toLowerCase())));
+          if (!emailSnap.empty) {
+            refDocSnap = emailSnap.docs[0];
+            referrerData = emailSnap.data();
+          } else if (refCode.length >= 15) {
+            // Tìm theo UID
+            const directSnap = await getDoc(doc(db, "users", refCode));
+            if (directSnap.exists()) {
+              refDocSnap = directSnap;
+              referrerData = directSnap.data();
+            }
           }
         }
       }
@@ -365,30 +408,37 @@ const AuthManager = {
 
   // Đồng bộ kiểm tra và bù thưởng bổ sung cho các lượt giới thiệu chưa nhận
   async syncMissedReferrals(currentUser) {
-    if (!currentUser || !currentUser.phone) return;
+    if (!currentUser) return;
     if (!window.firebaseDb || !window.firestoreHelpers) return;
     const { collection, query, where, getDocs, doc, updateDoc } = window.firestoreHelpers;
     const db = window.firebaseDb;
 
     try {
-      const userPhone = currentUser.phone.trim();
+      const userRefCode = this._getUserReferralCode(currentUser);
+      const userPhone = (currentUser.phone || "").trim();
       const userEmail = (currentUser.email || "").toLowerCase().trim();
       const userId = currentUser.uid || currentUser.id;
 
       let refereeDocs = [];
-      const qPhone = await getDocs(query(collection(db, "users"), where("referredBy", "==", userPhone)));
-      qPhone.forEach(d => refereeDocs.push({ uid: d.id, id: d.id, ...d.data() }));
 
-      if (userEmail) {
-        const qEmail = await getDocs(query(collection(db, "users"), where("referredBy", "==", userEmail)));
-        qEmail.forEach(d => {
+      // 1. Tìm theo referralCode (mã 6 số)
+      if (userRefCode) {
+        const qRefCode = await getDocs(query(collection(db, "users"), where("referredBy", "==", userRefCode)));
+        qRefCode.forEach(d => refereeDocs.push({ uid: d.id, id: d.id, ...d.data() }));
+      }
+
+      // 2. Tìm theo SĐT (mã cũ)
+      if (userPhone) {
+        const qPhone = await getDocs(query(collection(db, "users"), where("referredBy", "==", userPhone)));
+        qPhone.forEach(d => {
           if (!refereeDocs.some(x => x.uid === d.id)) refereeDocs.push({ uid: d.id, id: d.id, ...d.data() });
         });
       }
 
-      if (userId) {
-        const qId = await getDocs(query(collection(db, "users"), where("referredBy", "==", userId)));
-        qId.forEach(d => {
+      // 3. Tìm theo Email
+      if (userEmail) {
+        const qEmail = await getDocs(query(collection(db, "users"), where("referredBy", "==", userEmail)));
+        qEmail.forEach(d => {
           if (!refereeDocs.some(x => x.uid === d.id)) refereeDocs.push({ uid: d.id, id: d.id, ...d.data() });
         });
       }
