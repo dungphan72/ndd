@@ -2487,6 +2487,14 @@ const App = {
       `).join('');
     }
 
+    const eventCategorySelect = document.getElementById("eventCategorySelect");
+    if (eventCategorySelect) {
+      const categories = EventManager.getCategories();
+      eventCategorySelect.innerHTML = categories.map(c => `
+        <option value="${escapeHtml(c.id)}">${escapeHtml(c.icon || '📅')} ${escapeHtml(c.name)}</option>
+      `).join('');
+    }
+
     this.openModal("createEventModal");
   },
 
@@ -2501,6 +2509,7 @@ const App = {
     const selectedOption = select.options[select.selectedIndex];
     const clubName = selectedOption.dataset.name;
     const title = form.eventTitle.value.trim();
+    const category = form.eventCategorySelect ? form.eventCategorySelect.value : "general";
     const date = form.eventDate.value;
     const time = form.eventTime.value.trim();
     const locationType = form.eventLocationType.value;
@@ -2518,6 +2527,7 @@ const App = {
       clubId,
       clubName,
       title,
+      category,
       date,
       time,
       locationType,
@@ -3845,6 +3855,7 @@ const App = {
     this._adminUsersCache = new Map(users.map(u => [u.id, u]));
     const clubs = ClubManager.getClubs();
     const events = EventManager.getEvents();
+    const eventCategories = EventManager.getCategories();
     const products = ShopManager.getProducts();
     const courses = CourseManager.getCourses();
     const categories = CourseManager.getCategories();
@@ -4050,8 +4061,63 @@ const App = {
         </div>
       </div>
 
-      <!-- Admin Tab 3: Events Table -->
+      <!-- Admin Tab 3: Events & Categories Table -->
       <div id="adminEventsSec" class="profile-tab-sec" style="display: ${adminSecDisplay('adminEventsSec')};">
+        <!-- KHU VỰC 1: QUẢN LÝ DANH MỤC SỰ KIỆN -->
+        <div style="background: var(--bg-card); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 2px;">📂 Danh Mục Sự Kiện (${eventCategories.length})</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Quản lý các loại danh mục sự kiện, sửa tên & icon biểu tượng, hoặc thêm danh mục mới.</p>
+            </div>
+            <button class="btn btn-outline" style="font-size: 0.85rem; font-weight: 700; color: var(--primary); border-color: var(--primary);" onclick="App.adminOpenAddEventCategoryModal()">
+              <i class="fa-solid fa-folder-plus"></i> Thêm Danh Mục Mới
+            </button>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+              <thead>
+                <tr style="background: var(--bg-main); text-align: left; border-bottom: 1px solid var(--border-color);">
+                  <th style="padding: 10px 14px;">Icon & Tên Danh Mục</th>
+                  <th style="padding: 10px 14px;">Mã Danh Mục (ID)</th>
+                  <th style="padding: 10px 14px;">Số Sự Kiện</th>
+                  <th style="padding: 10px 14px; text-align: center;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${eventCategories.map(cat => {
+                  const count = events.filter(e => e.category === cat.id).length;
+                  return `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                      <td style="padding: 10px 14px; font-weight: 700; color: var(--text-main);">
+                        <span style="margin-right: 8px; font-size: 1.1rem;">${escapeHtml(cat.icon || '📅')}</span>
+                        ${escapeHtml(cat.name)}
+                      </td>
+                      <td style="padding: 10px 14px; color: var(--text-muted); font-family: monospace;">${escapeHtml(cat.id)}</td>
+                      <td style="padding: 10px 14px;">
+                        <span class="badge-pill" style="background: rgba(5, 150, 105, 0.1); color: var(--primary); border: 1px solid rgba(5, 150, 105, 0.2);">${count} sự kiện</span>
+                      </td>
+                      <td style="padding: 10px 14px; text-align: center;">
+                        <div style="display: flex; gap: 6px; justify-content: center;">
+                          <button class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 10px; color: var(--primary); border-color: var(--primary-light);" onclick="App.adminOpenEditEventCategoryModal('${escapeJsAttr(cat.id)}')">
+                            ✏️ Sửa
+                          </button>
+                          <button class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 10px; color: #ef4444; border-color: #fca5a5;" onclick="App.adminDeleteEventCategory('${escapeJsAttr(cat.id)}')">
+                            ❌ Xóa
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- KHU VỰC 2: QUẢN LÝ DANH SÁCH SỰ KIỆN -->
+        <h4 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">🎪 Danh Sách Sự Kiện (${events.length})</h4>
         ${this.renderBulkActionBar('events')}
         <div class="admin-table-wrap">
           <table class="admin-table">
@@ -4059,6 +4125,7 @@ const App = {
               <tr>
                 <th style="width: 36px;"><input type="checkbox" onchange="App.toggleBulkAll('events', this.checked)"></th>
                 <th>Tên Sự Kiện</th>
+                <th>Danh Mục</th>
                 <th>Thời Gian</th>
                 <th>Địa Điểm</th>
                 <th>Người Tổ Chức</th>
@@ -4066,10 +4133,13 @@ const App = {
               </tr>
             </thead>
             <tbody>
-              ${events.map(e => `
+              ${events.map(e => {
+                const catLabel = e.categoryLabel || EventManager.getCategoryLabel(e.category);
+                return `
                 <tr>
                   <td><input type="checkbox" data-bulk-table="events" data-bulk-id="${escapeJsAttr(e.id)}" onchange="App.toggleBulkRow('events', '${escapeJsAttr(e.id)}', this.checked)"></td>
                   <td style="font-weight: 700;">${escapeHtml(e.title)}</td>
+                  <td><span class="badge-pill" style="background: rgba(5, 150, 105, 0.1); color: var(--primary); font-size: 0.78rem;">${escapeHtml(catLabel)}</span></td>
                   <td>${escapeHtml(e.date)} (${escapeHtml(e.time)})</td>
                   <td>${escapeHtml(e.address)}</td>
                   <td>${escapeHtml(e.hostName)}</td>
@@ -4080,7 +4150,8 @@ const App = {
                     </div>
                   </td>
                 </tr>
-              `).join('')}
+              `;
+              }).join('')}
             </tbody>
           </table>
         </div>
@@ -4733,6 +4804,16 @@ const App = {
       clubSelect.value = ev.clubId || '';
     }
 
+    // Nạp danh sách danh mục sự kiện vào dropdown
+    const catSelect = document.getElementById("editEventCategory");
+    if (catSelect) {
+      const categories = EventManager.getCategories();
+      catSelect.innerHTML = categories.map(c => `
+        <option value="${escapeHtml(c.id)}">${escapeHtml(c.icon || '📅')} ${escapeHtml(c.name)}</option>
+      `).join('');
+      catSelect.value = ev.category || 'general';
+    }
+
     document.getElementById("editEventId").value = ev.id;
     document.getElementById("editEventTitle").value = ev.title || '';
     document.getElementById("editEventDate").value = ev.date || '';
@@ -4755,6 +4836,13 @@ const App = {
       const selectedOption = clubSelect.options[clubSelect.selectedIndex];
       ev.clubId = clubSelect.value;
       ev.clubName = selectedOption ? selectedOption.dataset.name : ev.clubName;
+      
+      const catSelect = document.getElementById("editEventCategory");
+      if (catSelect) {
+        ev.category = catSelect.value;
+        ev.categoryLabel = EventManager.getCategoryLabel(ev.category);
+      }
+
       ev.title = document.getElementById("editEventTitle").value.trim();
       ev.date = document.getElementById("editEventDate").value;
       ev.time = document.getElementById("editEventTime").value.trim();
@@ -4769,6 +4857,81 @@ const App = {
       this.showToast(`💾 Đã cập nhật sự kiện "${ev.title}"!`);
       this.openAdminDashboardModal();
     }
+  },
+
+  // Admin Event Category Handlers
+  adminOpenAddEventCategoryModal() {
+    this.openModal("adminAddEventCategoryModal");
+  },
+
+  adminSubmitAddEventCategory(e) {
+    e.preventDefault();
+    const form = e.target;
+    const name = form.eventCategoryName.value.trim();
+    const icon = form.eventCategoryIcon.value.trim() || "📅";
+
+    if (!name) {
+      this.showToast("⚠️ Vui lòng nhập tên danh mục sự kiện!", "warning");
+      return;
+    }
+
+    const res = EventManager.addCategory(name, icon);
+    if (res.success) {
+      this.closeAllModals();
+      form.reset();
+      this.showToast(`➕ Đã thêm danh mục sự kiện "${res.category.name}" thành công!`);
+      this.renderEvents();
+      this.openAdminDashboardModal();
+    } else {
+      this.showToast("Không thể thêm danh mục sự kiện, vui lòng thử lại!", "error");
+    }
+  },
+
+  adminOpenEditEventCategoryModal(catId) {
+    const categories = EventManager.getCategories();
+    const cat = categories.find(c => c.id === catId);
+    if (!cat) return;
+
+    document.getElementById("editEventCategoryId").value = cat.id;
+    document.getElementById("editEventCategoryName").value = cat.name || '';
+    document.getElementById("editEventCategoryIcon").value = cat.icon || '📅';
+    this.openModal("adminEditEventCategoryModal");
+  },
+
+  adminSubmitEditEventCategory(e) {
+    e.preventDefault();
+    const form = e.target;
+    const catId = form.editEventCategoryId.value;
+    const name = form.editEventCategoryName.value.trim();
+    const icon = form.editEventCategoryIcon.value.trim() || "📅";
+
+    if (!name) {
+      this.showToast("⚠️ Vui lòng nhập tên danh mục sự kiện!", "warning");
+      return;
+    }
+
+    const res = EventManager.updateCategory(catId, name, icon);
+    if (res.success) {
+      this.closeAllModals();
+      this.showToast(`💾 Đã cập nhật danh mục sự kiện "${res.category.name}"!`);
+      this.renderEvents();
+      this.openAdminDashboardModal();
+    } else {
+      this.showToast("Không thể cập nhật danh mục sự kiện!", "error");
+    }
+  },
+
+  adminDeleteEventCategory(catId) {
+    const categories = EventManager.getCategories();
+    const cat = categories.find(c => c.id === catId);
+    if (!cat) return;
+
+    if (!confirm(`Bạn có chắc chắn muốn xóa danh mục sự kiện "${cat.name}"?`)) return;
+
+    EventManager.deleteCategory(catId);
+    this.showToast(`🗑️ Đã xóa danh mục sự kiện "${cat.name}"!`);
+    this.renderEvents();
+    this.openAdminDashboardModal();
   },
 
   // Open & Submit Admin Edit Product

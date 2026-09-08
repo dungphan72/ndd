@@ -34,6 +34,83 @@ const EventManager = {
     this.saveEvents(events);
   },
 
+  defaultCategories: [
+    { id: "inbody", name: "Đo InBody & Sức Khỏe", icon: "🩺" },
+    { id: "workout", name: "Vận Động & HIIT", icon: "🏃" },
+    { id: "workshop", name: "Workshop Dinh Dưỡng", icon: "🥗" },
+    { id: "challenge", name: "Thử Thách 21 Ngày", icon: "🏆" },
+    { id: "general", name: "Sự Kiện Khác", icon: "📅" }
+  ],
+
+  getCategories() {
+    try {
+      const data = localStorage.getItem("nutriclub_event_categories");
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Error loading event categories:", e);
+    }
+    this.saveCategories(this.defaultCategories);
+    return this.defaultCategories;
+  },
+
+  saveCategories(categories) {
+    try {
+      localStorage.setItem("nutriclub_event_categories", JSON.stringify(categories));
+    } catch (e) {
+      console.error("Error saving event categories:", e);
+    }
+  },
+
+  addCategory(name, icon = "📅") {
+    const categories = this.getCategories();
+    const id = "cat_evt_" + Date.now();
+    const newCategory = { id, name: name.trim(), icon: icon.trim() || "📅" };
+    categories.push(newCategory);
+    this.saveCategories(categories);
+    return { success: true, category: newCategory };
+  },
+
+  updateCategory(id, name, icon) {
+    let categories = this.getCategories();
+    const index = categories.findIndex(c => c.id === id);
+    if (index !== -1) {
+      const cleanName = name.trim();
+      const cleanIcon = icon ? icon.trim() : categories[index].icon;
+      categories[index] = { ...categories[index], name: cleanName, icon: cleanIcon };
+      this.saveCategories(categories);
+
+      // Đồng bộ categoryLabel cho các sự kiện thuộc category này
+      let events = this.getEvents();
+      let updated = false;
+      events.forEach(evt => {
+        if (evt.category === id) {
+          evt.categoryLabel = cleanName;
+          updated = true;
+        }
+      });
+      if (updated) this.saveEvents(events);
+
+      return { success: true, category: categories[index] };
+    }
+    return { success: false, message: "Không tìm thấy danh mục sự kiện" };
+  },
+
+  deleteCategory(id) {
+    let categories = this.getCategories();
+    categories = categories.filter(c => c.id !== id);
+    this.saveCategories(categories);
+    return { success: true };
+  },
+
+  getCategoryLabel(catId) {
+    const categories = this.getCategories();
+    const cat = categories.find(c => c.id === catId);
+    return cat ? cat.name : "Sự Kiện Khác";
+  },
+
   createEvent(eventData) {
     const currentUser = AuthManager.getCurrentUser();
     if (!currentUser) {
@@ -41,11 +118,16 @@ const EventManager = {
     }
 
     const events = this.getEvents();
+    const category = eventData.category || "general";
+    const categoryLabel = this.getCategoryLabel(category);
+
     const newEvent = {
       id: "evt_" + Date.now(),
       clubId: eventData.clubId,
       clubName: eventData.clubName,
       title: eventData.title,
+      category: category,
+      categoryLabel: categoryLabel,
       image: eventData.image || "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80",
       date: eventData.date,
       time: eventData.time,
@@ -55,6 +137,7 @@ const EventManager = {
       participantsCount: 1,
       maxParticipants: parseInt(eventData.maxParticipants) || 50,
       hostName: currentUser.name,
+      hostPhone: currentUser.phone,
       isFree: eventData.isFree !== undefined ? eventData.isFree : true
     };
 
@@ -150,18 +233,28 @@ const EventManager = {
       const safeDescription = escapeHtml(evt.description || '');
       const safeImage = sanitizeUrl(evt.image, 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80');
 
-      const textLower = (evt.title + " " + (evt.description || "")).toLowerCase();
-      let catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(5, 150, 105, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-calendar-days" style="color: #fde68a;"></i> Sự Kiện</span>`;
-      
-      if (textLower.includes("inbody") || textLower.includes("đo") || textLower.includes("quét")) {
-        catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(5, 150, 105, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-notes-medical" style="color: #34d399;"></i> Đo InBody</span>`;
-      } else if (textLower.includes("chạy") || textLower.includes("cardio") || textLower.includes("hiit") || textLower.includes("vận động")) {
-        catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(13, 148, 136, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-person-running" style="color: #2dd4bf;"></i> Vận Động & HIIT</span>`;
-      } else if (textLower.includes("workshop") || textLower.includes("trà") || textLower.includes("chế biến") || textLower.includes("dinh dưỡng")) {
-        catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(217, 119, 6, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-utensils" style="color: #fde68a;"></i> Workshop Dinh Dưỡng</span>`;
-      } else if (textLower.includes("thử thách") || textLower.includes("21 ngày")) {
-        catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(217, 119, 6, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"><i class="fa-solid fa-trophy" style="color: #fde68a;"></i> Thử Thách 21 Ngày</span>`;
+      const categories = this.getCategories();
+      let eventCat = evt.category ? categories.find(c => c.id === evt.category) : null;
+      let catIcon = "📅";
+      let catName = evt.categoryLabel || "Sự Kiện";
+
+      if (eventCat) {
+        catIcon = eventCat.icon || "📅";
+        catName = eventCat.name;
+      } else {
+        const textLower = (evt.title + " " + (evt.description || "")).toLowerCase();
+        if (textLower.includes("inbody") || textLower.includes("đo") || textLower.includes("quét")) {
+          catIcon = "🩺"; catName = "Đo InBody & Sức Khỏe";
+        } else if (textLower.includes("chạy") || textLower.includes("cardio") || textLower.includes("hiit") || textLower.includes("vận động")) {
+          catIcon = "🏃"; catName = "Vận Động & HIIT";
+        } else if (textLower.includes("workshop") || textLower.includes("trà") || textLower.includes("chế biến") || textLower.includes("dinh dưỡng")) {
+          catIcon = "🥗"; catName = "Workshop Dinh Dưỡng";
+        } else if (textLower.includes("thử thách") || textLower.includes("21 ngày")) {
+          catIcon = "🏆"; catName = "Thử Thách 21 Ngày";
+        }
       }
+
+      const catBadge = `<span style="position: absolute; top: 12px; left: 12px; background: rgba(5, 150, 105, 0.92); backdrop-filter: blur(4px); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">${catIcon} ${escapeHtml(catName)}</span>`;
 
       const isHostOrAdmin = currentUser && (isAdmin || evt.hostName === currentUser.name || (currentUser.phone && evt.hostPhone === currentUser.phone));
       const regList = evt.registrations || [];

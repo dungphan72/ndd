@@ -1086,6 +1086,11 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label">Danh mục sự kiện *</label>
+            <select id="eventCategorySelect" name="eventCategorySelect" class="filter-select" required></select>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">Tên sự kiện *</label>
             <input type="text" name="eventTitle" class="form-control" placeholder="Ví dụ: Ngày Hội Quét Chỉ Số InBody Miễn Phí" required>
           </div>
@@ -1622,6 +1627,11 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-folder-open" style="color: var(--primary);"></i> Danh mục sự kiện *</label>
+            <select id="editEventCategory" name="editEventCategory" class="filter-select" required></select>
+          </div>
+
+          <div class="form-group">
             <label class="form-label"><i class="fa-solid fa-heading" style="color: var(--secondary);"></i> Tên sự kiện *</label>
             <input type="text" id="editEventTitle" name="editEventTitle" class="form-control" required>
           </div>
@@ -1986,6 +1996,59 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
           <button type="submit" class="btn btn-primary">💾 Cập Nhật Chủ Đề</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 16e: Admin Thêm Danh Mục Sự Kiện Mới -->
+  <div id="adminAddEventCategoryModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">📂 Admin Thêm Danh Mục Sự Kiện Mới</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitAddEventCategory(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên Danh Mục Sự Kiện *</label>
+            <input type="text" name="eventCategoryName" class="form-control" placeholder="Ví dụ: Workshop Trà & Dinh Dưỡng" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Biểu Tượng Icon (Emoji)</label>
+            <input type="text" name="eventCategoryIcon" class="form-control" placeholder="Ví dụ: 🍵" value="📅">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">➕ Thêm Danh Mục</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 16f: Admin Sửa Danh Mục Sự Kiện -->
+  <div id="adminEditEventCategoryModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Admin Sửa Danh Mục Sự Kiện</h3>
+        <button class="modal-close-btn" onclick="App.closeAllModals()">&times;</button>
+      </div>
+      <form onsubmit="App.adminSubmitEditEventCategory(event)">
+        <input type="hidden" id="editEventCategoryId" name="editEventCategoryId">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên Danh Mục Sự Kiện *</label>
+            <input type="text" id="editEventCategoryName" name="editEventCategoryName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Biểu Tượng Icon (Emoji)</label>
+            <input type="text" id="editEventCategoryIcon" name="editEventCategoryIcon" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="App.closeAllModals()">Hủy</button>
+          <button type="submit" class="btn btn-primary">💾 Cập Nhật Danh Mục</button>
         </div>
       </form>
     </div>
