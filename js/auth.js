@@ -35,12 +35,12 @@ function escapeJsAttr(str) {
     .replace(/>/g, "&gt;");
 }
 
-// Chống chèn link độc hại (javascript:, vbscript:, data:...) vào thuộc tính href/src:
-// chỉ chấp nhận URL http/https hợp lệ, ngược lại trả về giá trị mặc định an toàn
+// Chống chèn link độc hại (javascript:, vbscript...):
+// chấp nhận URL http/https hoặc data:image hợp lệ, ngược lại trả về giá trị mặc định an toàn
 function sanitizeUrl(url, fallback = "") {
   if (!url) return fallback;
   const trimmed = String(url).trim();
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^(https?:\/\/|data:image\/)/i.test(trimmed)) return trimmed;
   return fallback;
 }
 
@@ -69,6 +69,16 @@ const AuthManager = {
 
   isInitialized() {
     return this._initialized;
+  },
+
+  // Lấy đường dẫn avatar của user (nếu đã lưu avatar hợp lệ sẽ dùng avatar đó, ngược lại sinh avatar cố định theo seed duy nhất của user)
+  getUserAvatar(user) {
+    const u = user || this.getCurrentUser();
+    if (u && u.avatar && sanitizeUrl(u.avatar)) {
+      return sanitizeUrl(u.avatar);
+    }
+    const seed = u ? (u.phone || u.name || u.email || u.uid || u.id || "User") : "User";
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
   },
 
   // Gọi 1 lần từ App.init() (sau khi firebase-config.js module đã chạy xong).

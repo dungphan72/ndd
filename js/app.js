@@ -307,7 +307,7 @@ const App = {
       if (userNameLabel) {
         userNameLabel.innerText = currentUser.name;
       }
-      if (userAvatarImg) userAvatarImg.src = sanitizeUrl(currentUser.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User');
+      if (userAvatarImg) userAvatarImg.src = AuthManager.getUserAvatar(currentUser);
 
       // Nút Đăng Nhóm hiển thị khi ĐÃ ĐĂNG NHẬP
       if (navCreateClubBtn) navCreateClubBtn.style.display = "inline-flex";
@@ -970,7 +970,7 @@ const App = {
         // thay vì nhúng thẳng dữ liệu người dùng nhập vào attribute để tránh XSS phá khung onclick
         list.innerHTML = matches.map(u => `
           <div class="co-op-item" onclick="App.addCoOperator('${escapeJsAttr(u.id)}')">
-            <img src="${sanitizeUrl(u.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User')}" class="co-op-item-avatar" alt="${escapeHtml(u.name)}">
+            <img src="${AuthManager.getUserAvatar(u)}" class="co-op-item-avatar" alt="${escapeHtml(u.name)}">
             <div>
               <div style="font-weight: 700; font-size: 0.9rem;">${escapeHtml(u.name)}</div>
               <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(u.phone)} • ${escapeHtml(u.role)}</div>
@@ -1045,7 +1045,7 @@ const App = {
         // thay vì nhúng thẳng dữ liệu người dùng nhập vào attribute để tránh XSS phá khung onclick
         list.innerHTML = matches.map(u => `
           <div class="co-op-item" onclick="App.addEditCoOperator('${escapeJsAttr(u.id)}')">
-            <img src="${sanitizeUrl(u.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User')}" class="co-op-item-avatar" alt="${escapeHtml(u.name)}">
+            <img src="${AuthManager.getUserAvatar(u)}" class="co-op-item-avatar" alt="${escapeHtml(u.name)}">
             <div>
               <div style="font-weight: 700; font-size: 0.9rem;">${escapeHtml(u.name)}</div>
               <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(u.phone)} • ${escapeHtml(u.role)}</div>
@@ -2944,7 +2944,7 @@ const App = {
         <div class="dashboard-sidebar-card">
           <div class="dash-user-mini" style="flex-direction: column; text-align: center; gap: 8px; align-items: center; justify-content: center; padding-bottom: 20px; margin-bottom: 20px;">
             <div class="dash-user-avatar-wrapper" onclick="App.openChangeAvatarModal()" title="Bấm để thay đổi ảnh đại diện" style="margin: 0 auto;">
-              <img src="${sanitizeUrl(currentUser.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User')}" alt="${escapeHtml(currentUser.name)}">
+              <img src="${AuthManager.getUserAvatar(currentUser)}" alt="${escapeHtml(currentUser.name)}">
               <div class="dash-avatar-badge" title="Đổi ảnh đại diện"><i class="fa-solid fa-camera"></i></div>
             </div>
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -3355,7 +3355,7 @@ const App = {
               <label class="form-label" style="font-weight: 700;">Ảnh Đại Diện (Avatar)</label>
               <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 14px;">
-                  <img id="editProfileAvatarThumb" src="${sanitizeUrl(currentUser.avatar, '')}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); flex-shrink: 0;">
+                  <img id="editProfileAvatarThumb" src="${AuthManager.getUserAvatar(currentUser)}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); flex-shrink: 0;">
                   <div style="font-size: 0.85rem; font-weight: 600;">Xem trước ảnh đại diện</div>
                 </div>
                 <div>
@@ -3646,8 +3646,8 @@ const App = {
     }
     const previewImg = document.getElementById("avatarPreviewImg");
     const inputUrl = document.getElementById("changeAvatarUrlInput");
-    if (previewImg) previewImg.src = user.avatar;
-    if (inputUrl) inputUrl.value = user.avatar;
+    if (previewImg) previewImg.src = AuthManager.getUserAvatar(user);
+    if (inputUrl) inputUrl.value = user.avatar || '';
     this.openModal("changeAvatarModal");
   },
 
@@ -3875,7 +3875,7 @@ const App = {
         <!-- SIDEBAR BÊN TRÁI QUẢN TRỊ ADMIN -->
         <div class="dashboard-sidebar-card">
           <div class="dash-user-mini">
-            <img src="${sanitizeUrl(currentUser.avatar, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150')}" alt="${escapeHtml(currentUser.name)}">
+            <img src="${AuthManager.getUserAvatar(currentUser)}" alt="${escapeHtml(currentUser.name)}">
             <div>
               <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-main); line-height: 1.2;">${escapeHtml(currentUser.name)}</div>
               <div style="font-size: 0.78rem; color: #d97706; font-weight: 700; margin-top: 2px;"><i class="fa-solid fa-shield-halved"></i> Quản Trị Viên</div>
@@ -3995,7 +3995,7 @@ const App = {
                     <td><input type="checkbox" data-bulk-table="users" data-bulk-id="${escapeJsAttr(u.id)}" onchange="App.toggleBulkRow('users', '${escapeJsAttr(u.id)}', this.checked)"></td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="${sanitizeUrl(u.avatar, 'https://api.dicebear.com/7.x/avataaars/svg?seed=User')}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;">
+                        <img src="${AuthManager.getUserAvatar(u)}" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover;">
                         <div>
                           <div style="font-weight: 700;">${escapeHtml(u.name)}</div>
                           <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(u.role || 'Thành viên')}</div>
