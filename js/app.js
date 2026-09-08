@@ -1584,12 +1584,19 @@ const App = {
 
   submitCreateCourse(event) {
     event.preventDefault();
+    const currentUser = AuthManager.getCurrentUser();
+    if (!currentUser) {
+      this.showToast("⚠️ Vui lòng đăng nhập để đăng bài giảng khóa học!", "warning");
+      this.openModal("loginModal");
+      return;
+    }
+
     const form = event.target;
     const title = form.courseTitle.value.trim();
     const category = form.courseCategory.value;
     const level = form.courseLevel.value;
     const youtubeUrl = form.courseYoutubeUrl.value.trim();
-    const instructor = form.courseInstructor.value.trim() || AuthManager.getCurrentUser().name;
+    const instructor = form.courseInstructor.value.trim() || currentUser.name;
     const duration = form.courseDuration.value.trim() || "30 phút";
     const thumbnail = form.courseThumbnail.value.trim();
     const description = form.courseDescription.value.trim();
@@ -1599,11 +1606,26 @@ const App = {
       return;
     }
 
-    const res = CourseManager.addCourse({ title, category, level, youtubeUrl, instructor, duration, thumbnail, description });
+    const res = CourseManager.addCourse({
+      title,
+      category,
+      level,
+      youtubeUrl,
+      instructor,
+      duration,
+      thumbnail,
+      description,
+      authorPhone: currentUser.phone,
+      authorName: currentUser.name
+    });
+
     if (res.success) {
       this.closeAllModals();
       form.reset();
       this.renderCourses();
+      if (this.activeTab === 'profileTab') {
+        this.openUserProfilePage(false);
+      }
       this.showToast(`🎉 Khóa học "${res.course.title}" đã được đăng tải thành công!`);
     } else {
       this.showToast("Không thể đăng khóa học, vui lòng thử lại!", "error");
@@ -2891,6 +2913,12 @@ const App = {
     const allProducts = ShopManager.getProducts();
     const myProducts = allProducts.filter(p => p.sellerPhone === currentUser.phone || p.sellerName === currentUser.name);
 
+    const allCourses = CourseManager.getCourses();
+    const myCourses = allCourses.filter(c => 
+      (currentUser.phone && c.authorPhone === currentUser.phone) ||
+      (currentUser.name && (c.authorName === currentUser.name || c.instructor === currentUser.name))
+    );
+
     const isVIP = AuthManager.isVIPUser();
     const pkgName = currentUser.package === "yearly" ? "Gói VIP Năm (999k)" : (currentUser.package === "monthly" ? "Gói VIP Tháng (99k)" : "Gói VIP Dùng Thử (1 Tháng Miễn Phí)");
     const pkgBadgeClass = isVIP ? "user-vip-badge" : "vip-lock-badge";
@@ -2949,6 +2977,12 @@ const App = {
               </button>
             </li>
             <li>
+              <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myCoursesSec')">
+                <span><i class="fa-solid fa-graduation-cap" style="margin-right: 10px; color: #6366f1;"></i>Bài Giảng & Kiến Thức</span>
+                <span class="badge-pill">${myCourses.length}</span>
+              </button>
+            </li>
+            <li>
               <button type="button" class="dash-nav-btn profile-tab-btn" onclick="App.switchProfileTab(this, 'myAffiliateSec')">
                 <span><i class="fa-solid fa-gift" style="margin-right: 10px; color: #ec4899;"></i>Affiliates & Thưởng</span>
               </button>
@@ -2992,6 +3026,10 @@ const App = {
             <div class="profile-stat-card">
               <div class="stat-num" style="color: var(--accent-sport);">${myProducts.length}</div>
               <div class="stat-label">Thiết Bị Đăng Bán</div>
+            </div>
+            <div class="profile-stat-card">
+              <div class="stat-num" style="color: #6366f1;">${myCourses.length}</div>
+              <div class="stat-label">Bài Giảng Đã Đăng</div>
             </div>
             <div class="profile-stat-card">
               <div class="stat-num" style="color: var(--primary);">${currentUser.vipDays || 0} Ngày</div>
@@ -3110,6 +3148,47 @@ const App = {
                 </div>
                 <div style="display: flex; gap: 8px;">
                   <button type="button" class="btn btn-outline" style="color: #ef4444; border-color: #fca5a5; padding: 6px 14px; font-size: 0.82rem; font-weight: 700;" onclick="App.deleteMyProduct('${escapeJsAttr(p.id)}')">
+                    Xóa
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+
+      <!-- TAB 3b: BÀI GIẢNG & KIẾN THỨC CỦA TÔI -->
+      <div id="myCoursesSec" class="profile-tab-sec" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">Bài Giảng & Kiến Thức Bạn Đã Đăng</h4>
+          <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateCourseModal();" style="padding: 6px 14px; font-size: 0.88rem; font-weight: 700;">
+            Đăng Bài Giảng Mới
+          </button>
+        </div>
+
+        ${myCourses.length === 0 ? `
+          <div style="text-align: center; padding: 36px 20px; background: var(--bg-main); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">Bạn chưa chia sẻ bài giảng hay kiến thức dinh dưỡng nào.</p>
+            <button type="button" class="btn btn-primary" onclick="App.closeAllModals(); App.openCreateCourseModal();">
+              Đăng Bài Giảng Đầu Tiên
+            </button>
+          </div>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            ${myCourses.map(c => `
+              <div class="profile-item-row" style="display: flex; align-items: center; gap: 16px; background: var(--bg-main); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <img src="${sanitizeUrl(c.thumbnail, 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=600')}" class="profile-item-thumb" alt="${escapeHtml(c.title)}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover;">
+                <div style="flex-grow: 1;">
+                  <div style="font-weight: 800; font-size: 1rem; color: var(--text-main);">${escapeHtml(c.title)}</div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 3px;">
+                    Chủ đề: <strong style="color: var(--primary);">${escapeHtml(c.categoryLabel || 'Dinh dưỡng')}</strong> &bull; Thời lượng: ${escapeHtml(c.duration || '30 phút')} &bull; Lượt xem: ${escapeHtml(c.views || '1')}
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-sm btn-outline" onclick="App.openCourseVideoModal('${escapeJsAttr(c.id)}')">
+                    Xem
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline" style="color: #ef4444; border-color: #fca5a5;" onclick="App.deleteMyCourse('${escapeJsAttr(c.id)}')">
                     Xóa
                   </button>
                 </div>
@@ -3538,6 +3617,14 @@ const App = {
     this.renderProducts();
     this.openUserProfilePage(false);
     this.showToast("🗑️ Đã xóa sản phẩm khỏi Shop thành công!");
+  },
+
+  deleteMyCourse(courseId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa bài giảng khóa học này?")) return;
+    CourseManager.deleteCourse(courseId);
+    this.renderCourses();
+    this.openUserProfilePage(false);
+    this.showToast("🗑️ Đã xóa bài giảng thành công!");
   },
 
   openChangeAvatarModal() {
