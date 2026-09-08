@@ -344,11 +344,9 @@ const App = {
     if (!input) return;
     const currentUser = AuthManager.getCurrentUser();
     const baseUrl = window.location.origin + window.location.pathname;
-    if (currentUser && currentUser.phone) {
-      input.value = `${baseUrl}?ref=${currentUser.phone}`;
-    } else {
-      input.value = `${baseUrl}?ref=0902030185`;
-    }
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl;
+    const userRefCode = currentUser ? AuthManager._getUserReferralCode(currentUser) : "100000";
+    input.value = `${cleanBaseUrl}?ref=${encodeURIComponent(userRefCode)}`;
   },
 
   copyFooterAffiliateLink() {
@@ -3219,16 +3217,6 @@ const App = {
             <li>Khi người được giới thiệu nâng cấp Gói VIP 1 Tháng &mdash; <strong>Thưởng ngay +1 Tuần VIP (7 Ngày VIP)</strong>.</li>
             <li>Khi người được giới thiệu nâng cấp Gói VIP 1 Năm &mdash; <strong>Thưởng ngay +3 Tháng VIP (90 Ngày VIP)</strong>.</li>
           </ul>
-
-          <div style="background: var(--bg-card); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-            <div>
-              <div style="font-size: 0.83rem; color: var(--text-muted); font-weight: 600;">Mã Giới Thiệu Bảo Mật Của Bạn:</div>
-              <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary); letter-spacing: 2px; margin-top: 2px;">${userRefCode}</div>
-            </div>
-            <div style="font-size: 0.82rem; color: var(--text-muted); max-width: 320px;">
-              Mã 6 số ngẫu nhiên bảo mật (000001 - 999999), bảo vệ an toàn thông tin cá nhân.
-            </div>
-          </div>
 
           <div style="display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap;">
             <input type="text" id="myReferralLinkInput" class="form-control" value="${refLink}" readonly style="font-weight: 700; color: var(--primary); flex-grow: 1;">
